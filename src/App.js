@@ -5,14 +5,40 @@ import './App.css';
 class App extends Component {
   render() {
     return (
-      <div className="App">
-        <div className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h2>Welcome to React</h2>
+      <div>
+        <div className="ui fixed inverted menu">
+          <div className="ui container">
+            <a href="#" className="header item">
+              <img className="logo" src={logo} />
+              AutomaDraw
+            </a>
+            <a href="#" className="item">Home</a>
+            <div className="ui simple dropdown item">
+              Dropdown <i className="dropdown icon"></i>
+              <div className="menu">
+                <a className="item" href="#">Link Item</a>
+                <a className="item" href="#">Link Item</a>
+                <div className="divider"></div>
+                <div className="header">Header Item</div>
+                <div className="item">
+                  <i className="dropdown icon"></i>
+                    Sub Menu
+                  <div className="menu">
+                    <a className="item" href="#">Link Item</a>
+                    <a className="item" href="#">Link Item</a>
+                  </div>
+                </div>
+                <a className="item" href="#">Link Item</a>
+              </div>
+            </div>
+          </div>
         </div>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+
+        <div className="ui main text container">
+          <h1 className="ui header">Semantic UI Fixed Template</h1>
+          <p>This is a basic fixed menu template using fixed size containers.</p>
+          <p>A text container is used for the main container, which is useful for single column layouts</p>
+        </div>
       </div>
     );
   }

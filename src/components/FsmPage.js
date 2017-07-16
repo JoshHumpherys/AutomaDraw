@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import { Icon } from 'semantic-ui-react'
 import { changeFsmName, changeFsmStates, changeFsmAlphabet } from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
 
@@ -16,16 +17,16 @@ export class FsmPage extends Component {
               onChange={name => this.props.dispatch(changeFsmName(name))} />
           </h2>
           <div className="control-panel-text">
-            <span>Q: </span>
-            <EditableTextField
+            <span>Q: {this.props.fsm.states}</span>
+            {/*<EditableTextField
               value={this.props.fsm.states}
-              onChange={states => this.props.dispatch(changeFsmStates(states))} />
+              onChange={states => this.props.dispatch(changeFsmStates(states))} />*/}
           </div>
           <div className="control-panel-text">
-            <span>&Sigma;: </span>
-            <EditableTextField
+            <span>&Sigma;: {this.props.fsm.alphabet}</span>
+            {/*<EditableTextField
               value={this.props.fsm.alphabet}
-              onChange={alphabet => this.props.dispatch(changeFsmAlphabet(alphabet))} />
+              onChange={alphabet => this.props.dispatch(changeFsmAlphabet(alphabet))} />*/}
           </div>
         </div>
         <div className="center-container">

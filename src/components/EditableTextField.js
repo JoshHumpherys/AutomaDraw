@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { Icon } from 'semantic-ui-react'
 
 export default class EditableTextField extends Component {
   constructor(props) {
@@ -35,15 +36,31 @@ export default class EditableTextField extends Component {
   }
 
   render() {
-    return this.state.editing ? (
-      <input
-        className="editable"
-        type="text"
-        onKeyDown={this.handleKeyDown}
-        defaultValue={this.state.value}
-        ref={input => this.inputField = input} />
-    ) : (
-      <span className="editable" onClick={() => this.setState({ editing: true })}>{this.props.value}</span>
+    return (
+      <div className="editable-main-container">
+        <Icon />
+        <div className="editable-container">
+          {
+            this.state.editing ? (
+              <input
+                className="editable"
+                type="text"
+                onKeyDown={this.handleKeyDown}
+                defaultValue={this.state.value}
+                ref={input => this.inputField = input} />
+            ) : (
+              <span className="editable">{this.props.value}</span>
+            )
+          }
+        </div>
+        {
+          this.state.editing ? (
+            <Icon className="editable-icon" name="checkmark box" onClick={() => this.onSubmit(this.inputField.value)} />
+          ) : (
+            <Icon className="editable-icon" name="edit" onClick={() => this.setState({ editing: true })} />
+          )
+        }
+      </div>
     );
   }
 }

@@ -72,8 +72,20 @@ body {
   margin-top: 10px;
 }
 
+.editable-main-container {
+  width: 100%;
+  display: flex;
+}
+
+.editable-icon {
+  cursor: pointer;
+}
+
+.editable-container {
+  width: 100%;
+}
+
 .editable {
-  cursor: text;
   text-align: center;
   background-color: inherit;
 }

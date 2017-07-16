@@ -1,8 +1,10 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './index.css';
+import React, { Component } from 'react'
+import { connect } from 'react-redux'
+import { getCount } from './selectors/count'
+import logo from './logo.svg'
+import './index.css'
 
-class App extends Component {
+export class App extends Component {
   render() {
     return (
       <div className="main-container">
@@ -28,19 +30,15 @@ class App extends Component {
           </div>
         </div>
 
-        <div className="content-container">
-          <div className="control-panel-left">
-            left panel
-          </div>
-          <div className="center-container">
-          </div>
-          <div className="control-panel-right">
-            right panel
-          </div>
-        </div>
+        {this.props.children}
+
       </div>
     );
   }
 }
 
-export default App;
+export default connect(
+  state => ({
+    count: getCount(state)
+  })
+)(App);

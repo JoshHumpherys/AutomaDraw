@@ -1,17 +1,39 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import { changeFsmName, changeFsmStates, changeFsmAlphabet } from '../actions/fsm'
+import { getFsm } from '../selectors/fsm'
+
+import EditableTextField from './EditableTextField'
 
 export class FsmPage extends Component {
   render() {
     return (
       <div className="content-container">
         <div className="control-panel-left">
-          left panel
+          <h2 className="control-panel-text">
+            <EditableTextField
+              value={this.props.fsm.name}
+              onChange={name => this.props.dispatch(changeFsmName(name))} />
+          </h2>
+          <div className="control-panel-text">
+            <span>Q: </span>
+            <EditableTextField
+              value={this.props.fsm.states}
+              onChange={states => this.props.dispatch(changeFsmStates(states))} />
+          </div>
+          <div className="control-panel-text">
+            <span>&Sigma;: </span>
+            <EditableTextField
+              value={this.props.fsm.alphabet}
+              onChange={alphabet => this.props.dispatch(changeFsmAlphabet(alphabet))} />
+          </div>
         </div>
         <div className="center-container">
         </div>
         <div className="control-panel-right">
-          right panel
+          <div className="control-panel-text">
+            <h4>Click on a state to make it's properties appear here!</h4>
+          </div>
         </div>
       </div>
     );
@@ -19,5 +41,7 @@ export class FsmPage extends Component {
 }
 
 export default connect(
-  state => ({})
+  state => ({
+    fsm: getFsm(state)
+  })
 )(FsmPage);

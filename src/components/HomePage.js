@@ -1,21 +1,8 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { increaseCount } from '../actions/count'
-import { getCount } from '../selectors/count'
 import { Message } from 'semantic-ui-react'
 
-export class HomePage extends Component {
-  constructor(props) {
-    super(props);
-
-    this.increaseCount = this.increaseCount.bind(this);
-  }
-
-  increaseCount() {
-    this.props.dispatch(increaseCount());
-  }
-
-  render() {
+export class HomePage extends Component {render() {
     return (
       <div className="page-container">
         <Message>
@@ -32,7 +19,5 @@ export class HomePage extends Component {
 }
 
 export default connect(
-  state => ({
-    count: getCount(state)
-  })
+  state => ({})
 )(HomePage);

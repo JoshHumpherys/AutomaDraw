@@ -1,0 +1,1 @@
+export const getFsm = state => state.fsm;

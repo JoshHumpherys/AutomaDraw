@@ -1,2 +1,4 @@
-// count
-export const COUNT_INCREASED = 'COUNT_INCREASED';
+// fsm
+export const FSM_NAME_CHANGED = 'FSM_NAME_CHANGED';
+export const FSM_STATES_CHANGED = 'FSM_STATES_CHANGED';
+export const FSM_ALPHABET_CHANGED = 'FSM_ALPHABET_CHANGED';

@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { getCount } from './selectors/count'
 import logo from './logo.svg'
 import './index.css'
 
@@ -38,7 +37,5 @@ export class App extends Component {
 }
 
 export default connect(
-  state => ({
-    count: getCount(state)
-  })
+  state => ({})
 )(App);

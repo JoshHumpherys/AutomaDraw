@@ -45,6 +45,10 @@ body {
   background-color: #03A9F4;
 }
 
+.control-panel-left .control-panel-text {
+  margin-top: 10px;
+}
+
 .center-container {
   flex: 2;
   -webkit-box-shadow: inset 0 0 12px black;
@@ -61,4 +65,15 @@ body {
 .page-container {
   width: 50%;
   margin: 20px auto;
+}
+
+.control-panel-text {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.editable {
+  cursor: text;
+  text-align: center;
+  background-color: inherit;
 }

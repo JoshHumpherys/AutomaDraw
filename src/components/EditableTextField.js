@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { Icon } from 'semantic-ui-react'
+import $ from 'jquery';
 
 export default class EditableTextField extends Component {
   constructor(props) {
@@ -10,13 +11,32 @@ export default class EditableTextField extends Component {
       value: this.props.value
     };
 
+    this.startEditing = this.startEditing.bind(this);
+    this.registerCloseHandler = this.registerCloseHandler.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
   }
 
+  startEditing() {
+    this.setState({ editing: true });
+    this.registerCloseHandler();
+  }
+
+  registerCloseHandler() {
+    $(document).one('click', e => {
+      if(this.inputField) {
+        if(e.target !== this.inputField) {
+          this.onSubmit(this.inputField.value);
+        } else {
+          this.registerCloseHandler();
+        }
+      }
+    });
+  }
+
   onSubmit(value) {
     this.props.onChange(value);
-    this.setState({ editing: false });
+    this.setState({ editing: false, value });
   }
 
   handleKeyDown(e) {
@@ -57,7 +77,7 @@ export default class EditableTextField extends Component {
           this.state.editing ? (
             <Icon className="editable-icon" name="checkmark box" onClick={() => this.onSubmit(this.inputField.value)} />
           ) : (
-            <Icon className="editable-icon" name="edit" onClick={() => this.setState({ editing: true })} />
+            <Icon className="editable-icon" name="edit" onClick={this.startEditing} />
           )
         }
       </div>

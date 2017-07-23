@@ -3,11 +3,36 @@ import { connect } from 'react-redux'
 import { changeFsmName } from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
 import { arrayToString, transitionFunctionsToTable } from '../utility/utility'
-import { Table } from 'semantic-ui-react'
+import interact from 'interactjs';
 
 import EditableTextField from './EditableTextField'
 
 export class FsmPage extends Component {
+  componentDidMount() {
+    interact('.state')
+      .draggable({
+        inertia: true,
+        restrict: {
+          restriction: "parent",
+          endOnly: true,
+          elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
+        },
+        onmove: event => {
+          let target = event.target,
+          x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+          y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+          target.style.webkitTransform = target.style.transform = `translate(${x}px, ${y}px)`;
+
+          target.setAttribute('data-x', x);
+          target.setAttribute('data-y', y);
+        },
+        onend: function (event) {
+          event.target.style.backgroundColor = '#8BC34A';
+        }
+      });
+  }
+
   render() {
     const createTransitionTable = () => {
       let transitionTable = transitionFunctionsToTable(
@@ -64,6 +89,10 @@ export class FsmPage extends Component {
           </div>
         </div>
         <div className="center-container">
+          <div className="state">A</div>
+          <div className="state">B</div>
+          <div className="state">C</div>
+          <div className="state">D</div>
         </div>
         <div className="control-panel-right">
           <div className="control-panel-text">

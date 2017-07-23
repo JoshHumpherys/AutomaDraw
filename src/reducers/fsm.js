@@ -15,7 +15,11 @@ export default function fsm(
       }
     },
     initialState: 'A',
-    acceptStates: ['B']
+    acceptStates: ['B'],
+    statePositions: {
+      'A': { x: 0, y: 0},
+      'B': { x: 200, y: 100 }
+    }
   },
   action) {
   switch (action.type) {
@@ -25,6 +29,14 @@ export default function fsm(
       return { ...state, states: stringToArray(action.payload.states) };
     case actionTypes.FSM_ALPHABET_CHANGED:
       return { ...state, alphabet: stringToArray(action.payload.alphabet) };
+    case actionTypes.FSM_STATE_MOVED:
+      return {
+        ...state,
+        statePositions: {
+          ...state.statePositions,
+          [action.payload.state]: { x: action.payload.x, y: action.payload.y }
+        }
+      };
     default:
       return state;
   }

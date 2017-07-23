@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { changeFsmName } from '../actions/fsm'
+import { changeFsmName, moveStatePosition } from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
 import { arrayToString, transitionFunctionsToTable } from '../utility/utility'
 import interact from 'interactjs';
@@ -8,7 +8,23 @@ import interact from 'interactjs';
 import EditableTextField from './EditableTextField'
 
 export class FsmPage extends Component {
+  constructor(props) {
+    super(props);
+
+    this.getStateRefName = this.getStateRefName.bind(this);
+  }
+
+  getStateRefName(state) {
+    return 'state_' + state;
+  }
+
   componentDidMount() {
+    const setElementPosition = (element, x, y) => {
+      element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
+      element.setAttribute('data-x', x);
+      element.setAttribute('data-y', y);
+    };
+
     interact('.state')
       .draggable({
         inertia: true,
@@ -18,24 +34,28 @@ export class FsmPage extends Component {
           elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
         },
         onmove: event => {
-          let target = event.target,
-          x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
-          y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+          const x = (parseFloat(event.target.getAttribute('data-x')) || 0) + event.dx;
+          const y = (parseFloat(event.target.getAttribute('data-y')) || 0) + event.dy;
 
-          target.style.webkitTransform = target.style.transform = `translate(${x}px, ${y}px)`;
-
-          target.setAttribute('data-x', x);
-          target.setAttribute('data-y', y);
+          setElementPosition(event.target, x, y);
         },
-        onend: function (event) {
-          event.target.style.backgroundColor = '#8BC34A';
+        onend: event => {
+          const x = (parseFloat(event.target.getAttribute('data-x')) || 0);
+          const y = (parseFloat(event.target.getAttribute('data-y')) || 0);
+          this.props.dispatch(moveStatePosition(event.target.innerHTML, x, y));
         }
       });
+
+    this.props.fsm.states.forEach(state => {
+      const element = this[this.getStateRefName(state)];
+      const position = this.props.fsm.statePositions[state];
+      setElementPosition(element, position.x, position.y);
+    });
   }
 
   render() {
     const createTransitionTable = () => {
-      let transitionTable = transitionFunctionsToTable(
+      const transitionTable = transitionFunctionsToTable(
         this.props.fsm.states,
         this.props.fsm.alphabet,
         this.props.fsm.transitionFunctions
@@ -89,10 +109,9 @@ export class FsmPage extends Component {
           </div>
         </div>
         <div className="center-container">
-          <div className="state">A</div>
-          <div className="state">B</div>
-          <div className="state">C</div>
-          <div className="state">D</div>
+          {this.props.fsm.states.map(state => (
+            <div className="state" ref={element => this[this.getStateRefName(state)] = element}>{state}</div>
+          ))}
         </div>
         <div className="control-panel-right">
           <div className="control-panel-text">

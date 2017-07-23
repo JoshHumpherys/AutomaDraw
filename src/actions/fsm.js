@@ -11,3 +11,7 @@ export function changeFsmStates(states) {
 export function changeFsmAlphabet(alphabet) {
   return { type: actionTypes.FSM_ALPHABET_CHANGED, payload: { alphabet } };
 }
+
+export function moveStatePosition(state, x, y) {
+  return { type: actionTypes.FSM_STATE_MOVED, payload: { state, x, y } };
+}

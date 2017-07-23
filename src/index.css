@@ -89,3 +89,16 @@ body {
   text-align: center;
   background-color: inherit;
 }
+
+.transition-table {
+  display: inline-table;
+}
+
+.transition-table td {
+  border: 1px solid white;
+  padding: 5px;
+}
+
+.transition-table tr :first-child, .transition-table thead {
+  font-weight: bold;
+}

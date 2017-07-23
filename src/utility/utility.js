@@ -23,7 +23,7 @@ export const transitionFunctionsToTable = (states, alphabet, transitionFunctions
   let table = new Array(states.length);
   for(let stateIndex in states) {
     let state = states[stateIndex];
-    table[statesIndexMap[state]] = new Array(alphabet.length);
+    table[statesIndexMap[state]] = new Array(alphabet.length).fill('');
     for(let letter in transitionFunctions[state]) {
       table[statesIndexMap[state]][alphabetIndexMap[letter]] = transitionFunctions[state][letter];
     }

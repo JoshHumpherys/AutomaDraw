@@ -9,6 +9,35 @@ import EditableTextField from './EditableTextField'
 
 export class FsmPage extends Component {
   render() {
+    const createTransitionTable = () => {
+      let transitionTable = transitionFunctionsToTable(
+        this.props.fsm.states,
+        this.props.fsm.alphabet,
+        this.props.fsm.transitionFunctions
+      );
+
+      return (
+        <table className="transition-table">
+          <thead>
+            <tr>
+              <td>Q x &Sigma;</td>
+              {this.props.fsm.alphabet.map(letter => <td>{letter}</td>)}
+            </tr>
+          </thead>
+          <tbody>
+            {
+              this.props.fsm.states.map((state, i) => (
+                <tr>
+                  <td>{state}</td>
+                  {transitionTable[i].map(s => <td>{s}</td>)}
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      );
+    };
+
     return (
       <div className="content-container">
         <div className="control-panel-left">
@@ -24,33 +53,8 @@ export class FsmPage extends Component {
             <span>&Sigma;: {arrayToString(this.props.fsm.alphabet)}</span>
           </div>
           <div className="control-panel-text">
-            <span>&delta;: {transitionFunctionsToTable(
-              this.props.fsm.states,
-              this.props.fsm.alphabet,
-              this.props.fsm.transitionFunctions
-            )}</span>
             <span>&delta;: </span>
-            <table style={{display:'inline-table'}}>
-              <thead>
-                <tr>
-                  <td />
-                  <td>a</td>
-                  <td>b</td>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>A</td>
-                  <td>B</td>
-                  <td />
-                </tr>
-                <tr>
-                  <td>B</td>
-                  <td />
-                  <td>B</td>
-                </tr>
-              </tbody>
-            </table>
+            {createTransitionTable()}
           </div>
           <div className="control-panel-text">
             <span>q&#8320;: {this.props.fsm.initialState}</span>

@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { Icon } from 'semantic-ui-react'
-import { changeFsmName, changeFsmStates, changeFsmAlphabet } from '../actions/fsm'
+import { changeFsmName } from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
+import { arrayToString, transitionFunctionsToTable } from '../utility/utility'
+import { Table } from 'semantic-ui-react'
 
 import EditableTextField from './EditableTextField'
 
@@ -17,16 +18,45 @@ export class FsmPage extends Component {
               onChange={name => this.props.dispatch(changeFsmName(name))} />
           </h2>
           <div className="control-panel-text">
-            <span>Q: {this.props.fsm.states}</span>
-            {/*<EditableTextField
-              value={this.props.fsm.states}
-              onChange={states => this.props.dispatch(changeFsmStates(states))} />*/}
+            <span>Q: {arrayToString(this.props.fsm.states)}</span>
           </div>
           <div className="control-panel-text">
-            <span>&Sigma;: {this.props.fsm.alphabet}</span>
-            {/*<EditableTextField
-              value={this.props.fsm.alphabet}
-              onChange={alphabet => this.props.dispatch(changeFsmAlphabet(alphabet))} />*/}
+            <span>&Sigma;: {arrayToString(this.props.fsm.alphabet)}</span>
+          </div>
+          <div className="control-panel-text">
+            <span>&delta;: {transitionFunctionsToTable(
+              this.props.fsm.states,
+              this.props.fsm.alphabet,
+              this.props.fsm.transitionFunctions
+            )}</span>
+            <span>&delta;: </span>
+            <table style={{display:'inline-table'}}>
+              <thead>
+                <tr>
+                  <td />
+                  <td>a</td>
+                  <td>b</td>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>A</td>
+                  <td>B</td>
+                  <td />
+                </tr>
+                <tr>
+                  <td>B</td>
+                  <td />
+                  <td>B</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="control-panel-text">
+            <span>q&#8320;: {this.props.fsm.initialState}</span>
+          </div>
+          <div className="control-panel-text">
+            <span>F: {arrayToString(this.props.fsm.acceptStates)}</span>
           </div>
         </div>
         <div className="center-container">

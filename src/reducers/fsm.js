@@ -1,26 +1,30 @@
 import * as actionTypes from '../constants/actionTypes'
-
-function formatSetString(string) {
-  const list = string.split(' ').join('').split(',').join('').split('');
-  const duplicatesRemoved = Array.from(new Set(list));
-  const sortedList = duplicatesRemoved.sort();
-  return '{' + sortedList.join(', ') + '}';
-}
+import { stringToArray } from '../utility/utility'
 
 export default function fsm(
   state = {
     name: 'My FSM',
-    states: 'A, B, C',
-    alphabet: 'a, b'
+    states: ['A', 'B'],
+    alphabet: ['a', 'b'],
+    transitionFunctions: {
+      'A': {
+        a: 'B'
+      },
+      'B': {
+        b: 'B'
+      }
+    },
+    initialState: 'A',
+    acceptStates: ['B']
   },
   action) {
   switch (action.type) {
     case actionTypes.FSM_NAME_CHANGED:
       return { ...state, name: action.payload.name };
     case actionTypes.FSM_STATES_CHANGED:
-      return { ...state, states: formatSetString(action.payload.states.toUpperCase()) };
+      return { ...state, states: stringToArray(action.payload.states) };
     case actionTypes.FSM_ALPHABET_CHANGED:
-      return { ...state, alphabet: formatSetString(action.payload.alphabet.toLowerCase()) };
+      return { ...state, alphabet: stringToArray(action.payload.alphabet) };
     default:
       return state;
   }

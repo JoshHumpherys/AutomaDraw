@@ -29,7 +29,5 @@ export const transitionFunctionsToTable = (states, alphabet, transitionFunctions
     }
   }
 
-  console.log(table);
-
   return table;
 };

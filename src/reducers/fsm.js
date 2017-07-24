@@ -37,6 +37,15 @@ export default function fsm(
           [action.payload.state]: { x: action.payload.x, y: action.payload.y }
         }
       };
+    case actionTypes.FSM_STATE_ADDED:
+      return {
+        ...state,
+        states: [...state.states, action.payload.state],
+        statePositions: {
+          ...state.statePositions,
+          [action.payload.state]: { x: action.payload.x, y: action.payload.y }
+        }
+      };
     default:
       return state;
   }

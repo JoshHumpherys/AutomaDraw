@@ -15,3 +15,7 @@ export function changeFsmAlphabet(alphabet) {
 export function moveStatePosition(state, x, y) {
   return { type: actionTypes.FSM_STATE_MOVED, payload: { state, x, y } };
 }
+
+export function addState(state, x, y) {
+  return { type: actionTypes.FSM_STATE_ADDED, payload: { state, x, y } };
+}

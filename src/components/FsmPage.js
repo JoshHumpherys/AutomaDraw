@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { changeFsmName, moveStatePosition } from '../actions/fsm'
+import { changeFsmName, moveStatePosition, addState } from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
 import { arrayToString, transitionFunctionsToTable } from '../utility/utility'
-import interact from 'interactjs';
+import interact from 'interactjs'
+import $ from 'jquery'
 
 import EditableTextField from './EditableTextField'
 
@@ -12,19 +13,50 @@ export class FsmPage extends Component {
     super(props);
 
     this.getStateRefName = this.getStateRefName.bind(this);
+    this.centerContainerClicked = this.centerContainerClicked.bind(this);
+    this.setElementPosition = this.setElementPosition.bind(this);
+    this.updateStatePositions = this.updateStatePositions.bind(this);
   }
 
   getStateRefName(state) {
     return 'state_' + state;
   }
 
-  componentDidMount() {
-    const setElementPosition = (element, x, y) => {
-      element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
-      element.setAttribute('data-x', x);
-      element.setAttribute('data-y', y);
-    };
+  centerContainerClicked(e) {
+    if(e.target === this.centerContainer) {
+      const x = e.pageX - $(this.centerContainer).offset().left;
+      const y = e.pageY - $(this.centerContainer).offset().top;
 
+      // TODO remove fudge factor for centering state on mouse position
+      // TODO name state something reasonable (this is done temporarily to avoid naming conflicts but no guarantees)
+      let state = "";
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      for(let i = 0; i < 3; i++) {
+        state += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      this.props.dispatch(addState(state, x - 20, y - 20));
+    }
+  }
+
+  setElementPosition (element, x, y) {
+    element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
+    element.setAttribute('data-x', x);
+    element.setAttribute('data-y', y);
+  };
+
+  updateStatePositions() {
+    this.props.fsm.states.forEach(state => {
+      const element = this[this.getStateRefName(state)];
+      const position = this.props.fsm.statePositions[state];
+      this.setElementPosition(element, position.x, position.y);
+    });
+  }
+
+  componentDidUpdate() {
+    this.updateStatePositions();
+  }
+
+  componentDidMount() {
     interact('.state')
       .draggable({
         inertia: true,
@@ -37,7 +69,7 @@ export class FsmPage extends Component {
           const x = (parseFloat(event.target.getAttribute('data-x')) || 0) + event.dx;
           const y = (parseFloat(event.target.getAttribute('data-y')) || 0) + event.dy;
 
-          setElementPosition(event.target, x, y);
+          this.setElementPosition(event.target, x, y);
         },
         onend: event => {
           const x = (parseFloat(event.target.getAttribute('data-x')) || 0);
@@ -46,11 +78,7 @@ export class FsmPage extends Component {
         }
       });
 
-    this.props.fsm.states.forEach(state => {
-      const element = this[this.getStateRefName(state)];
-      const position = this.props.fsm.statePositions[state];
-      setElementPosition(element, position.x, position.y);
-    });
+    this.updateStatePositions();
   }
 
   render() {
@@ -74,7 +102,7 @@ export class FsmPage extends Component {
               this.props.fsm.states.map((state, i) => (
                 <tr>
                   <td>{state}</td>
-                  {transitionTable[i].map(s => <td>{s}</td>)}
+                  {transitionTable[i] ? transitionTable[i].map(s => <td>{s}</td>) : <td />}
                 </tr>
               ))
             }
@@ -108,7 +136,9 @@ export class FsmPage extends Component {
             <span>F: {arrayToString(this.props.fsm.acceptStates)}</span>
           </div>
         </div>
-        <div className="center-container">
+        <div className="center-container"
+             onClick={this.centerContainerClicked}
+             ref={element => this.centerContainer = element}>
           {this.props.fsm.states.map(state => (
             <div className="state" ref={element => this[this.getStateRefName(state)] = element}>{state}</div>
           ))}

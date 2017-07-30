@@ -43,6 +43,7 @@ body {
 .control-panel-left {
   flex: 1;
   background-color: #03A9F4;
+  overflow-y: auto;
 }
 
 .control-panel-left .control-panel-text {
@@ -60,6 +61,7 @@ body {
   flex: 1;
   background-color: #03A9F4;
   box-shadow: 0 0 0;
+  overflow-y: auto;
 }
 
 .page-container {

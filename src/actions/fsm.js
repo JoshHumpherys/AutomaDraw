@@ -19,3 +19,11 @@ export function moveStatePosition(state, x, y) {
 export function addState(state, x, y) {
   return { type: actionTypes.FSM_STATE_ADDED, payload: { state, x, y } };
 }
+
+export function selectState(state) {
+  return { type: actionTypes.FSM_STATE_SELECTED, payload: { state } };
+}
+
+export function changeStateName(state, name) {
+  return { type: actionTypes.FSM_STATE_NAME_CHANGED, payload: { state, name }}
+}

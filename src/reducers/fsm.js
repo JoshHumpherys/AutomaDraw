@@ -19,7 +19,8 @@ export default function fsm(
     statePositions: {
       'A': { x: 0, y: 0},
       'B': { x: 200, y: 100 }
-    }
+    },
+    selected: 'A'
   },
   action) {
   switch (action.type) {
@@ -45,6 +46,31 @@ export default function fsm(
           ...state.statePositions,
           [action.payload.state]: { x: action.payload.x, y: action.payload.y }
         }
+      };
+    case actionTypes.FSM_STATE_SELECTED:
+      return { ...state, selected: action.payload.state };
+    case actionTypes.FSM_STATE_NAME_CHANGED:
+      const states = [...state.states];
+      states[states.indexOf(action.payload.state)] = action.payload.name;
+      const acceptStates = [...state.acceptStates];
+      const indexOfStateInAcceptStates = acceptStates.indexOf(action.payload.state);
+      if(indexOfStateInAcceptStates !== -1) {
+        acceptStates[indexOfStateInAcceptStates] = action.payload.name;
+      }
+      return {
+        ...state,
+        states,
+        transitionFunctions: {
+          ...state.transitionFunctions,
+          [action.payload.name]: state.transitionFunctions[action.payload.state]
+        },
+        initialState: state.initialState === action.payload.state ? action.payload.name : state.initialState,
+        acceptStates,
+        statePositions: {
+          ...state.statePositions,
+          [action.payload.name]: state.statePositions[action.payload.state]
+        },
+        selected: state.selected === action.payload.state ? action.payload.name : state.selected
       };
     default:
       return state;

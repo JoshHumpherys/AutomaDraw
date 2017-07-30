@@ -50,6 +50,7 @@ export default class EditableTextField extends Component {
     if(this.state.editing) {
       this.inputField.focus();
       if(!prevState.editing) {
+        this.inputField.value = this.props.value;
         this.inputField.select();
       }
     }

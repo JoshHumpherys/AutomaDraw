@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { changeFsmName, moveStatePosition, addState } from '../actions/fsm'
+import { changeFsmName, moveStatePosition, addState, selectState, changeStateName } from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
 import { arrayToString, transitionFunctionsToTable } from '../utility/utility'
 import interact from 'interactjs'
@@ -140,12 +140,26 @@ export class FsmPage extends Component {
              onClick={this.centerContainerClicked}
              ref={element => this.centerContainer = element}>
           {this.props.fsm.states.map(state => (
-            <div className="state" ref={element => this[this.getStateRefName(state)] = element}>{state}</div>
+            <div
+              className="state"
+              ref={element => this[this.getStateRefName(state)] = element}
+              onMouseDown={() => this.props.dispatch(selectState(state))}
+            >{state}</div>
           ))}
         </div>
         <div className="control-panel-right">
           <div className="control-panel-text">
-            <h4>Click on a state to make it's properties appear here!</h4>
+            {
+              this.props.fsm.selected ? (
+                <h2 className="control-panel-text">
+                  <EditableTextField
+                    value={this.props.fsm.selected}
+                    onChange={name => this.props.dispatch(changeStateName(this.props.fsm.selected, name))}/>
+                </h2>
+              ) : (
+                <h4>Click on a state to make its properties appear here!</h4>
+              )
+            }
           </div>
         </div>
       </div>

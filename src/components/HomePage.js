@@ -2,7 +2,8 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Message } from 'semantic-ui-react'
 
-export class HomePage extends Component {render() {
+export class HomePage extends Component {
+  render() {
     return (
       <div className="page-container">
         <Message>

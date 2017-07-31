@@ -6,6 +6,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
+  cursor: auto;
 }
 
 .main-container {
@@ -114,6 +115,10 @@ body {
   font-size: 20px;
   line-height: 40px;
   box-shadow: 1px 1px 10px black;
-  cursor: move;
   position: absolute;
+  cursor: default;
+}
+
+.draggable {
+  cursor: move;
 }

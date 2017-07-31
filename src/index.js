@@ -50,10 +50,3 @@ ReactDOM.render(
 );
 
 registerServiceWorker(); // TODO learn how to use this
-
-/*
-<Router history={history}>
-    <Route path="/" component={HomePage} />
-    <Route path="/login" component={LoginPage} />
-</Router>
-*/

@@ -12,8 +12,19 @@ export class FsmPage extends Component {
   constructor(props) {
     super(props);
 
+    this.state = {
+      ctrlKey: false, // TODO this might not be true
+      draggedElement: null,
+      ctrlReleasedDuringDrag: false,
+      placingNewState: false
+    };
+
     this.getStateRefName = this.getStateRefName.bind(this);
-    this.centerContainerClicked = this.centerContainerClicked.bind(this);
+    this.centerContainerMouseDown = this.centerContainerMouseDown.bind(this);
+    this.centerContainerMouseUp = this.centerContainerMouseUp.bind(this);
+    this.centerContainerKeyDown = this.centerContainerKeyDown.bind(this);
+    this.centerContainerKeyUp = this.centerContainerKeyUp.bind(this);
+    this.getMouseCoordsRelativeToContainer = this.getMouseCoordsRelativeToContainer.bind(this);
     this.setElementPosition = this.setElementPosition.bind(this);
     this.updateStatePositions = this.updateStatePositions.bind(this);
   }
@@ -22,10 +33,15 @@ export class FsmPage extends Component {
     return 'state_' + state;
   }
 
-  centerContainerClicked(e) {
-    if(e.target === this.centerContainer) {
-      const x = e.pageX - $(this.centerContainer).offset().left;
-      const y = e.pageY - $(this.centerContainer).offset().top;
+  centerContainerMouseDown(e) {
+    if(e.target === this.centerContainer && this.state.draggedElement === null) {
+      this.setState({ placingNewState: true });
+    }
+  }
+
+  centerContainerMouseUp(e) {
+    if(this.state.placingNewState) {
+      const { x, y } = this.getMouseCoordsRelativeToContainer(e);
 
       // TODO remove fudge factor for centering state on mouse position
       // TODO name state something reasonable (this is done temporarily to avoid naming conflicts but no guarantees)
@@ -34,22 +50,47 @@ export class FsmPage extends Component {
       for(let i = 0; i < 3; i++) {
         state += chars.charAt(Math.floor(Math.random() * chars.length));
       }
-      this.props.dispatch(addState(state, x - 20, y - 20));
+      this.props.dispatch(addState(state, x, y));
+      this.setState({ placingNewState: false });
     }
   }
 
-  setElementPosition (element, x, y) {
+  centerContainerKeyDown(e) {
+    if(e.ctrlKey && !this.state.ctrlKey) {
+      this.props.fsm.states.forEach(state => $(this[this.getStateRefName(state)]).addClass('draggable'));
+      this.setState({ ctrlKey: e.ctrlKey });
+      $('body').css('cursor', 'move');
+    }
+  }
+
+  centerContainerKeyUp(e) {
+    if(!e.ctrlKey && this.state.ctrlKey) {
+      this.props.fsm.states.forEach(state => $(this[this.getStateRefName(state)]).removeClass('draggable'));
+      this.setState({ ctrlKey: e.ctrlKey });
+      $('body').css('cursor', 'default');
+    }
+  }
+
+  getMouseCoordsRelativeToContainer(event) {
+    const x = event.pageX - $(this.centerContainer).offset().left - 20;
+    const y = event.pageY - $(this.centerContainer).offset().top - 20;
+    return { x, y };
+  }
+
+  setElementPosition(element, x, y) {
     element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
     element.setAttribute('data-x', x);
     element.setAttribute('data-y', y);
-  };
+  }
 
   updateStatePositions() {
-    this.props.fsm.states.forEach(state => {
-      const element = this[this.getStateRefName(state)];
-      const position = this.props.fsm.statePositions[state];
-      this.setElementPosition(element, position.x, position.y);
-    });
+    if(this.state.draggedElement === null) {
+      this.props.fsm.states.forEach(state => {
+        const element = this[this.getStateRefName(state)];
+        const position = this.props.fsm.statePositions[state];
+        this.setElementPosition(element, position.x, position.y);
+      });
+    }
   }
 
   componentDidUpdate() {
@@ -59,22 +100,44 @@ export class FsmPage extends Component {
   componentDidMount() {
     interact('.state')
       .draggable({
-        inertia: true,
+        // TODO enable this and fix associated bugs
+        // (i.e., picking up a state while another is still moving)
+        // inertia: true,
         restrict: {
           restriction: "parent",
           endOnly: true,
           elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
         },
-        onmove: event => {
-          const x = (parseFloat(event.target.getAttribute('data-x')) || 0) + event.dx;
-          const y = (parseFloat(event.target.getAttribute('data-y')) || 0) + event.dy;
-
-          this.setElementPosition(event.target, x, y);
+        onstart: e => {
+          if(e.ctrlKey) {
+            this.setState({ draggedElement: e.target });
+          }
         },
-        onend: event => {
-          const x = (parseFloat(event.target.getAttribute('data-x')) || 0);
-          const y = (parseFloat(event.target.getAttribute('data-y')) || 0);
-          this.props.dispatch(moveStatePosition(event.target.innerHTML, x, y));
+        onmove: e => {
+          const target = this.state.draggedElement;
+          if(target !== null) {
+            const { x, y } = this.getMouseCoordsRelativeToContainer(e);
+            const state = target.innerHTML;
+
+            if(this.state.ctrlReleasedDuringDrag === false) {
+              if(e.ctrlKey) {
+                this.setElementPosition(target, x, y);
+              } else {
+                this.setState({ ctrlReleasedDuringDrag: true });
+                this.props.dispatch(moveStatePosition(state, x, y));
+              }
+            }
+          }
+        },
+        onend: e => {
+          const target = this.state.draggedElement;
+          if(target !== null) {
+            if(this.state.ctrlReleasedDuringDrag === false) {
+              const {x, y} = this.getMouseCoordsRelativeToContainer(e);
+              this.props.dispatch(moveStatePosition(target.innerHTML, x, y));
+            }
+            this.setState({ draggedElement: null, ctrlReleasedDuringDrag: false });
+          }
         }
       });
 
@@ -137,8 +200,13 @@ export class FsmPage extends Component {
           </div>
         </div>
         <div className="center-container"
-             onClick={this.centerContainerClicked}
-             ref={element => this.centerContainer = element}>
+             onMouseDown={this.centerContainerMouseDown}
+             onMouseUp={this.centerContainerMouseUp}
+             ref={element => this.centerContainer = element}
+             onKeyDown={this.centerContainerKeyDown}
+             onKeyUp={this.centerContainerKeyUp}
+             onMouseMove={e => e.target.focus()}
+             tabIndex="0"> {/* TODO figure out why tabIndex attribute is required for onKeyDown to fire */}
           {this.props.fsm.states.map(state => (
             <div
               className="state"

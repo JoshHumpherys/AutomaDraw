@@ -25,5 +25,9 @@ export function selectState(state) {
 }
 
 export function changeStateName(state, name) {
-  return { type: actionTypes.FSM_STATE_NAME_CHANGED, payload: { state, name }}
+  return { type: actionTypes.FSM_STATE_NAME_CHANGED, payload: { state, name }};
+}
+
+export function deleteState(state) {
+  return { type: actionTypes.FSM_STATE_DELETED, payload: { state } };
 }

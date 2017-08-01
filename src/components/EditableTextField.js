@@ -76,9 +76,9 @@ export default class EditableTextField extends Component {
         </div>
         {
           this.state.editing ? (
-            <Icon className="editable-icon" name="checkmark box" onClick={() => this.onSubmit(this.inputField.value)} />
+            <Icon className="clickable-icon" name="checkmark box" onClick={() => this.onSubmit(this.inputField.value)} />
           ) : (
-            <Icon className="editable-icon" name="edit" onClick={this.startEditing} />
+            <Icon className="clickable-icon" name="edit" onClick={this.startEditing} />
           )
         }
       </div>

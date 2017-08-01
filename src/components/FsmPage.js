@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { changeFsmName, moveStatePosition, addState, selectState, changeStateName } from '../actions/fsm'
+import { changeFsmName, moveStatePosition, addState, selectState, changeStateName, deleteState } from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
 import { arrayToString, transitionFunctionsToTable } from '../utility/utility'
 import interact from 'interactjs'
 import $ from 'jquery'
+import { Button, Icon } from 'semantic-ui-react'
 
 import EditableTextField from './EditableTextField'
 
@@ -219,11 +220,16 @@ export class FsmPage extends Component {
           <div className="control-panel-text">
             {
               this.props.fsm.selected ? (
-                <h2 className="control-panel-text">
-                  <EditableTextField
-                    value={this.props.fsm.selected}
-                    onChange={name => this.props.dispatch(changeStateName(this.props.fsm.selected, name))}/>
-                </h2>
+                <div>
+                  <h2 className="control-panel-text">
+                    <EditableTextField
+                      value={this.props.fsm.selected}
+                      onChange={name => this.props.dispatch(changeStateName(this.props.fsm.selected, name))}/>
+                  </h2>
+                  <Button onClick={() => this.props.dispatch(deleteState(this.props.fsm.selected))}>
+                    Delete <Icon name="trash" className="clickable-icon" />
+                  </Button>
+                </div>
               ) : (
                 <h4>Click on a state to make its properties appear here!</h4>
               )

@@ -80,10 +80,6 @@ body {
   display: flex;
 }
 
-.editable-icon {
-  cursor: pointer;
-}
-
 .editable-container {
   width: 100%;
 }
@@ -121,4 +117,8 @@ body {
 
 .draggable {
   cursor: move;
+}
+
+.clickable-icon {
+  cursor: pointer;
 }

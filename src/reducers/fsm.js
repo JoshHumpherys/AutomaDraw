@@ -68,12 +68,14 @@ export default function fsm(
         states,
         transitionFunctions: {
           ...state.transitionFunctions,
+          [action.payload.state]: undefined,
           [action.payload.name]: state.transitionFunctions[action.payload.state]
         },
         initialState: state.initialState === action.payload.state ? action.payload.name : state.initialState,
         acceptStates,
         statePositions: {
           ...state.statePositions,
+          [action.payload.state]: undefined,
           [action.payload.name]: state.statePositions[action.payload.state]
         },
         selected: state.selected === action.payload.state ? action.payload.name : state.selected

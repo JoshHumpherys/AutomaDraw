@@ -44,14 +44,37 @@ export class FsmPage extends Component {
     if(this.state.placingNewState) {
       const { x, y } = this.getMouseCoordsRelativeToContainer(e);
 
-      // TODO remove fudge factor for centering state on mouse position
-      // TODO name state something reasonable (this is done temporarily to avoid naming conflicts but no guarantees)
-      let state = "";
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-      for(let i = 0; i < 3; i++) {
-        state += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      this.props.dispatch(addState(state, x, y));
+      const getNextStateName = states => {
+        if(states.length === 0) {
+          return 'A';
+        }
+        const lastState = states
+          .map(state => state.toUpperCase())
+          .reduce((max, value) => {
+            if(value.length > max.length) {
+              return value;
+            } else if(max.length > value.length) {
+              return max;
+            }
+            return value > max ? value : max;
+          }, states[0]);
+        const getNextChar = char => String.fromCharCode(((char.charCodeAt() - 65 + 1) % 26 + 26) % 26 + 65);
+        const setChar = (string, char, i) => string.substring(0, i) + char + string.slice(i + 1);
+        let nextState = lastState;
+        for(let i = nextState.length - 1; i >= 0; i--) {
+          if(nextState.charAt(i) !== 'Z') {
+            nextState = setChar(nextState, getNextChar(nextState.charAt(i)), i);
+            break;
+          }
+          nextState = setChar(nextState, 'A', i);
+          if(i === 0) {
+            nextState = 'A' + nextState;
+          }
+        }
+        return nextState;
+      };
+
+      this.props.dispatch(addState(getNextStateName(this.props.fsm.states), x, y));
       this.setState({ placingNewState: false });
     }
   }
@@ -73,6 +96,7 @@ export class FsmPage extends Component {
   }
 
   getMouseCoordsRelativeToContainer(event) {
+    // TODO remove fudge factor for centering state on mouse position
     const x = event.pageX - $(this.centerContainer).offset().left - 20;
     const y = event.pageY - $(this.centerContainer).offset().top - 20;
     return { x, y };

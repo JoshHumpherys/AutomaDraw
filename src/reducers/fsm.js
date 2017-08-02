@@ -85,7 +85,10 @@ export default function fsm(
       const states = [...state.states];
       states.splice(states.indexOf(action.payload.state), 1);
       const acceptStates = [...state.acceptStates];
-      acceptStates.splice(acceptStates.indexOf(action.payload.state), 1);
+      const indexOfStateInAcceptStates = acceptStates.indexOf(action.payload.state);
+      if (indexOfStateInAcceptStates !== -1) {
+        acceptStates.splice(acceptStates.indexOf(action.payload.state), 1);
+      }
       return {
         ...state,
         states,
@@ -102,6 +105,10 @@ export default function fsm(
         selected: state.selected === action.payload.state ? null : state.selected
       };
     }
+    case actionTypes.FSM_INITIAL_STATE_CHANGED:
+      return { ...state, initialState: action.payload.state };
+    case actionTypes.FSM_INITIAL_STATE_REMOVED:
+      return { ...state, initialState: null };
     default:
       return state;
   }

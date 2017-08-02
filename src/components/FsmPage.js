@@ -1,11 +1,20 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { changeFsmName, moveStatePosition, addState, selectState, changeStateName, deleteState } from '../actions/fsm'
+import {
+  changeFsmName,
+  moveStatePosition,
+  addState,
+  selectState,
+  changeStateName,
+  deleteState,
+  changeInitialState,
+  removeInitialState
+} from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
 import { arrayToString, transitionFunctionsToTable } from '../utility/utility'
 import interact from 'interactjs'
 import $ from 'jquery'
-import { Button, Icon } from 'semantic-ui-react'
+import { Button, Checkbox, Icon } from 'semantic-ui-react'
 
 import EditableTextField from './EditableTextField'
 
@@ -250,6 +259,18 @@ export class FsmPage extends Component {
                       value={this.props.fsm.selected}
                       onChange={name => this.props.dispatch(changeStateName(this.props.fsm.selected, name))}/>
                   </h2>
+                  <h4>
+                    <Checkbox
+                      id="initial-state-checkbox"
+                      label="Initial State"
+                      key={this.props.fsm.selected}
+                      defaultChecked={this.props.fsm.initialState === this.props.fsm.selected}
+                      onChange={(e, value) => {
+                        this.props.dispatch(
+                          value.checked ? changeInitialState(this.props.fsm.selected) : removeInitialState()
+                        );
+                      }} />
+                  </h4>
                   <Button onClick={() => this.props.dispatch(deleteState(this.props.fsm.selected))}>
                     Delete <Icon name="trash" className="clickable-icon" />
                   </Button>

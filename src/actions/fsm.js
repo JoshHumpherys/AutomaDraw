@@ -31,3 +31,11 @@ export function changeStateName(state, name) {
 export function deleteState(state) {
   return { type: actionTypes.FSM_STATE_DELETED, payload: { state } };
 }
+
+export function changeInitialState(state) {
+  return { type: actionTypes.FSM_INITIAL_STATE_CHANGED, payload: { state } };
+}
+
+export function removeInitialState() {
+  return { type: actionTypes.FSM_INITIAL_STATE_REMOVED };
+}

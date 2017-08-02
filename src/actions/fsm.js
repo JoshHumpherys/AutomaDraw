@@ -39,3 +39,11 @@ export function changeInitialState(state) {
 export function removeInitialState() {
   return { type: actionTypes.FSM_INITIAL_STATE_REMOVED };
 }
+
+export function addAcceptState(state) {
+  return { type: actionTypes.FSM_ACCEPT_STATE_ADDED, payload: { state } };
+}
+
+export function removeAcceptState(state) {
+  return { type: actionTypes.FSM_ACCEPT_STATE_REMOVED, payload: { state } };
+}

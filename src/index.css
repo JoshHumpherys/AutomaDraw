@@ -126,3 +126,7 @@ body {
 #initial-state-checkbox label { /* TODO figure out a better way to change semantic styles */
   color: #fff;
 }
+
+#accept-state-checkbox label { /* TODO figure out a better way to change semantic styles */
+  color: #fff;
+}

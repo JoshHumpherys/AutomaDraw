@@ -109,6 +109,15 @@ export default function fsm(
       return { ...state, initialState: action.payload.state };
     case actionTypes.FSM_INITIAL_STATE_REMOVED:
       return { ...state, initialState: null };
+    case actionTypes.FSM_ACCEPT_STATE_ADDED:
+      return { ...state, acceptStates: [...state.acceptStates, action.payload.state] };
+    case actionTypes.FSM_ACCEPT_STATE_REMOVED:
+      const acceptStates = [...state.acceptStates];
+      const indexOfStateInAcceptStates = acceptStates.indexOf(action.payload.state);
+      if (indexOfStateInAcceptStates !== -1) {
+        acceptStates.splice(acceptStates.indexOf(action.payload.state), 1);
+      }
+      return { ...state, acceptStates };
     default:
       return state;
   }

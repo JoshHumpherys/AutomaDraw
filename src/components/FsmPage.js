@@ -8,7 +8,9 @@ import {
   changeStateName,
   deleteState,
   changeInitialState,
-  removeInitialState
+  removeInitialState,
+  addAcceptState,
+  removeAcceptState
 } from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
 import { arrayToString, transitionFunctionsToTable } from '../utility/utility'
@@ -268,6 +270,19 @@ export class FsmPage extends Component {
                       onChange={(e, value) => {
                         this.props.dispatch(
                           value.checked ? changeInitialState(this.props.fsm.selected) : removeInitialState()
+                        );
+                      }} />
+                  </h4>
+                  <h4>
+                    <Checkbox
+                      id="accept-state-checkbox"
+                      label="Accept State"
+                      key={this.props.fsm.selected}
+                      defaultChecked={this.props.fsm.acceptStates.includes(this.props.fsm.selected)}
+                      onChange={(e, value) => {
+                        const { selected } = this.props.fsm;
+                        this.props.dispatch(
+                          value.checked ? addAcceptState(selected) : removeAcceptState(selected)
                         );
                       }} />
                   </h4>

@@ -118,6 +118,28 @@ export default function fsm(
         acceptStates.splice(acceptStates.indexOf(action.payload.state), 1);
       }
       return { ...state, acceptStates };
+    case actionTypes.FSM_TRANSITION_ADDED:
+      return {
+        ...state,
+        transitionFunctions: {
+          ...state.transitionFunctions,
+          [action.payload.fromState]: {
+            ...state.transitionFunctions[action.payload.fromState],
+            [action.payload.letter]: action.payload.toState
+          }
+        }
+      };
+    case actionTypes.FSM_TRANSITION_REMOVED:
+      return {
+        ...state,
+        transitionFunctions: {
+          ...state.transitionFunctions,
+          [action.payload.state]: {
+            ...state.transitionFunctions[action.payload.state],
+            [action.payload.letter]: undefined
+          }
+        }
+      };
     default:
       return state;
   }

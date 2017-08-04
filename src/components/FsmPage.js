@@ -19,6 +19,7 @@ import $ from 'jquery'
 import { Button, Checkbox, Icon } from 'semantic-ui-react'
 
 import EditableTextField from './EditableTextField'
+import TransitionPopup from './TransitionPopup'
 
 export class FsmPage extends Component {
   constructor(props) {
@@ -28,7 +29,10 @@ export class FsmPage extends Component {
       ctrlKey: false, // TODO this might not be true
       draggedElement: null,
       ctrlReleasedDuringDrag: false,
-      placingNewState: false
+      placingNewState: false,
+      transitionPopupState: null,
+      transitionPopupLetter: null,
+      transitionPopup: false
     };
 
     this.getStateRefName = this.getStateRefName.bind(this);
@@ -201,7 +205,16 @@ export class FsmPage extends Component {
               this.props.fsm.states.map((state, i) => (
                 <tr>
                   <td>{state}</td>
-                  {transitionTable[i] ? transitionTable[i].map(s => <td>{s}</td>) : <td />}
+                  {
+                    transitionTable[i]
+                      ? transitionTable[i].map((s, j) =>
+                        <td onClick={() => this.setState({
+                            transitionPopup: true,
+                            transitionPopupState: state,
+                            transitionPopupLetter: this.props.fsm.alphabet[j]
+                        })}>{s}</td>)
+                      : <td />
+                  }
                 </tr>
               ))
             }
@@ -209,6 +222,17 @@ export class FsmPage extends Component {
         </table>
       );
     };
+
+    const popupContents = this.state.transitionPopup ? (
+      <TransitionPopup
+        state={this.state.transitionPopupState}
+        letter={this.state.transitionPopupLetter}
+        closePopup={() => this.setState({
+          transitionPopup: false,
+          transitionPopupState: null,
+          transitionPopupLetter: null
+        })}/>
+    ) : null;
 
     return (
       <div className="content-container">
@@ -243,6 +267,9 @@ export class FsmPage extends Component {
              onKeyUp={this.centerContainerKeyUp}
              onMouseMove={e => e.target.focus()}
              tabIndex="0"> {/* TODO figure out why tabIndex attribute is required for onKeyDown to fire */}
+           <div className={'popup' + (this.state.transitionPopup ? '' : ' popup-hidden')}>
+             {popupContents}
+           </div>
           {this.props.fsm.states.map(state => (
             <div
               className="state"

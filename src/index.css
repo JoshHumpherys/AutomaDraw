@@ -56,6 +56,7 @@ body {
   -webkit-box-shadow: inset 0 0 12px black;
   -moz-box-shadow: inset 0 0 12px black;
   box-shadow: inset 0 0 12px black;
+  position: relative;
 }
 
 .control-panel-right {
@@ -129,4 +130,22 @@ body {
 
 #accept-state-checkbox label { /* TODO figure out a better way to change semantic styles */
   color: #fff;
+}
+
+.popup {
+  position: absolute;
+  background-color: #8BC34A;
+  box-shadow: 1px 1px 10px black;
+  width: 70%;
+  left: 15%;
+  transition: margin-top .2s;
+  padding: 20px;
+}
+
+.popup > :not(:last-child) {
+  margin-bottom: 10px;
+}
+
+.popup-hidden {
+  margin-top: -20%; /* TODO figure out a non-hacky way to hide the popup */
 }

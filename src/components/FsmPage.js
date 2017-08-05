@@ -129,15 +129,20 @@ export class FsmPage extends Component {
     const transitions = this.props.fsm.transitionFunctions[element.innerHTML];
     if(transitions !== undefined) {
       Object.keys(transitions).forEach(transition => {
-        console.log(element.innerHTML);
-        console.log(transitions[transition]);
-        console.log(this.getTransitionLineRefName(element.innerHTML, transitions[transition]));
         const line = this[this.getTransitionLineRefName(element.innerHTML, transitions[transition])];
         line.setAttribute('x1', x + 20);
         line.setAttribute('y1', y + 20);
-        console.log(line);
       });
     }
+    Object.keys(this.props.fsm.transitionFunctions).forEach(state =>
+      Object.keys(this.props.fsm.transitionFunctions[state]).forEach(transition => {
+        if(this.props.fsm.transitionFunctions[state][transition] === element.innerHTML) {
+          const line = this[this.getTransitionLineRefName(state, element.innerHTML)];
+          line.setAttribute('x2', x + 20);
+          line.setAttribute('y2', y + 20);
+        }
+      })
+    );
   }
 
   updateStatePositions() {
@@ -331,7 +336,6 @@ export class FsmPage extends Component {
               this.props.fsm.states.map(state =>
                 Object.keys(this.props.fsm.transitionFunctions[state] || {}).map(transition => {
                   const toState = this.props.fsm.transitionFunctions[state][transition];
-                  console.log(state + '-(' + transition + ')->' + toState);
                   return (
                     <line
                       x1={this.props.fsm.statePositions[state].x + 20}

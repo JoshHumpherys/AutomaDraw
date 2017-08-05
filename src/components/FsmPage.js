@@ -50,8 +50,8 @@ export class FsmPage extends Component {
     return 'state_' + state;
   }
 
-  getTransitionLineRefName(state1, state2) {
-    return 'transition_' + state1 + '_' + state2;
+  getTransitionLineRefName(state1, transition, state2) {
+    return 'transition_' + state1 + '_' + transition + '_' + state2;
   }
 
   centerContainerMouseDown(e) {
@@ -129,7 +129,7 @@ export class FsmPage extends Component {
     const transitions = this.props.fsm.transitionFunctions[element.innerHTML];
     if(transitions !== undefined) {
       Object.keys(transitions).forEach(transition => {
-        const line = this[this.getTransitionLineRefName(element.innerHTML, transitions[transition])];
+        const line = this[this.getTransitionLineRefName(element.innerHTML, transition, transitions[transition])];
         line.setAttribute('x1', x + 20);
         line.setAttribute('y1', y + 20);
       });
@@ -137,7 +137,7 @@ export class FsmPage extends Component {
     Object.keys(this.props.fsm.transitionFunctions).forEach(state =>
       Object.keys(this.props.fsm.transitionFunctions[state]).forEach(transition => {
         if(this.props.fsm.transitionFunctions[state][transition] === element.innerHTML) {
-          const line = this[this.getTransitionLineRefName(state, element.innerHTML)];
+          const line = this[this.getTransitionLineRefName(state, transition, element.innerHTML)];
           line.setAttribute('x2', x + 20);
           line.setAttribute('y2', y + 20);
         }
@@ -345,7 +345,7 @@ export class FsmPage extends Component {
                       stroke="#000" strokeWidth="2"
                       markerEnd="url(#arrowhead)"
                       ref={line =>
-                        this[this.getTransitionLineRefName(state, this.props.fsm.transitionFunctions[state][transition])] = line}
+                        this[this.getTransitionLineRefName(state, transition, toState)] = line}
                     />
                   );
                 }

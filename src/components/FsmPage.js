@@ -94,7 +94,9 @@ export class FsmPage extends Component {
         return nextState;
       };
 
-      this.props.dispatch(addState(getNextStateName(this.props.fsm.states), x, y));
+      const name = getNextStateName(this.props.fsm.states);
+      this.props.dispatch(addState(name, x, y));
+      this.props.dispatch(selectState(name));
       this.setState({ placingNewState: false });
     }
   }
@@ -319,7 +321,7 @@ export class FsmPage extends Component {
            </div>
           {this.props.fsm.states.map(state => (
             <div
-              className="state"
+              className={'state' + (state === this.props.fsm.selected ? ' selected-state' : '')}
               ref={element => this[this.getStateRefName(state)] = element}
               onMouseDown={() => this.props.dispatch(selectState(state))}
               onDoubleClick={() => alert(state)}

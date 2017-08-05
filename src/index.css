@@ -23,6 +23,7 @@ body {
 .primary-text-color    { color: #212121; }
 .secondary-text-color  { color: #757575; }
 .divider-color         { border-color: #BDBDBD; }
+.accent-color-2        { background-color: #E91E63 }
 
 #navbar {
   background-color: #0288D1;
@@ -116,6 +117,10 @@ body {
   position: absolute;
   cursor: default;
   z-index: 1;
+}
+
+.selected-state {
+  background-color: #E91E63;
 }
 
 .draggable {

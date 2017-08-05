@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Button, Dropdown } from 'semantic-ui-react'
-import { addTransition } from '../actions/fsm';
+import { addTransition, removeTransition } from '../actions/fsm';
 import { getFsm } from '../selectors/fsm'
 
 export class TransitionPopup extends Component {
@@ -20,6 +20,11 @@ export class TransitionPopup extends Component {
     this.props.closePopup();
   }
 
+  onDelete() {
+    this.props.dispatch(removeTransition(this.props.state, this.props.letter));
+    this.props.closePopup();
+  }
+
   render() {
     //onClick={() => this.setState({ selected: state })}
     return (
@@ -31,6 +36,7 @@ export class TransitionPopup extends Component {
           options={this.props.states.map(state => ({ text: state, value: state }))}
           onChange={(e, data) => this.setState({ selected: data.value })} />
         <Button onClick={() => this.onSubmit()}>Submit</Button>
+        <Button onClick={() => this.onDelete()}>Delete</Button>
       </div>
     );
   }

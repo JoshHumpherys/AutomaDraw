@@ -153,8 +153,9 @@ body {
   margin-top: -20%; /* TODO figure out a non-hacky way to hide the popup */
 }
 
-#arrow-svg {
+#arrows-svg {
   width: 100%;
   height: 100%;
   position: absolute;
+  pointer-events: none
 }

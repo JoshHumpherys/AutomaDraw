@@ -325,7 +325,7 @@ export class FsmPage extends Component {
               onDoubleClick={() => alert(state)}
             >{state}</div>
           ))}
-          <svg xmlns="http://www.w3.org/2000/svg" id="arrow-svg">
+          <svg xmlns="http://www.w3.org/2000/svg" id="arrows-svg">
             <defs>
               <marker id="arrowhead" markerWidth="10" markerHeight="7"
                       refX="10" refY="3.5" orient="auto">

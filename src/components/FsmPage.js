@@ -185,13 +185,13 @@ export class FsmPage extends Component {
   }
 
   render() {
-    const createTransitionTable = () => {
-      const transitionTable = transitionFunctionsToTable(
-        this.props.fsm.states,
-        this.props.fsm.alphabet,
-        this.props.fsm.transitionFunctions
-      );
+    const transitionTable = transitionFunctionsToTable(
+      this.props.fsm.states,
+      this.props.fsm.alphabet,
+      this.props.fsm.transitionFunctions
+    );
 
+    const createTransitionTable = () => {
       return (
         <table className="transition-table">
           <thead>
@@ -218,6 +218,31 @@ export class FsmPage extends Component {
                 </tr>
               ))
             }
+          </tbody>
+        </table>
+      );
+    };
+
+    const createSingleStateTransitionTable = () => {
+      return (
+        <table className="transition-table">
+          <tbody>
+          {
+            this.props.fsm.alphabet.map((letter, i) => (
+              <tr>
+                <td>{letter}</td>
+                <td onClick={() => this.setState({
+                  transitionPopup: true,
+                  transitionPopupState: this.props.fsm.selected,
+                  transitionPopupLetter: letter
+                })}>{
+                  transitionTable
+                    [this.props.fsm.states.indexOf(this.props.fsm.selected)]
+                    [this.props.fsm.alphabet.indexOf(letter)]
+                }</td>
+              </tr>
+            ))
+          }
           </tbody>
         </table>
       );
@@ -278,51 +303,54 @@ export class FsmPage extends Component {
             >{state}</div>
           ))}
         </div>
-        <div className="control-panel-right">
-          <div className="control-panel-text">
-            {
-              this.props.fsm.selected ? (
-                <div>
-                  <h2 className="control-panel-text">
-                    <EditableTextField
-                      value={this.props.fsm.selected}
-                      onChange={name => this.props.dispatch(changeStateName(this.props.fsm.selected, name))}/>
-                  </h2>
-                  <h4>
-                    <Checkbox
-                      id="initial-state-checkbox"
-                      label="Initial State"
-                      key={this.props.fsm.selected}
-                      defaultChecked={this.props.fsm.initialState === this.props.fsm.selected}
-                      onChange={(e, value) => {
-                        this.props.dispatch(
-                          value.checked ? changeInitialState(this.props.fsm.selected) : removeInitialState()
-                        );
-                      }} />
-                  </h4>
-                  <h4>
-                    <Checkbox
-                      id="accept-state-checkbox"
-                      label="Accept State"
-                      key={this.props.fsm.selected}
-                      defaultChecked={this.props.fsm.acceptStates.includes(this.props.fsm.selected)}
-                      onChange={(e, value) => {
-                        const { selected } = this.props.fsm;
-                        this.props.dispatch(
-                          value.checked ? addAcceptState(selected) : removeAcceptState(selected)
-                        );
-                      }} />
-                  </h4>
-                  <Button onClick={() => this.props.dispatch(deleteState(this.props.fsm.selected))}>
-                    Delete <Icon name="trash" className="clickable-icon" />
-                  </Button>
-                </div>
-              ) : (
-                <h4>Click on a state to make its properties appear here!</h4>
-              )
-            }
-          </div>
-        </div>
+        {
+          this.props.fsm.selected ? (
+            <div className="control-panel-right">
+              <h2 className="control-panel-text">
+                <EditableTextField
+                  value={this.props.fsm.selected}
+                  onChange={name => this.props.dispatch(changeStateName(this.props.fsm.selected, name))}/>
+              </h2>
+              <h4 className="control-panel-text">
+                <Checkbox
+                  id="initial-state-checkbox"
+                  label="Initial State"
+                  key={this.props.fsm.selected}
+                  defaultChecked={this.props.fsm.initialState === this.props.fsm.selected}
+                  onChange={(e, value) => {
+                    this.props.dispatch(
+                      value.checked ? changeInitialState(this.props.fsm.selected) : removeInitialState()
+                    );
+                  }} />
+              </h4>
+              <h4 className="control-panel-text">
+                <Checkbox
+                  id="accept-state-checkbox"
+                  label="Accept State"
+                  key={this.props.fsm.selected}
+                  defaultChecked={this.props.fsm.acceptStates.includes(this.props.fsm.selected)}
+                  onChange={(e, value) => {
+                    const { selected } = this.props.fsm;
+                    this.props.dispatch(
+                      value.checked ? addAcceptState(selected) : removeAcceptState(selected)
+                    );
+                  }} />
+              </h4>
+              <h4 className="control-panel-text">
+                {createSingleStateTransitionTable()}
+              </h4>
+              <h4 className="control-panel-text">
+                <Button onClick={() => this.props.dispatch(deleteState(this.props.fsm.selected))}>
+                  Delete <Icon name="trash" className="clickable-icon" />
+                </Button>
+              </h4>
+            </div>
+          ) : (
+            <div className="control-panel-text">
+              <h4>Click on a state to make its properties appear here!</h4>
+            </div>
+          )
+        }
       </div>
     );
   }

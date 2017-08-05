@@ -92,6 +92,7 @@ body {
 
 .transition-table {
   display: inline-table;
+  margin-bottom: 10px;
 }
 
 .transition-table td {
@@ -140,6 +141,7 @@ body {
   left: 15%;
   transition: margin-top .2s;
   padding: 20px;
+  z-index: 5;
 }
 
 .popup > :not(:last-child) {

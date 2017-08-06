@@ -37,6 +37,8 @@ export class FsmPage extends Component {
 
     this.getStateRefName = this.getStateRefName.bind(this);
     this.getTransitionLineRefName = this.getTransitionLineRefName.bind(this);
+    this.getTransitionLineStartCoords = this.getTransitionLineStartCoords.bind(this);
+    this.getTransitionLineEndCoords = this.getTransitionLineEndCoords.bind(this);
     this.centerContainerMouseDown = this.centerContainerMouseDown.bind(this);
     this.centerContainerMouseUp = this.centerContainerMouseUp.bind(this);
     this.centerContainerKeyDown = this.centerContainerKeyDown.bind(this);
@@ -52,6 +54,20 @@ export class FsmPage extends Component {
 
   getTransitionLineRefName(state1, transition, state2) {
     return 'transition_' + state1 + '_' + transition + '_' + state2;
+  }
+
+  getTransitionLineStartCoords(coords) {
+    return { x: coords.x + 20, y: coords.y + 20 };
+  }
+
+  getTransitionLineEndCoords(coords) {
+    if(coords.x1 === coords.x2 && coords.y1 === coords.y2) {
+      return { x: coords.x2 + 20, y: coords.y2 + 20 };
+    }
+    const r = Math.sqrt(Math.pow(coords.x2 - coords.x1, 2) + Math.pow(coords.y2 - coords.y1, 2));
+    const offsetX = 23 * (coords.x2 - coords.x1) / r; // TODO why 23 instead of 22?
+    const offsetY = 23 * (coords.y2 - coords.y1) / r;
+    return { x: coords.x2 + 20 - offsetX, y: coords.y2 + 20 - offsetY };
   }
 
   centerContainerMouseDown(e) {
@@ -132,16 +148,34 @@ export class FsmPage extends Component {
     if(transitions !== undefined) {
       Object.keys(transitions).forEach(transition => {
         const line = this[this.getTransitionLineRefName(element.innerHTML, transition, transitions[transition])];
-        line.setAttribute('x1', x + 20);
-        line.setAttribute('y1', y + 20);
+        const startCoords = this.getTransitionLineStartCoords({
+          x: x,
+          y: y
+        });
+        const endCoords = this.getTransitionLineEndCoords({
+          x1: x,
+          y1: y,
+          x2: this.props.fsm.statePositions[transitions[transition]].x,
+          y2: this.props.fsm.statePositions[transitions[transition]].y
+        });
+        line.setAttribute('x1', startCoords.x);
+        line.setAttribute('y1', startCoords.y);
+        line.setAttribute('x2', endCoords.x);
+        line.setAttribute('y2', endCoords.y);
       });
     }
     Object.keys(this.props.fsm.transitionFunctions).forEach(state =>
       Object.keys(this.props.fsm.transitionFunctions[state]).forEach(transition => {
         if(this.props.fsm.transitionFunctions[state][transition] === element.innerHTML) {
           const line = this[this.getTransitionLineRefName(state, transition, element.innerHTML)];
-          line.setAttribute('x2', x + 20);
-          line.setAttribute('y2', y + 20);
+          const coords = this.getTransitionLineEndCoords({
+            x1: this.props.fsm.statePositions[state].x,
+            y1: this.props.fsm.statePositions[state].y,
+            x2: x,
+            y2: y
+          });
+          line.setAttribute('x2', coords.x);
+          line.setAttribute('y2', coords.y);
         }
       })
     );
@@ -324,13 +358,13 @@ export class FsmPage extends Component {
               className={'state' + (state === this.props.fsm.selected ? ' selected-state' : '')}
               ref={element => this[this.getStateRefName(state)] = element}
               onMouseDown={() => this.props.dispatch(selectState(state))}
-              onDoubleClick={() => alert(state)}
+              onDoubleClick={() => alert('TODO design controls and possibly use this for something')} // TODO
             >{state}</div>
           ))}
           <svg xmlns="http://www.w3.org/2000/svg" id="arrows-svg">
             <defs>
               <marker id="arrowhead" markerWidth="10" markerHeight="7"
-                      refX="10" refY="3.5" orient="auto">
+                      refX="8" refY="3.5" orient="auto">
                 <polygon points="0 0, 10 3.5, 0 7" />
               </marker>
             </defs>
@@ -338,20 +372,29 @@ export class FsmPage extends Component {
               this.props.fsm.states.map(state =>
                 Object.keys(this.props.fsm.transitionFunctions[state] || {}).map(transition => {
                   const toState = this.props.fsm.transitionFunctions[state][transition];
+                  const startCoords = this.getTransitionLineStartCoords({
+                    x: this.props.fsm.statePositions[state].x,
+                    y: this.props.fsm.statePositions[state].y
+                  });
+                  const endCoords = this.getTransitionLineEndCoords({
+                    x1: this.props.fsm.statePositions[state].x,
+                    y1: this.props.fsm.statePositions[state].y,
+                    x2: this.props.fsm.statePositions[toState].x,
+                    y2: this.props.fsm.statePositions[toState].y
+                  });
                   return (
                     <line
-                      x1={this.props.fsm.statePositions[state].x + 20}
-                      y1={this.props.fsm.statePositions[state].y + 20}
-                      x2={this.props.fsm.statePositions[toState].x + 20}
-                      y2={this.props.fsm.statePositions[toState].y + 20}
+                      x1={startCoords.x}
+                      y1={startCoords.y}
+                      x2={endCoords.x}
+                      y2={endCoords.y}
                       stroke="#000" strokeWidth="2"
                       markerEnd="url(#arrowhead)"
                       ref={line =>
                         this[this.getTransitionLineRefName(state, transition, toState)] = line}
                     />
                   );
-                }
-                )
+                })
               )
             }
           </svg>

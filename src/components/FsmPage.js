@@ -164,9 +164,9 @@ export class FsmPage extends Component {
         line.setAttribute('y2', endCoords.y);
       });
     }
-    Object.keys(this.props.fsm.transitionFunctions).forEach(state =>
+    Object.keys(this.props.fsm.transitionFunctions).forEach(state => {
       Object.keys(this.props.fsm.transitionFunctions[state]).forEach(transition => {
-        if(this.props.fsm.transitionFunctions[state][transition] === element.innerHTML) {
+        if (this.props.fsm.transitionFunctions[state][transition] === element.innerHTML) {
           const line = this[this.getTransitionLineRefName(state, transition, element.innerHTML)];
           const coords = this.getTransitionLineEndCoords({
             x1: this.props.fsm.statePositions[state].x,
@@ -178,7 +178,7 @@ export class FsmPage extends Component {
           line.setAttribute('y2', coords.y);
         }
       })
-    );
+    });
   }
 
   updateStatePositions() {

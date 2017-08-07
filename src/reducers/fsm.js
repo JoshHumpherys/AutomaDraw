@@ -89,13 +89,21 @@ export default function fsm(
       if (indexOfStateInAcceptStates !== -1) {
         acceptStates.splice(acceptStates.indexOf(action.payload.state), 1);
       }
+        let transitionFunctions = { ...state.transitionFunctions };
+        Object.keys(transitionFunctions).forEach(state => {
+          if(state !== action.payload.state) {
+            Object.keys(transitionFunctions[state]).forEach(transition => {
+              if (transitionFunctions[state][transition] === action.payload.state) {
+                transitionFunctions[state][transition] = undefined;
+              }
+            });
+          }
+        });
+        delete transitionFunctions[action.payload.state]; // TODO use Immutable.js Map
       return {
         ...state,
         states,
-        transitionFunctions: {
-          ...state.transitionFunctions,
-          [action.payload.state]: undefined
-        },
+        transitionFunctions,
         initialState: state.initialState === action.payload.state ? null : state.initialState,
         acceptStates,
         statePositions: {

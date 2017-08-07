@@ -442,8 +442,8 @@ export class FsmPage extends Component {
               </h4>
             </div>
           ) : (
-            <div className="control-panel-text">
-              <h4>Click on a state to make its properties appear here!</h4>
+            <div className="control-panel-right">
+              <h4 className="control-panel-text">Click on a state to make its properties appear here!</h4>
             </div>
           )
         }

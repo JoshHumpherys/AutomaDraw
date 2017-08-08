@@ -13,21 +13,17 @@ export const transitionFunctionsToString = transitionFunctions => {
 };
 
 export const transitionFunctionsToTable = (states, alphabet, transitionFunctions) => {
-  const sortedStates = states.sort();
-  const sortedAlphabet = alphabet.sort();
-  let statesIndexMap = {};
-  states.forEach((state, i) => statesIndexMap[state] = i);
-  let alphabetIndexMap = {};
-  alphabet.forEach((letter, i) => alphabetIndexMap[letter] = i);
-
   let table = new Array(states.length);
-  for(let stateIndex in states) {
-    let state = states[stateIndex];
-    table[statesIndexMap[state]] = new Array(alphabet.length).fill('');
-    for(let letter in transitionFunctions[state]) {
-      table[statesIndexMap[state]][alphabetIndexMap[letter]] = transitionFunctions[state][letter];
+  let i = 0;
+  for(const state of states) {
+    const transitions = transitionFunctions.get(state);
+    table[i] = new Array(alphabet.length);
+    let j = 0;
+    for(const letter of alphabet) {
+      table[i][j] = (transitions ? transitions.get(letter) : '') || '';
+      j++;
     }
+    i++;
   }
-
   return table;
 };

@@ -33,7 +33,7 @@ export class TransitionPopup extends Component {
           placeholder={this.state.selected}
           fluid
           selection
-          options={this.props.states.map(state => ({ text: state, value: state }))}
+          options={this.props.states.toArray().map(state => ({ text: state, value: state }))}/* TODO don't call toArray */
           onChange={(e, data) => this.setState({ selected: data.value })} />
         <Button onClick={() => this.onSubmit()}>Submit</Button>
         <Button onClick={() => this.onDelete()}>Delete</Button>

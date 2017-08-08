@@ -1,25 +1,22 @@
 import * as actionTypes from '../constants/actionTypes'
 import { stringToArray } from '../utility/utility'
+import { OrderedSet, OrderedMap } from 'immutable';
 
 export default function fsm(
   state = {
     name: 'My FSM',
-    states: ['A', 'B'],
-    alphabet: ['a', 'b'],
-    transitionFunctions: {
-      'A': {
-        a: 'B'
-      },
-      'B': {
-        b: 'B'
-      }
-    },
+    states: new OrderedSet(['A', 'B']),
+    alphabet: new OrderedSet(['a', 'b']),
+    transitionFunctions: new OrderedMap({
+      'A': new OrderedMap({ a: 'B' }),
+      'B': new OrderedMap({ b: 'B' })
+    }),
     initialState: 'A',
-    acceptStates: ['B'],
-    statePositions: {
-      'A': { x: 0, y: 0},
+    acceptStates: new OrderedSet(['B']),
+    statePositions: new OrderedMap({
+      'A': { x: 0, y: 0 },
       'B': { x: 200, y: 100 }
-    },
+    }),
     selected: 'A'
   },
   action) {
@@ -28,126 +25,93 @@ export default function fsm(
       return { ...state, name: action.payload.name };
     }
     case actionTypes.FSM_STATES_CHANGED: {
-      return { ...state, states: stringToArray(action.payload.states) };
+      return { ...state, states: new OrderedSet(stringToArray(action.payload.states)) };
     }
     case actionTypes.FSM_ALPHABET_CHANGED: {
-      return { ...state, alphabet: stringToArray(action.payload.alphabet) };
+      return { ...state, alphabet: new OrderedSet(stringToArray(action.payload.alphabet)) };
     }
     case actionTypes.FSM_STATE_MOVED: {
       return {
         ...state,
-        statePositions: {
-          ...state.statePositions,
-          [action.payload.state]: { x: action.payload.x, y: action.payload.y }
-        }
+        statePositions: state.statePositions.set(action.payload.state, { x: action.payload.x, y: action.payload.y })
       };
     }
     case actionTypes.FSM_STATE_ADDED: {
       return {
         ...state,
-        states: [...state.states, action.payload.state],
-        statePositions: {
-          ...state.statePositions,
-          [action.payload.state]: { x: action.payload.x, y: action.payload.y }
-        }
+        states: state.states.add(action.payload.state),
+        statePositions: state.statePositions.set(action.payload.state, { x: action.payload.x, y: action.payload.y })
       };
     }
     case actionTypes.FSM_STATE_SELECTED: {
       return { ...state, selected: action.payload.state };
     }
     case actionTypes.FSM_STATE_NAME_CHANGED: {
-      const states = [...state.states];
-      states[states.indexOf(action.payload.state)] = action.payload.name;
-      const acceptStates = [...state.acceptStates];
-      const indexOfStateInAcceptStates = acceptStates.indexOf(action.payload.state);
-      if (indexOfStateInAcceptStates !== -1) {
-        acceptStates[indexOfStateInAcceptStates] = action.payload.name;
-      }
       return {
         ...state,
-        states,
-        transitionFunctions: {
-          ...state.transitionFunctions,
-          [action.payload.state]: undefined,
-          [action.payload.name]: state.transitionFunctions[action.payload.state]
-        },
+        states: state.states.remove(action.payload.state).add(action.payload.name),
+        transitionFunctions: state.transitionFunctions
+          .set(action.payload.name, state.transitionFunctions.get(action.payload.state))
+          .remove(action.payload.state)
+          .map(transitionFunction => console.log(transitionFunction)), // TODO remove all transitions to this state
         initialState: state.initialState === action.payload.state ? action.payload.name : state.initialState,
-        acceptStates,
-        statePositions: {
-          ...state.statePositions,
-          [action.payload.state]: undefined,
-          [action.payload.name]: state.statePositions[action.payload.state]
-        },
+        acceptStates: state.acceptStates.subtract(action.payload.state).add(action.payload.name),
+        statePositions: state.statePositions
+          .set(action.payload.name, state.statePositions.get(action.payload.state))
+          .remove(action.payload.state),
         selected: state.selected === action.payload.state ? action.payload.name : state.selected
       };
     }
     case actionTypes.FSM_STATE_DELETED: {
-      const states = [...state.states];
-      states.splice(states.indexOf(action.payload.state), 1);
-      const acceptStates = [...state.acceptStates];
-      const indexOfStateInAcceptStates = acceptStates.indexOf(action.payload.state);
-      if (indexOfStateInAcceptStates !== -1) {
-        acceptStates.splice(acceptStates.indexOf(action.payload.state), 1);
-      }
-        let transitionFunctions = { ...state.transitionFunctions };
-        Object.keys(transitionFunctions).forEach(state => {
-          if(state !== action.payload.state) {
-            Object.keys(transitionFunctions[state]).forEach(transition => {
-              if (transitionFunctions[state][transition] === action.payload.state) {
-                transitionFunctions[state][transition] = undefined;
-              }
-            });
-          }
-        });
-        delete transitionFunctions[action.payload.state]; // TODO use Immutable.js Map, or a HashMap
       return {
         ...state,
-        states,
-        transitionFunctions,
+        states: state.state.remove(action.payload.state),
+        transitionFunctions: state.transitionFunctions.mapEntries(([ key, value ]) => {
+          if(key !== action.payload.state) {
+            return value.filter(value => {
+              return value !== action.payload.state;
+            });
+          }
+          return value;
+        }).remove(action.payload.state),
         initialState: state.initialState === action.payload.state ? null : state.initialState,
-        acceptStates,
-        statePositions: {
-          ...state.statePositions,
-          [action.payload.state]: undefined
-        },
+        acceptStates: state.acceptStates.remove(action.payload.state),
+        statePositions: state.statePositions.remove(action.payload.state),
         selected: state.selected === action.payload.state ? null : state.selected
       };
     }
-    case actionTypes.FSM_INITIAL_STATE_CHANGED:
+    case actionTypes.FSM_INITIAL_STATE_CHANGED: {
       return { ...state, initialState: action.payload.state };
-    case actionTypes.FSM_INITIAL_STATE_REMOVED:
+    }
+    case actionTypes.FSM_INITIAL_STATE_REMOVED: {
       return { ...state, initialState: null };
-    case actionTypes.FSM_ACCEPT_STATE_ADDED:
-      return { ...state, acceptStates: [...state.acceptStates, action.payload.state] };
-    case actionTypes.FSM_ACCEPT_STATE_REMOVED:
-      const acceptStates = [...state.acceptStates];
-      const indexOfStateInAcceptStates = acceptStates.indexOf(action.payload.state);
-      if (indexOfStateInAcceptStates !== -1) {
-        acceptStates.splice(acceptStates.indexOf(action.payload.state), 1);
-      }
-      return { ...state, acceptStates };
-    case actionTypes.FSM_TRANSITION_ADDED:
+    }
+    case actionTypes.FSM_ACCEPT_STATE_ADDED: {
+      return { ...state, acceptStates: state.acceptStates.add(action.payload.state) };
+    }
+    case actionTypes.FSM_ACCEPT_STATE_REMOVED: {
+      return { ...state, acceptStates: state.acceptStates.remove(action.payload.state) };
+    }
+    case actionTypes.FSM_TRANSITION_ADDED: {
+      const { fromState, letter, toState } = action.payload;
+      const transitionsFromState = state.transitionFunctions.get(fromState) || new OrderedMap();
       return {
         ...state,
-        transitionFunctions: {
-          ...state.transitionFunctions,
-          [action.payload.fromState]: {
-            ...state.transitionFunctions[action.payload.fromState],
-            [action.payload.letter]: action.payload.toState
-          }
-        }
+        transitionFunctions: state.transitionFunctions
+          .set(fromState, transitionsFromState.set(letter, toState)),
       };
-    case actionTypes.FSM_TRANSITION_REMOVED:
+    }
+    case actionTypes.FSM_TRANSITION_REMOVED: {
       const transition = state.transitionFunctions[action.payload.state];
       delete transition[action.payload.letter];
       return {
         ...state,
-        transitionFunctions: {
-          ...state.transitionFunctions,
-          [action.payload.state]: transition
-        }
+        transitionFunctions: state.transitionFunctions
+          .set(action.payload.state, state.transitionFunctions.get(action.payload.state).remove(action.payload.letter))
       };
-    default:
+    }
+    default: {
       return state;
+    }
   }
 }

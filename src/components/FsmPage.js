@@ -81,10 +81,11 @@ export class FsmPage extends Component {
       const { x, y } = this.getMouseCoordsRelativeToContainer(e);
 
       const getNextStateName = states => {
-        if(states.length === 0) {
+        const statesArray = states.toArray();
+        if(statesArray.length === 0) {
           return 'A';
         }
-        const lastState = states
+        const lastState = statesArray
           .map(state => state.toUpperCase())
           .reduce((max, value) => {
             if(value.length > max.length) {
@@ -93,7 +94,7 @@ export class FsmPage extends Component {
               return max;
             }
             return value > max ? value : max;
-          }, states[0]);
+          }, statesArray[0]);
         const getNextChar = char => String.fromCharCode(((char.charCodeAt() - 65 + 1) % 26 + 26) % 26 + 65);
         const setChar = (string, char, i) => string.substring(0, i) + char + string.slice(i + 1);
         let nextState = lastState;
@@ -164,28 +165,31 @@ export class FsmPage extends Component {
         line.setAttribute('y2', endCoords.y);
       });
     }
-    Object.keys(this.props.fsm.transitionFunctions).forEach(state => {
-      Object.keys(this.props.fsm.transitionFunctions[state]).forEach(transition => {
-        if (this.props.fsm.transitionFunctions[state][transition] === element.innerHTML) {
-          const line = this[this.getTransitionLineRefName(state, transition, element.innerHTML)];
-          const coords = this.getTransitionLineEndCoords({
-            x1: this.props.fsm.statePositions[state].x,
-            y1: this.props.fsm.statePositions[state].y,
-            x2: x,
-            y2: y
-          });
-          line.setAttribute('x2', coords.x);
-          line.setAttribute('y2', coords.y);
+    for(const [ state, transitions ] of this.props.fsm.transitionFunctions) {
+      if(transitions) {
+        for(const letter of transitions.keys()) {
+          if(this.props.fsm.transitionFunctions.get(state).get(letter) === element.innerHTML) {
+            const line = this[this.getTransitionLineRefName(state, letter, element.innerHTML)];
+            const statePosition = this.props.fsm.statePositions.get(state);
+            const coords = this.getTransitionLineEndCoords({
+              x1: statePosition.x,
+              y1: statePosition.y,
+              x2: x,
+              y2: y
+            });
+            line.setAttribute('x2', coords.x);
+            line.setAttribute('y2', coords.y);
+          }
         }
-      })
-    });
+      }
+    }
   }
 
   updateStatePositions() {
     if(this.state.draggedElement === null) {
       this.props.fsm.states.forEach(state => {
         const element = this[this.getStateRefName(state)];
-        const position = this.props.fsm.statePositions[state];
+        const position = this.props.fsm.statePositions.get(state);
         this.setElementPosition(element, position.x, position.y);
       });
     }
@@ -295,8 +299,8 @@ export class FsmPage extends Component {
                   transitionPopupLetter: letter
                 })}>{
                   transitionTable
-                    [this.props.fsm.states.indexOf(this.props.fsm.selected)]
-                    [this.props.fsm.alphabet.indexOf(letter)]
+                    [this.props.fsm.states.toArray().indexOf(this.props.fsm.selected)] // TODO don't call toArray
+                    [this.props.fsm.alphabet.toArray().indexOf(letter)]
                 }</td>
               </tr>
             ))
@@ -305,6 +309,39 @@ export class FsmPage extends Component {
         </table>
       );
     };
+
+    const lines = [];
+    for(const fromState of this.props.fsm.states) {
+      const transitions = this.props.fsm.transitionFunctions.get(fromState);
+      if(transitions) {
+        for(const [ letter, toState ] of transitions.entries()) {
+          const fromStatePosition = this.props.fsm.statePositions.get(fromState);
+          const toStatePosition = this.props.fsm.statePositions.get(toState);
+          const startCoords = this.getTransitionLineStartCoords({
+            x: fromStatePosition.x,
+            y: fromStatePosition.y
+          });
+          const endCoords = this.getTransitionLineEndCoords({
+            x1: fromStatePosition.x,
+            y1: fromStatePosition.y,
+            x2: toStatePosition.x,
+            y2: toStatePosition.y
+          });
+          lines.push(
+            <line
+              x1={startCoords.x}
+              y1={startCoords.y}
+              x2={endCoords.x}
+              y2={endCoords.y}
+              stroke="#000" strokeWidth="2"
+              markerEnd="url(#arrowhead)"
+              ref={line =>
+                this[this.getTransitionLineRefName(fromState, letter, toState)] = line}
+            />
+          );
+        }
+      }
+    }
 
     const popupContents = this.state.transitionPopup ? (
       <TransitionPopup
@@ -368,35 +405,7 @@ export class FsmPage extends Component {
                 <polygon points="0 0, 10 3.5, 0 7" />
               </marker>
             </defs>
-            {
-              this.props.fsm.states.map(state =>
-                Object.keys(this.props.fsm.transitionFunctions[state] || {}).map(transition => {
-                  const toState = this.props.fsm.transitionFunctions[state][transition];
-                  const startCoords = this.getTransitionLineStartCoords({
-                    x: this.props.fsm.statePositions[state].x,
-                    y: this.props.fsm.statePositions[state].y
-                  });
-                  const endCoords = this.getTransitionLineEndCoords({
-                    x1: this.props.fsm.statePositions[state].x,
-                    y1: this.props.fsm.statePositions[state].y,
-                    x2: this.props.fsm.statePositions[toState].x,
-                    y2: this.props.fsm.statePositions[toState].y
-                  });
-                  return (
-                    <line
-                      x1={startCoords.x}
-                      y1={startCoords.y}
-                      x2={endCoords.x}
-                      y2={endCoords.y}
-                      stroke="#000" strokeWidth="2"
-                      markerEnd="url(#arrowhead)"
-                      ref={line =>
-                        this[this.getTransitionLineRefName(state, transition, toState)] = line}
-                    />
-                  );
-                })
-              )
-            }
+            {lines}
           </svg>
         </div>
         {

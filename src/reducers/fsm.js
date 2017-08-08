@@ -99,7 +99,7 @@ export default function fsm(
             });
           }
         });
-        delete transitionFunctions[action.payload.state]; // TODO use Immutable.js Map
+        delete transitionFunctions[action.payload.state]; // TODO use Immutable.js Map, or a HashMap
       return {
         ...state,
         states,
@@ -138,14 +138,13 @@ export default function fsm(
         }
       };
     case actionTypes.FSM_TRANSITION_REMOVED:
+      const transition = state.transitionFunctions[action.payload.state];
+      delete transition[action.payload.letter];
       return {
         ...state,
         transitionFunctions: {
           ...state.transitionFunctions,
-          [action.payload.state]: {
-            ...state.transitionFunctions[action.payload.state],
-            [action.payload.letter]: undefined
-          }
+          [action.payload.state]: transition
         }
       };
     default:

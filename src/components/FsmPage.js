@@ -233,7 +233,7 @@ export class FsmPage extends Component {
           const target = this.state.draggedElement;
           if(target !== null) {
             if(this.state.ctrlReleasedDuringDrag === false) {
-              const {x, y} = this.getMouseCoordsRelativeToContainer(e);
+              const { x, y } = this.getMouseCoordsRelativeToContainer(e);
               this.props.dispatch(moveStatePosition(target.innerHTML, x, y));
             }
             this.setState({ draggedElement: null, ctrlReleasedDuringDrag: false });
@@ -252,6 +252,30 @@ export class FsmPage extends Component {
     );
 
     const createTransitionTable = () => {
+      const rows = [];
+      for(const fromState of this.props.fsm.states.keys()) {
+        const cols = [];
+        cols.push(<td>{fromState}</td>);
+        for(const letter of this.props.fsm.alphabet.keys()) {
+          cols.push(
+            transitionTable[rows.length] ? (
+              <td onClick={() => this.setState({
+                transitionPopup: true,
+                transitionPopupState: fromState,
+                transitionPopupLetter: letter
+              })}>{transitionTable[rows.length][cols.length - 1]}</td>
+            ) : (
+              <td />
+            )
+          );
+        }
+        rows.push(
+          <tr>
+            {cols}
+          </tr>
+        );
+      }
+
       return (
         <table className="transition-table">
           <thead>
@@ -261,23 +285,7 @@ export class FsmPage extends Component {
             </tr>
           </thead>
           <tbody>
-            {
-              this.props.fsm.states.map((state, i) => (
-                <tr>
-                  <td>{state}</td>
-                  {
-                    transitionTable[i]
-                      ? transitionTable[i].map((s, j) =>
-                        <td onClick={() => this.setState({
-                            transitionPopup: true,
-                            transitionPopupState: state,
-                            transitionPopupLetter: this.props.fsm.alphabet[j]
-                        })}>{s}</td>)
-                      : <td />
-                  }
-                </tr>
-              ))
-            }
+            {rows}
           </tbody>
         </table>
       );

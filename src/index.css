@@ -99,6 +99,7 @@ body {
 .transition-table td {
   border: 1px solid white;
   padding: 5px;
+  min-width: 21px; /* TODO put whitespace in instead? */
 }
 
 .transition-table tr :first-child, .transition-table thead {

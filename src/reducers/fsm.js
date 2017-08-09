@@ -102,8 +102,6 @@ export default function fsm(
       };
     }
     case actionTypes.FSM_TRANSITION_REMOVED: {
-      const transition = state.transitionFunctions[action.payload.state];
-      delete transition[action.payload.letter];
       return {
         ...state,
         transitionFunctions: state.transitionFunctions

@@ -9,24 +9,23 @@ export class TransitionPopup extends Component {
     super(props);
 
     this.state = {
-      selected: props.states[0]
+      selected: props.toState !== "" ? props.toState : props.states.toArray()[0]
     };
 
     this.onSubmit = this.onSubmit.bind(this);
   }
 
   onSubmit() {
-    this.props.dispatch(addTransition(this.props.state, this.state.selected, this.props.letter));
+    this.props.dispatch(addTransition(this.props.fromState, this.state.selected, this.props.letter));
     this.props.closePopup();
   }
 
   onDelete() {
-    this.props.dispatch(removeTransition(this.props.state, this.props.letter));
+    this.props.dispatch(removeTransition(this.props.fromState, this.props.letter));
     this.props.closePopup();
   }
 
   render() {
-    //onClick={() => this.setState({ selected: state })}
     return (
       <div>
         <Dropdown

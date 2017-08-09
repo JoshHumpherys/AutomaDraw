@@ -30,8 +30,9 @@ export class FsmPage extends Component {
       draggedElement: null,
       ctrlReleasedDuringDrag: false,
       placingNewState: false,
-      transitionPopupState: null,
+      transitionPopupToState: null,
       transitionPopupLetter: null,
+      transitionPopupFromState: null,
       transitionPopup: false
     };
 
@@ -257,13 +258,15 @@ export class FsmPage extends Component {
         const cols = [];
         cols.push(<td>{fromState}</td>);
         for(const letter of this.props.fsm.alphabet.keys()) {
+          const toState = transitionTable[rows.length][cols.length - 1];
           cols.push(
             transitionTable[rows.length] ? (
               <td onClick={() => this.setState({
                 transitionPopup: true,
-                transitionPopupState: fromState,
-                transitionPopupLetter: letter
-              })}>{transitionTable[rows.length][cols.length - 1]}</td>
+                transitionPopupToState: toState,
+                transitionPopupLetter: letter,
+                transitionPopupFromState: fromState
+              })}>{toState}</td>
             ) : (
               <td />
             )
@@ -296,20 +299,21 @@ export class FsmPage extends Component {
         <table className="transition-table">
           <tbody>
           {
-            this.props.fsm.alphabet.map((letter, i) => (
-              <tr>
-                <td>{letter}</td>
-                <td onClick={() => this.setState({
-                  transitionPopup: true,
-                  transitionPopupState: this.props.fsm.selected,
-                  transitionPopupLetter: letter
-                })}>{
-                  transitionTable
-                    [this.props.fsm.states.toArray().indexOf(this.props.fsm.selected)] // TODO don't call toArray
-                    [this.props.fsm.alphabet.toArray().indexOf(letter)]
-                }</td>
-              </tr>
-            ))
+            this.props.fsm.alphabet.map(letter => {
+              const transition = this.props.fsm.transitionFunctions.get(this.props.fsm.selected);
+              const toState = transition ? transition.get(letter) : '';
+              return (
+                <tr>
+                  <td>{letter}</td>
+                  <td onClick={() => this.setState({
+                    transitionPopup: true,
+                    transitionPopupFromState: this.props.fsm.selected,
+                    transitionPopupLetter: letter,
+                    transitionPopupToState: toState || ''
+                  })}>{toState}</td>
+                </tr>
+              );
+            })
           }
           </tbody>
         </table>
@@ -351,12 +355,14 @@ export class FsmPage extends Component {
 
     const popupContents = this.state.transitionPopup ? (
       <TransitionPopup
-        state={this.state.transitionPopupState}
+        fromState={this.state.transitionPopupFromState}
         letter={this.state.transitionPopupLetter}
+        toState={this.state.transitionPopupToState}
         closePopup={() => this.setState({
           transitionPopup: false,
-          transitionPopupState: null,
-          transitionPopupLetter: null
+          transitionPopupFromState: null,
+          transitionPopupLetter: null,
+          transitionPopupToState: null
         })}/>
     ) : null;
 

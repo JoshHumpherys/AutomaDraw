@@ -145,25 +145,23 @@ export class FsmPage extends Component {
     element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
     element.setAttribute('data-x', x);
     element.setAttribute('data-y', y);
-    const transitions = this.props.fsm.transitionFunctions[element.innerHTML];
+    const transitions = this.props.fsm.transitionFunctions.get(element.innerHTML);
     if(transitions !== undefined) {
-      Object.keys(transitions).forEach(transition => {
-        const line = this[this.getTransitionLineRefName(element.innerHTML, transition, transitions[transition])];
-        const startCoords = this.getTransitionLineStartCoords({
-          x: x,
-          y: y
-        });
+      for(const letter of transitions.keys()) {
+        const line = this[this.getTransitionLineRefName(element.innerHTML, letter, transitions.get(letter))];
+        const toStatePosition = this.props.fsm.statePositions.get(transitions.get(letter));
+        const startCoords = this.getTransitionLineStartCoords({ x, y });
         const endCoords = this.getTransitionLineEndCoords({
           x1: x,
           y1: y,
-          x2: this.props.fsm.statePositions[transitions[transition]].x,
-          y2: this.props.fsm.statePositions[transitions[transition]].y
+          x2: toStatePosition.x,
+          y2: toStatePosition.y
         });
         line.setAttribute('x1', startCoords.x);
         line.setAttribute('y1', startCoords.y);
         line.setAttribute('x2', endCoords.x);
         line.setAttribute('y2', endCoords.y);
-      });
+      }
     }
     for(const [ state, transitions ] of this.props.fsm.transitionFunctions) {
       if(transitions) {

@@ -65,14 +65,14 @@ export default function fsm(
     case actionTypes.FSM_STATE_DELETED: {
       return {
         ...state,
-        states: state.state.remove(action.payload.state),
+        states: state.states.remove(action.payload.state),
         transitionFunctions: state.transitionFunctions.mapEntries(([ key, value ]) => {
-          if(key !== action.payload.state) {
-            return value.filter(value => {
-              return value !== action.payload.state;
-            });
+          if(key !== undefined) {
+            if(key !== action.payload.state) {
+              return [key, value.filter(value => value !== action.payload.state)];
+            }
           }
-          return value;
+          return [key, value];
         }).remove(action.payload.state),
         initialState: state.initialState === action.payload.state ? null : state.initialState,
         acceptStates: state.acceptStates.remove(action.payload.state),

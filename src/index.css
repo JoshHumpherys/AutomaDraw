@@ -15,15 +15,17 @@ body {
   height: 100%;
 }
 
-.dark-primary-color    { background-color: #0288D1; }
-.default-primary-color { background-color: #03A9F4; }
-.light-primary-color   { background-color: #B3E5FC; }
-.text-primary-color    { color: #FFFFFF; }
-.accent-color          { background-color: #8BC34A; }
-.primary-text-color    { color: #212121; }
-.secondary-text-color  { color: #757575; }
-.divider-color         { border-color: #BDBDBD; }
-.accent-color-2        { background-color: #E91E63 }
+.dark-primary-color          { background-color: #0288D1; }
+.default-primary-color       { background-color: #03A9F4; }
+.light-primary-color         { background-color: #B3E5FC; }
+.text-primary-color          { color: #FFFFFF; }
+.accent-color                { background-color: #8BC34A; }
+.dark-accent-color           { background-color: #689F38; }
+.primary-text-color          { color: #212121; }
+.secondary-text-color        { color: #757575; }
+.divider-color               { border-color: #BDBDBD; }
+.secondary-accent-color      { background-color: #E91E63; }
+.dark-secondary-accent-color { background-color: #C2185B; }
 
 #navbar {
   background-color: #0288D1;
@@ -116,16 +118,28 @@ body {
   line-height: 40px;
   box-shadow: 1px 1px 10px black;
   position: absolute;
-  cursor: default;
+  cursor: pointer;
   z-index: 1;
+}
+
+.state:hover {
+  /* background-color: #689F38; */
 }
 
 .selected-state {
   background-color: #E91E63;
 }
 
+.selected-state:active {
+  cursor: grab;
+}
+
+.selected-state:hover {
+  /* background-color: #C2185B; */
+}
+
 .draggable {
-  cursor: move;
+  /* cursor: move; */
 }
 
 .clickable-icon {

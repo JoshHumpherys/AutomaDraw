@@ -123,7 +123,9 @@ export class FsmPage extends Component {
     if(e.ctrlKey && !this.state.ctrlKey) {
       this.props.fsm.states.forEach(state => $(this[this.getStateRefName(state)]).addClass('draggable'));
       this.setState({ ctrlKey: e.ctrlKey });
+      /*
       $('body').css('cursor', 'move');
+      */
     }
   }
 
@@ -131,7 +133,9 @@ export class FsmPage extends Component {
     if(!e.ctrlKey && this.state.ctrlKey) {
       this.props.fsm.states.forEach(state => $(this[this.getStateRefName(state)]).removeClass('draggable'));
       this.setState({ ctrlKey: e.ctrlKey });
+      /*
       $('body').css('cursor', 'default');
+      */
     }
   }
 
@@ -210,9 +214,12 @@ export class FsmPage extends Component {
           elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
         },
         onstart: e => {
+          this.setState({ draggedElement: e.target });
+          /*
           if(e.ctrlKey) {
             this.setState({ draggedElement: e.target });
           }
+          */
         },
         onmove: e => {
           const target = this.state.draggedElement;
@@ -220,6 +227,8 @@ export class FsmPage extends Component {
             const { x, y } = this.getMouseCoordsRelativeToContainer(e);
             const state = target.innerHTML;
 
+            this.setElementPosition(target, x, y);
+            /*
             if(this.state.ctrlReleasedDuringDrag === false) {
               if(e.ctrlKey) {
                 this.setElementPosition(target, x, y);
@@ -228,15 +237,20 @@ export class FsmPage extends Component {
                 this.props.dispatch(moveStatePosition(state, x, y));
               }
             }
+            */
           }
         },
         onend: e => {
           const target = this.state.draggedElement;
           if(target !== null) {
+            const { x, y } = this.getMouseCoordsRelativeToContainer(e);
+            this.props.dispatch(moveStatePosition(target.innerHTML, x, y));
+            /*
             if(this.state.ctrlReleasedDuringDrag === false) {
               const { x, y } = this.getMouseCoordsRelativeToContainer(e);
               this.props.dispatch(moveStatePosition(target.innerHTML, x, y));
             }
+            */
             this.setState({ draggedElement: null, ctrlReleasedDuringDrag: false });
           }
         }

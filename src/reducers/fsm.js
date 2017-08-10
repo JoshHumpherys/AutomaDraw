@@ -115,6 +115,12 @@ export default function fsm(
           .set(action.payload.state, state.transitionFunctions.get(action.payload.state).remove(action.payload.letter))
       };
     }
+    case actionTypes.FSM_LETTER_ADDED: {
+      return {
+        ...state,
+        alphabet: state.alphabet.add(action.payload.letter)
+      }
+    }
     default: {
       return state;
     }

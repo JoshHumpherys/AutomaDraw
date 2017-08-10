@@ -10,7 +10,9 @@ import {
   changeInitialState,
   removeInitialState,
   addAcceptState,
-  removeAcceptState
+  removeAcceptState,
+  addTransition,
+  addLetter
 } from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
 import { arrayToString, transitionFunctionsToTable } from '../utility/utility'
@@ -33,8 +35,12 @@ export class FsmPage extends Component {
       transitionPopupToState: null,
       transitionPopupLetter: null,
       transitionPopupFromState: null,
-      transitionPopup: false
+      transitionPopup: false,
+      creatingTransition: false,
+      creatingTransitionFromState: null
     };
+
+    this.creatingTransitionLineRef = 'creating_transition_line_ref';
 
     this.getStateRefName = this.getStateRefName.bind(this);
     this.getTransitionLineRefName = this.getTransitionLineRefName.bind(this);
@@ -42,8 +48,10 @@ export class FsmPage extends Component {
     this.getTransitionLineEndCoords = this.getTransitionLineEndCoords.bind(this);
     this.centerContainerMouseDown = this.centerContainerMouseDown.bind(this);
     this.centerContainerMouseUp = this.centerContainerMouseUp.bind(this);
+    this.centerContainerMouseMove = this.centerContainerMouseMove.bind(this);
     this.centerContainerKeyDown = this.centerContainerKeyDown.bind(this);
     this.centerContainerKeyUp = this.centerContainerKeyUp.bind(this);
+    this.stateMouseUp = this.stateMouseUp.bind(this);
     this.getMouseCoordsRelativeToContainer = this.getMouseCoordsRelativeToContainer.bind(this);
     this.setElementPosition = this.setElementPosition.bind(this);
     this.updateStatePositions = this.updateStatePositions.bind(this);
@@ -71,14 +79,19 @@ export class FsmPage extends Component {
     return { x: coords.x2 + 20 - offsetX, y: coords.y2 + 20 - offsetY };
   }
 
+  startCreatingTransition(state) {
+    this.setState({ creatingTransition: true, creatingTransitionFromState: state });
+  }
+
   centerContainerMouseDown(e) {
-    if(e.target === this.centerContainer && this.state.draggedElement === null) {
+    if(e.target === this.centerContainer && this.state.draggedElement === null && !this.state.creatingTransition) {
+      // TODO evaluate if I need to store this in state because ctrl key is no longer required to drag state
       this.setState({ placingNewState: true });
     }
   }
 
   centerContainerMouseUp(e) {
-    if(this.state.placingNewState) {
+    if(this.state.placingNewState && !this.state.creatingTransition) {
       const { x, y } = this.getMouseCoordsRelativeToContainer(e);
 
       const getNextStateName = states => {
@@ -117,6 +130,19 @@ export class FsmPage extends Component {
       this.props.dispatch(selectState(name));
       this.setState({ placingNewState: false });
     }
+
+    this.setState({ creatingTransition: false, creatingTransitionFromState: null });
+  }
+
+  centerContainerMouseMove(e) {
+    e.target.focus();
+    if(this.state.creatingTransition) {
+      const line = this[this.creatingTransitionLineRef];
+      const mouseCoords = this.getMouseCoordsRelativeToContainer(e);
+      const endCoords = this.getTransitionLineStartCoords(mouseCoords); // TODO rename this function
+      line.setAttribute('x2', endCoords.x);
+      line.setAttribute('y2', endCoords.y);
+    }
   }
 
   centerContainerKeyDown(e) {
@@ -136,6 +162,26 @@ export class FsmPage extends Component {
       /*
       $('body').css('cursor', 'default');
       */
+    }
+  }
+
+  stateMouseUp(e) {
+    if(this.state.creatingTransition) {
+      const getLetter = () => {
+        // TODO make something better than a prompt
+        const letter = prompt('What letter should be used for this transition?');
+        if(letter !== null && letter.length !== 1) {
+          return getLetter();
+        }
+        return letter;
+      };
+      const letter = getLetter();
+      if(letter !== null) { // user clicked cancel
+        if(!this.props.fsm.alphabet.contains(letter)) {
+          this.props.dispatch(addLetter(letter));
+        }
+        this.props.dispatch(addTransition(this.state.creatingTransitionFromState, e.target.innerHTML, letter));
+      }
     }
   }
 
@@ -334,6 +380,19 @@ export class FsmPage extends Component {
       );
     };
 
+    const createLine = (startCoords, endCoords, refString) => (
+      <line
+        x1={startCoords.x}
+        y1={startCoords.y}
+        x2={endCoords.x}
+        y2={endCoords.y}
+        stroke="#000" strokeWidth="2"
+        markerEnd="url(#arrowhead)"
+        ref={line =>
+          this[refString] = line}
+      />
+    );
+
     const lines = [];
     for(const fromState of this.props.fsm.states) {
       const transitions = this.props.fsm.transitionFunctions.get(fromState);
@@ -351,20 +410,20 @@ export class FsmPage extends Component {
             x2: toStatePosition.x,
             y2: toStatePosition.y
           });
-          lines.push(
-            <line
-              x1={startCoords.x}
-              y1={startCoords.y}
-              x2={endCoords.x}
-              y2={endCoords.y}
-              stroke="#000" strokeWidth="2"
-              markerEnd="url(#arrowhead)"
-              ref={line =>
-                this[this.getTransitionLineRefName(fromState, letter, toState)] = line}
-            />
-          );
+          lines.push(createLine(startCoords, endCoords, this.getTransitionLineRefName(fromState, letter, toState)));
         }
       }
+    }
+    if(this.state.creatingTransition) {
+      const statePosition = this.props.fsm.statePositions.get(this.state.creatingTransitionFromState);
+      const startCoords = this.getTransitionLineStartCoords(statePosition);
+      lines.push(
+        createLine(
+          startCoords,
+          startCoords,
+          this.creatingTransitionLineRef
+        )
+      );
     }
 
     const popupContents = this.state.transitionPopup ? (
@@ -411,7 +470,7 @@ export class FsmPage extends Component {
              ref={element => this.centerContainer = element}
              onKeyDown={this.centerContainerKeyDown}
              onKeyUp={this.centerContainerKeyUp}
-             onMouseMove={e => e.target.focus()}
+             onMouseMove={this.centerContainerMouseMove}
              tabIndex="0"> {/* TODO figure out why tabIndex attribute is required for onKeyDown to fire */}
            <div className={'popup' + (this.state.transitionPopup ? '' : ' popup-hidden')}>
              {popupContents}
@@ -421,7 +480,8 @@ export class FsmPage extends Component {
               className={'state' + (state === this.props.fsm.selected ? ' selected-state' : '')}
               ref={element => this[this.getStateRefName(state)] = element}
               onMouseDown={() => this.props.dispatch(selectState(state))}
-              onDoubleClick={() => alert('TODO design controls and possibly use this for something')} // TODO
+              onMouseUp={this.stateMouseUp} // TODO create transition
+              onDoubleClick={() => this.startCreatingTransition(state)}
             >{state}</div>
           ))}
           <svg xmlns="http://www.w3.org/2000/svg" id="arrows-svg">

@@ -395,33 +395,61 @@ export class FsmPage extends Component {
       );
     };
 
-    const createTransitionLine = (startCoords, endCoords, refString) => (
-      <line
-        x1={startCoords.x}
-        y1={startCoords.y}
-        x2={endCoords.x}
-        y2={endCoords.y}
-        stroke="#000"
-        strokeWidth="2"
-        markerEnd="url(#arrowhead)"
-        ref={line => this[refString] = line}
-      />
-    );
+    const createTransitionLine = (fromStatePosition, toStatePosition, letter, refString) => {
+      const startCoords = this.getTransitionLineStartCoords(fromStatePosition);
+      const endCoords = this.getTransitionLineEndCoords({
+        x1: fromStatePosition.x,
+        y1: fromStatePosition.y,
+        x2: toStatePosition.x,
+        y2: toStatePosition.y
+      });
+      const fromStateCenterPosition = this.getTransitionLineStartCoords(fromStatePosition);
+      const toStateCenterPosition = this.getTransitionLineStartCoords(toStatePosition);
+      const dx = toStateCenterPosition.x - fromStateCenterPosition.x;
+      const dy = toStateCenterPosition.y - fromStateCenterPosition.y;
+      const r = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+      return {
+        line: <line
+          x1={startCoords.x}
+          y1={startCoords.y}
+          x2={endCoords.x}
+          y2={endCoords.y}
+          stroke="#000"
+          strokeWidth="2"
+          markerEnd="url(#arrowhead)"
+          ref={line => this[refString] = line}/>,
+        text: <text
+          x={(fromStateCenterPosition.x + toStateCenterPosition.x) / 2 + 8 * dy / r * (dx >= 0 ? 1 : -1)}
+          y={(fromStateCenterPosition.y + toStateCenterPosition.y) / 2 - 8 * Math.abs(dx) / r}
+          fontSize="20"
+          textAnchor="middle">{letter}</text>
+      };
+    };
 
     // TODO don't hardcode radius values
-    const createTransitionLoop = (startCoords, refString) => (
-      <ellipse
-        cx={startCoords.x}
-        cy={startCoords.y}
-        rx="10"
-        ry="30"
-        fill="none"
-        stroke="#000"
-        strokeWidth="2"
-        markerEnd="url(#arrowhead)"
-        ref={loop => this[refString] = loop}
-      />
-    );
+    const createTransitionLoop = (fromStatePosition, letter, refString) => {
+      const startCoords = this.getTransitionLoopStartCoords({
+        x: fromStatePosition.x,
+        y: fromStatePosition.y
+      });
+      return {
+        loop: <ellipse
+          cx={startCoords.x}
+          cy={startCoords.y}
+          rx="10"
+          ry="30"
+          fill="none"
+          stroke="#000"
+          strokeWidth="2"
+          markerEnd="url(#arrowhead)"
+          ref={loop => this[refString] = loop} />,
+        text: <text
+          x={startCoords.x}
+          y={startCoords.y - 30 - 8}
+          fontSize="20"
+          textAnchor="middle">{letter}</text>
+      };
+    };
 
     const lines = [];
     for(const fromState of this.props.fsm.states) {
@@ -431,38 +459,28 @@ export class FsmPage extends Component {
           const fromStatePosition = this.props.fsm.statePositions.get(fromState);
           const refString = this.getTransitionLineRefName(fromState, letter, toState);
           if(fromState === toState) {
-            const startCoords = this.getTransitionLoopStartCoords({
-              x: fromStatePosition.x,
-              y: fromStatePosition.y
-            });
-            lines.push(createTransitionLoop(startCoords, refString));
+            const transitionLoop = createTransitionLoop(fromStatePosition, letter, refString);
+            lines.push(transitionLoop.loop);
+            lines.push(transitionLoop.text);
           }
           else {
             const toStatePosition = this.props.fsm.statePositions.get(toState);
-            const startCoords = this.getTransitionLineStartCoords({
-              x: fromStatePosition.x,
-              y: fromStatePosition.y
-            });
-            const endCoords = this.getTransitionLineEndCoords({
-              x1: fromStatePosition.x,
-              y1: fromStatePosition.y,
-              x2: toStatePosition.x,
-              y2: toStatePosition.y
-            });
-            lines.push(createTransitionLine(startCoords, endCoords, refString));
+            const transitionLine = createTransitionLine(fromStatePosition, toStatePosition, letter, refString);
+            lines.push(transitionLine.line);
+            lines.push(transitionLine.text);
           }
         }
       }
     }
     if(this.state.creatingTransition) {
       const statePosition = this.props.fsm.statePositions.get(this.state.creatingTransitionFromState);
-      const startCoords = this.getTransitionLineStartCoords(statePosition);
       lines.push(
         createTransitionLine(
-          startCoords,
-          startCoords,
+          statePosition,
+          statePosition,
+          null,
           this.creatingTransitionLineRef
-        )
+        ).line
       );
     }
 

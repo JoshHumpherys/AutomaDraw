@@ -408,6 +408,8 @@ export class FsmPage extends Component {
       const dx = toStateCenterPosition.x - fromStateCenterPosition.x;
       const dy = toStateCenterPosition.y - fromStateCenterPosition.y;
       const r = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+      const textX = (fromStateCenterPosition.x + toStateCenterPosition.x) / 2 + 8 * dy / r * (dx >= 0 ? 1 : -1);
+      const textY = (fromStateCenterPosition.y + toStateCenterPosition.y) / 2 - 8 * Math.abs(dx) / r;
       return {
         line: <line
           x1={startCoords.x}
@@ -419,8 +421,9 @@ export class FsmPage extends Component {
           markerEnd="url(#arrowhead)"
           ref={line => this[refString] = line}/>,
         text: <text
-          x={(fromStateCenterPosition.x + toStateCenterPosition.x) / 2 + 8 * dy / r * (dx >= 0 ? 1 : -1)}
-          y={(fromStateCenterPosition.y + toStateCenterPosition.y) / 2 - 8 * Math.abs(dx) / r}
+          x={textX}
+          y={textY}
+          transform={`rotate(${Math.atan(dy / dx) * 180 / Math.PI} ${textX}, ${textY})`}
           fontSize="20"
           textAnchor="middle">{letter}</text>
       };
@@ -538,7 +541,7 @@ export class FsmPage extends Component {
               className={'state' + (state === this.props.fsm.selected ? ' selected-state' : '')}
               ref={element => this[this.getStateRefName(state)] = element}
               onMouseDown={() => this.props.dispatch(selectState(state))}
-              onMouseUp={this.stateMouseUp} // TODO create transition
+              onMouseUp={this.stateMouseUp}
               onDoubleClick={() => this.startCreatingTransition(state)}
             >{state}</div>
           ))}

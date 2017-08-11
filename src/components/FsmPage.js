@@ -44,6 +44,7 @@ export class FsmPage extends Component {
 
     this.getStateRefName = this.getStateRefName.bind(this);
     this.getTransitionLineRefName = this.getTransitionLineRefName.bind(this);
+    this.getTransitionLoopStartCoords = this.getTransitionLoopStartCoords.bind(this);
     this.getTransitionLineStartCoords = this.getTransitionLineStartCoords.bind(this);
     this.getTransitionLineEndCoords = this.getTransitionLineEndCoords.bind(this);
     this.centerContainerMouseDown = this.centerContainerMouseDown.bind(this);
@@ -63,6 +64,10 @@ export class FsmPage extends Component {
 
   getTransitionLineRefName(state1, transition, state2) {
     return 'transition_' + state1 + '_' + transition + '_' + state2;
+  }
+
+  getTransitionLoopStartCoords(coords) {
+    return { x: coords.x + 20, y: coords.y };
   }
 
   getTransitionLineStartCoords(coords) {
@@ -196,22 +201,32 @@ export class FsmPage extends Component {
     element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
     element.setAttribute('data-x', x);
     element.setAttribute('data-y', y);
+    const fromState = element.innerHTML;
     const transitions = this.props.fsm.transitionFunctions.get(element.innerHTML);
     if(transitions !== undefined) {
       for(const letter of transitions.keys()) {
-        const line = this[this.getTransitionLineRefName(element.innerHTML, letter, transitions.get(letter))];
-        const toStatePosition = this.props.fsm.statePositions.get(transitions.get(letter));
-        const startCoords = this.getTransitionLineStartCoords({ x, y });
-        const endCoords = this.getTransitionLineEndCoords({
-          x1: x,
-          y1: y,
-          x2: toStatePosition.x,
-          y2: toStatePosition.y
-        });
-        line.setAttribute('x1', startCoords.x);
-        line.setAttribute('y1', startCoords.y);
-        line.setAttribute('x2', endCoords.x);
-        line.setAttribute('y2', endCoords.y);
+        const toState = transitions.get(letter);
+        if(fromState === toState) {
+          const loop = this[this.getTransitionLineRefName(fromState, letter, toState)];
+          const startCoords = this.getTransitionLoopStartCoords({ x, y });
+          loop.setAttribute('cx', startCoords.x);
+          loop.setAttribute('cy', startCoords.y);
+        }
+        else {
+          const line = this[this.getTransitionLineRefName(fromState, letter, toState)];
+          const toStatePosition = this.props.fsm.statePositions.get(toState);
+          const startCoords = this.getTransitionLineStartCoords({ x, y });
+          const endCoords = this.getTransitionLineEndCoords({
+            x1: x,
+            y1: y,
+            x2: toStatePosition.x,
+            y2: toStatePosition.y
+          });
+          line.setAttribute('x1', startCoords.x);
+          line.setAttribute('y1', startCoords.y);
+          line.setAttribute('x2', endCoords.x);
+          line.setAttribute('y2', endCoords.y);
+        }
       }
     }
     for(const [ state, transitions ] of this.props.fsm.transitionFunctions) {
@@ -380,16 +395,31 @@ export class FsmPage extends Component {
       );
     };
 
-    const createLine = (startCoords, endCoords, refString) => (
+    const createTransitionLine = (startCoords, endCoords, refString) => (
       <line
         x1={startCoords.x}
         y1={startCoords.y}
         x2={endCoords.x}
         y2={endCoords.y}
-        stroke="#000" strokeWidth="2"
+        stroke="#000"
+        strokeWidth="2"
         markerEnd="url(#arrowhead)"
-        ref={line =>
-          this[refString] = line}
+        ref={line => this[refString] = line}
+      />
+    );
+
+    // TODO don't hardcode radius values
+    const createTransitionLoop = (startCoords, refString) => (
+      <ellipse
+        cx={startCoords.x}
+        cy={startCoords.y}
+        rx="10"
+        ry="30"
+        fill="none"
+        stroke="#000"
+        strokeWidth="2"
+        markerEnd="url(#arrowhead)"
+        ref={loop => this[refString] = loop}
       />
     );
 
@@ -399,18 +429,28 @@ export class FsmPage extends Component {
       if(transitions) {
         for(const [ letter, toState ] of transitions.entries()) {
           const fromStatePosition = this.props.fsm.statePositions.get(fromState);
-          const toStatePosition = this.props.fsm.statePositions.get(toState);
-          const startCoords = this.getTransitionLineStartCoords({
-            x: fromStatePosition.x,
-            y: fromStatePosition.y
-          });
-          const endCoords = this.getTransitionLineEndCoords({
-            x1: fromStatePosition.x,
-            y1: fromStatePosition.y,
-            x2: toStatePosition.x,
-            y2: toStatePosition.y
-          });
-          lines.push(createLine(startCoords, endCoords, this.getTransitionLineRefName(fromState, letter, toState)));
+          const refString = this.getTransitionLineRefName(fromState, letter, toState);
+          if(fromState === toState) {
+            const startCoords = this.getTransitionLoopStartCoords({
+              x: fromStatePosition.x,
+              y: fromStatePosition.y
+            });
+            lines.push(createTransitionLoop(startCoords, refString));
+          }
+          else {
+            const toStatePosition = this.props.fsm.statePositions.get(toState);
+            const startCoords = this.getTransitionLineStartCoords({
+              x: fromStatePosition.x,
+              y: fromStatePosition.y
+            });
+            const endCoords = this.getTransitionLineEndCoords({
+              x1: fromStatePosition.x,
+              y1: fromStatePosition.y,
+              x2: toStatePosition.x,
+              y2: toStatePosition.y
+            });
+            lines.push(createTransitionLine(startCoords, endCoords, refString));
+          }
         }
       }
     }
@@ -418,7 +458,7 @@ export class FsmPage extends Component {
       const statePosition = this.props.fsm.statePositions.get(this.state.creatingTransitionFromState);
       const startCoords = this.getTransitionLineStartCoords(statePosition);
       lines.push(
-        createLine(
+        createTransitionLine(
           startCoords,
           startCoords,
           this.creatingTransitionLineRef

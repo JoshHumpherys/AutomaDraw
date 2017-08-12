@@ -44,6 +44,7 @@ export class FsmPage extends Component {
     };
 
     this.creatingTransitionLineRef = 'creating_transition_line_ref';
+    this.contextMenuRef = 'context_menu_ref';
 
     this.getStateRefName = this.getStateRefName.bind(this);
     this.getTransitionLineRefName = this.getTransitionLineRefName.bind(this);
@@ -322,17 +323,15 @@ export class FsmPage extends Component {
   stateRightClick(e, state) {
     this.setState({ contextMenuState: state });
 
-    const { target } = e;
-
     const self = this;
 
     const registerCloseHandler = () => {
       $(document).one('click', e => {
         if(self.state.contextMenuState) {
-          if(e.target === target) {
-            self.registerCloseHandler();
+          if(e.target === this[this.contextMenuRef]) {
+            registerCloseHandler();
           } else {
-            this.setState({ contextMenuState: null });
+            self.setState({ contextMenuState: null });
           }
         }
       });
@@ -691,7 +690,10 @@ export class FsmPage extends Component {
           </svg>
           {
             this.state.contextMenuState !== null ? (
-              <div className="ui dropdown" style={{ top: dropdownY, left: dropdownX }}>
+              <div
+                className="ui dropdown"
+                style={{ top: dropdownY, left: dropdownX }}
+                ref={dropdown => this[this.contextMenuRef] = dropdown}>
                 <Dropdown.Menu className="visible">
                   <Dropdown.Item>
                     <Checkbox

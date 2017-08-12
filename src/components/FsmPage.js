@@ -125,7 +125,12 @@ export class FsmPage extends Component {
   }
 
   centerContainerMouseDown(e) {
-    if(e.target === this.centerContainer && this.state.draggedElement === null && !this.state.creatingTransition) {
+    if(
+      e.target === this.centerContainer &&
+      this.state.draggedElement === null &&
+      this.state.creatingTransition === false &&
+      this.state.contextMenuState === null
+    ) {
       // TODO evaluate if I need to store this in state because ctrl key is no longer required to drag state
       this.setState({ placingNewState: true });
     }
@@ -344,19 +349,17 @@ export class FsmPage extends Component {
 
     const self = this;
 
-    const registerCloseHandler = () => {
-      $(document).one('click', e => {
-        if(self.state.contextMenuState) {
-          if(e.target === this[this.contextMenuRef]) {
-            registerCloseHandler();
-          } else {
-            self.setState({ contextMenuState: null });
-          }
-        }
-      });
+    const removeContextMenu = () => {
+      self.setState({ contextMenuState: null });
     };
 
-    registerCloseHandler();
+    $(document).one('mousedown', e => {
+      if(self.state.contextMenuState !== null) {
+        if(!$.contains(this[this.contextMenuRef], e.target)) {
+          removeContextMenu();
+        }
+      }
+    });
   }
 
   renameStateWithPopup(state) {
@@ -721,9 +724,10 @@ export class FsmPage extends Component {
           {
             this.state.contextMenuState !== null ? (
               <div
-                className="ui dropdown"
+                className="ui dropdown context-menu"
                 style={{ top: dropdownY, left: dropdownX }}
-                ref={dropdown => this[this.contextMenuRef] = dropdown}>
+                ref={dropdown => this[this.contextMenuRef] = dropdown}
+                onClick={() => this.setState({ contextMenuState: null })}>
                 <Dropdown.Menu className="visible">
                   <Dropdown.Item>
                     <Checkbox
@@ -757,7 +761,7 @@ export class FsmPage extends Component {
                   <Dropdown.Item
                     text="Add transition"
                     icon="add"
-                    onClick={() => alert('TODO add transition')} />
+                    onClick={() => this.startCreatingTransition(this.state.contextMenuState)} />
                   <Dropdown.Divider />
                   <Dropdown.Item
                     text="Delete"

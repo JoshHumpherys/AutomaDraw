@@ -162,6 +162,10 @@ body {
   line-height: 34px; /* TODO figure out why this is necessary for vertically centering text */
 }
 
+.ui.dropdown.context-menu {
+  position: absolute;
+}
+
 .draggable {
   /* cursor: move; */
 }
@@ -194,8 +198,4 @@ body {
   height: 100%;
   position: absolute;
   pointer-events: none
-}
-
-.ui.dropdown {
-  position: absolute;
 }

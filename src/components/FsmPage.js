@@ -381,11 +381,12 @@ export class FsmPage extends Component {
     }
   }
 
-  uploadFile(file) {
+  uploadFile(file, callback) {
     const fileReader = new FileReader();
 
     fileReader.onload = e => {
       this.props.dispatch(initializeFsmFromJsonString(e.target.result));
+      callback();
     };
 
     fileReader.readAsText(file, 'UTF-8');
@@ -702,7 +703,10 @@ export class FsmPage extends Component {
               type="file"
               id="upload"
               style={{ display: 'none'}}
-              onChange={() => this.uploadFile($('#upload').get(0).files[0])}
+              onChange={() => {
+                const upload = $('#upload');
+                this.uploadFile(upload.get(0).files[0], () => upload.val(''));
+              }}
             />
           </div>
           <div className="control-panel-text">

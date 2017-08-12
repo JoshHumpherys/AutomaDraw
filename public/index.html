@@ -37,5 +37,19 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+
+    <script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
+    <script>
+      // Initialize Firebase
+      const config = {
+        apiKey: "AIzaSyDrUKPcUrn_Ap00Br-_S-tbLhpNnsgiRPM",
+        authDomain: "automadraw.firebaseapp.com",
+        databaseURL: "https://automadraw.firebaseio.com",
+        projectId: "automadraw",
+        storageBucket: "automadraw.appspot.com",
+        messagingSenderId: "208426575738"
+      };
+      firebase.initializeApp(config);
+    </script>
   </body>
 </html>

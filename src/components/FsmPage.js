@@ -44,6 +44,7 @@ export class FsmPage extends Component {
     };
 
     this.creatingTransitionLineRef = 'creating_transition_line_ref';
+    this.initialTransitionLineRef = 'initial_transition_life_ref';
     this.contextMenuRef = 'context_menu_ref';
 
     this.getStateRefName = this.getStateRefName.bind(this);
@@ -54,6 +55,7 @@ export class FsmPage extends Component {
     this.getTransitionLineEndCoords = this.getTransitionLineEndCoords.bind(this);
     this.getTransitionLineTextPositionAndAngle = this.getTransitionLineTextPositionAndAngle.bind(this);
     this.getTransitionLoopTextPosition = this.getTransitionLoopTextPosition.bind(this);
+    this.getInitialTransitionStartPosition = this.getInitialTransitionStartPosition.bind(this);
     this.centerContainerMouseDown = this.centerContainerMouseDown.bind(this);
     this.centerContainerMouseUp = this.centerContainerMouseUp.bind(this);
     this.centerContainerMouseMove = this.centerContainerMouseMove.bind(this);
@@ -112,6 +114,10 @@ export class FsmPage extends Component {
   getTransitionLoopTextPosition(fromStatePosition) {
     // TODO don't hardcode radius values
     return { x: fromStatePosition.x + 20, y: fromStatePosition.y - 30 - 8 };
+  }
+
+  getInitialTransitionStartPosition(statePosition) {
+    return { ...statePosition, x: statePosition.x - 100 };
   }
 
   startCreatingTransition(state) {
@@ -238,26 +244,24 @@ export class FsmPage extends Component {
 
   setStatePosition(element, state, x, y) {
     element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
-    element.setAttribute('data-x', x);
+    element.setAttribute('data-x', x); // TODO I don't think these are ever used
     element.setAttribute('data-y', y);
     const statePosition = { x, y };
     const transitions = this.props.fsm.transitionFunctions.get(state);
     if(transitions !== undefined) {
       for(const letter of transitions.keys()) {
         const toState = transitions.get(letter);
+        const transitionSvg = this[this.getTransitionLineRefName(state, letter, toState)];
+        const text = this[this.getTransitionTextRefName(state, letter, toState)];
         if(state === toState) {
-          const loop = this[this.getTransitionLineRefName(state, letter, toState)];
-          const text = this[this.getTransitionTextRefName(state, letter, toState)];
           const startCoords = this.getTransitionLoopStartCoords(statePosition);
           const textPosition = this.getTransitionLoopTextPosition(statePosition);
-          loop.setAttribute('cx', startCoords.x);
-          loop.setAttribute('cy', startCoords.y);
+          transitionSvg.setAttribute('cx', startCoords.x);
+          transitionSvg.setAttribute('cy', startCoords.y);
           text.setAttribute('x', textPosition.x);
           text.setAttribute('y', textPosition.y);
         }
         else {
-          const line = this[this.getTransitionLineRefName(state, letter, toState)];
-          const text = this[this.getTransitionTextRefName(state, letter, toState)];
           const toStatePosition = this.props.fsm.statePositions.get(toState);
           const startCoords = this.getStateCenterPosition(statePosition);
           const endCoords = this.getTransitionLineEndCoords({
@@ -271,10 +275,10 @@ export class FsmPage extends Component {
             toStatePosition
           );
           const { angle } = textPositionAndAngle;
-          line.setAttribute('x1', startCoords.x);
-          line.setAttribute('y1', startCoords.y);
-          line.setAttribute('x2', endCoords.x);
-          line.setAttribute('y2', endCoords.y);
+          transitionSvg.setAttribute('x1', startCoords.x);
+          transitionSvg.setAttribute('y1', startCoords.y);
+          transitionSvg.setAttribute('x2', endCoords.x);
+          transitionSvg.setAttribute('y2', endCoords.y);
           text.setAttribute('x', textPositionAndAngle.x);
           text.setAttribute('y', textPositionAndAngle.y);
           text.setAttribute('transform', `rotate(${angle} ${textPositionAndAngle.x}, ${textPositionAndAngle.y})`);
@@ -285,7 +289,7 @@ export class FsmPage extends Component {
       if(fromState !== state && transitions) {
         for(const letter of transitions.keys()) {
           if(this.props.fsm.transitionFunctions.get(fromState).get(letter) === state) {
-            const line = this[this.getTransitionLineRefName(fromState, letter, state)];
+            const transitionSvg = this[this.getTransitionLineRefName(fromState, letter, state)];
             const text = this[this.getTransitionTextRefName(fromState, letter, state)];
             const fromStatePosition = this.props.fsm.statePositions.get(fromState);
             const coords = this.getTransitionLineEndCoords({
@@ -299,14 +303,29 @@ export class FsmPage extends Component {
               statePosition
             );
             const { angle } = textPositionAndAngle;
-            line.setAttribute('x2', coords.x);
-            line.setAttribute('y2', coords.y);
+            transitionSvg.setAttribute('x2', coords.x);
+            transitionSvg.setAttribute('y2', coords.y);
             text.setAttribute('x', textPositionAndAngle.x);
             text.setAttribute('y', textPositionAndAngle.y);
             text.setAttribute('transform', `rotate(${angle} ${textPositionAndAngle.x}, ${textPositionAndAngle.y})`);
           }
         }
       }
+    }
+    if(this.props.fsm.initialState === state) {
+      const initialTransitionSvg = this[this.initialTransitionLineRef];
+      const stateCenterPosition = this.getStateCenterPosition(statePosition);
+      const transitionStartPosition = this.getInitialTransitionStartPosition(stateCenterPosition);
+      const transitionEndPosition = this.getTransitionLineEndCoords({
+        x1: statePosition.x - 1,
+        y1: statePosition.y,
+        x2: statePosition.x,
+        y2: statePosition.y
+      });
+      initialTransitionSvg.setAttribute('x1', transitionStartPosition.x);
+      initialTransitionSvg.setAttribute('y1', transitionStartPosition.y);
+      initialTransitionSvg.setAttribute('x2', transitionEndPosition.x);
+      initialTransitionSvg.setAttribute('y2', transitionEndPosition.y);
     }
   }
 
@@ -599,6 +618,18 @@ export class FsmPage extends Component {
         ).line
       );
     }
+    if(this.props.fsm.initialState !== null) {
+      const statePosition = this.props.fsm.statePositions.get(this.props.fsm.initialState);
+      lines.push(
+        createTransitionLine(
+          this.getInitialTransitionStartPosition(statePosition),
+          statePosition,
+          null,
+          this.initialTransitionLineRef,
+          null
+        ).line
+      );
+    }
 
     const popupContents = this.state.transitionPopup ? (
       <TransitionPopup
@@ -623,7 +654,6 @@ export class FsmPage extends Component {
         dropdownY = contextMenuStateCenterPosition.y;
       }
     }
-
 
     return (
       <div className="content-container">

@@ -30,6 +30,7 @@ export class FsmPage extends Component {
     this.state = {
       ctrlKey: false, // TODO this might not be true
       draggedElement: null,
+      mouseDownOnState: null,
       ctrlReleasedDuringDrag: false,
       placingNewState: false,
       transitionPopupToState: null,
@@ -55,9 +56,10 @@ export class FsmPage extends Component {
     this.centerContainerMouseMove = this.centerContainerMouseMove.bind(this);
     this.centerContainerKeyDown = this.centerContainerKeyDown.bind(this);
     this.centerContainerKeyUp = this.centerContainerKeyUp.bind(this);
+    this.stateMouseDown = this.stateMouseDown.bind(this);
     this.stateMouseUp = this.stateMouseUp.bind(this);
     this.getMouseCoordsRelativeToContainer = this.getMouseCoordsRelativeToContainer.bind(this);
-    this.setElementPosition = this.setElementPosition.bind(this);
+    this.setStatePosition = this.setStatePosition.bind(this);
     this.updateStatePositions = this.updateStatePositions.bind(this);
   }
 
@@ -193,7 +195,12 @@ export class FsmPage extends Component {
     }
   }
 
-  stateMouseUp(e) {
+  stateMouseDown(e, state) {
+    this.props.dispatch(selectState(state));
+    this.setState({ mouseDownOnState: state });
+  }
+
+  stateMouseUp(e, state) {
     if(this.state.creatingTransition) {
       const getLetter = () => {
         // TODO make something better than a prompt
@@ -208,9 +215,11 @@ export class FsmPage extends Component {
         if(!this.props.fsm.alphabet.contains(letter)) {
           this.props.dispatch(addLetter(letter));
         }
-        this.props.dispatch(addTransition(this.state.creatingTransitionFromState, e.target.innerHTML, letter));
+        this.props.dispatch(addTransition(this.state.creatingTransitionFromState, state, letter));
       }
     }
+
+    this.setState({ mouseDownOnState: null });
   }
 
   getMouseCoordsRelativeToContainer(event) {
@@ -220,39 +229,38 @@ export class FsmPage extends Component {
     return { x, y };
   }
 
-  setElementPosition(element, x, y) {
+  setStatePosition(element, state, x, y) {
     element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
     element.setAttribute('data-x', x);
     element.setAttribute('data-y', y);
-    const draggedState = element.innerHTML;
-    const draggedStatePosition = { x, y };
-    const transitions = this.props.fsm.transitionFunctions.get(draggedState);
+    const statePosition = { x, y };
+    const transitions = this.props.fsm.transitionFunctions.get(state);
     if(transitions !== undefined) {
       for(const letter of transitions.keys()) {
         const toState = transitions.get(letter);
-        if(draggedState === toState) {
-          const loop = this[this.getTransitionLineRefName(draggedState, letter, toState)];
-          const text = this[this.getTransitionTextRefName(draggedState, letter, toState)];
-          const startCoords = this.getTransitionLoopStartCoords(draggedStatePosition);
-          const textPosition = this.getTransitionLoopTextPosition(draggedStatePosition);
+        if(state === toState) {
+          const loop = this[this.getTransitionLineRefName(state, letter, toState)];
+          const text = this[this.getTransitionTextRefName(state, letter, toState)];
+          const startCoords = this.getTransitionLoopStartCoords(statePosition);
+          const textPosition = this.getTransitionLoopTextPosition(statePosition);
           loop.setAttribute('cx', startCoords.x);
           loop.setAttribute('cy', startCoords.y);
           text.setAttribute('x', textPosition.x);
           text.setAttribute('y', textPosition.y);
         }
         else {
-          const line = this[this.getTransitionLineRefName(draggedState, letter, toState)];
-          const text = this[this.getTransitionTextRefName(draggedState, letter, toState)];
+          const line = this[this.getTransitionLineRefName(state, letter, toState)];
+          const text = this[this.getTransitionTextRefName(state, letter, toState)];
           const toStatePosition = this.props.fsm.statePositions.get(toState);
-          const startCoords = this.getStateCenterPosition(draggedStatePosition);
+          const startCoords = this.getStateCenterPosition(statePosition);
           const endCoords = this.getTransitionLineEndCoords({
-            x1: draggedStatePosition.x,
-            y1: draggedStatePosition.y,
+            x1: statePosition.x,
+            y1: statePosition.y,
             x2: toStatePosition.x,
             y2: toStatePosition.y
           });
           const textPositionAndAngle = this.getTransitionLineTextPositionAndAngle(
-            draggedStatePosition,
+            statePosition,
             toStatePosition
           );
           const { angle } = textPositionAndAngle;
@@ -267,11 +275,11 @@ export class FsmPage extends Component {
       }
     }
     for(const [ fromState, transitions ] of this.props.fsm.transitionFunctions) {
-      if(fromState !== draggedState && transitions) {
+      if(fromState !== state && transitions) {
         for(const letter of transitions.keys()) {
-          if(this.props.fsm.transitionFunctions.get(fromState).get(letter) === draggedState) {
-            const line = this[this.getTransitionLineRefName(fromState, letter, draggedState)];
-            const text = this[this.getTransitionTextRefName(fromState, letter, draggedState)];
+          if(this.props.fsm.transitionFunctions.get(fromState).get(letter) === state) {
+            const line = this[this.getTransitionLineRefName(fromState, letter, state)];
+            const text = this[this.getTransitionTextRefName(fromState, letter, state)];
             const fromStatePosition = this.props.fsm.statePositions.get(fromState);
             const coords = this.getTransitionLineEndCoords({
               x1: fromStatePosition.x,
@@ -281,7 +289,7 @@ export class FsmPage extends Component {
             });
             const textPositionAndAngle = this.getTransitionLineTextPositionAndAngle(
               fromStatePosition,
-              draggedStatePosition
+              statePosition
             );
             const { angle } = textPositionAndAngle;
             line.setAttribute('x2', coords.x);
@@ -300,7 +308,7 @@ export class FsmPage extends Component {
       this.props.fsm.states.forEach(state => {
         const element = this[this.getStateRefName(state)];
         const position = this.props.fsm.statePositions.get(state);
-        this.setElementPosition(element, position.x, position.y);
+        this.setStatePosition(element, state, position.x, position.y);
       });
     }
   }
@@ -332,9 +340,9 @@ export class FsmPage extends Component {
           const target = this.state.draggedElement;
           if(target !== null) {
             const { x, y } = this.getMouseCoordsRelativeToContainer(e);
-            const state = target.innerHTML;
+            const state = this.state.mouseDownOnState;
 
-            this.setElementPosition(target, x, y);
+            this.setStatePosition(target, state, x, y);
             /*
             if(this.state.ctrlReleasedDuringDrag === false) {
               if(e.ctrlKey) {
@@ -349,9 +357,10 @@ export class FsmPage extends Component {
         },
         onend: e => {
           const target = this.state.draggedElement;
+          const state = this.state.mouseDownOnState;
           if(target !== null) {
             const { x, y } = this.getMouseCoordsRelativeToContainer(e);
-            this.props.dispatch(moveStatePosition(target.innerHTML, x, y));
+            this.props.dispatch(moveStatePosition(state, x, y));
             /*
             if(this.state.ctrlReleasedDuringDrag === false) {
               const { x, y } = this.getMouseCoordsRelativeToContainer(e);
@@ -596,10 +605,15 @@ export class FsmPage extends Component {
             <div
               className={'state' + (state === this.props.fsm.selected ? ' selected-state' : '')}
               ref={element => this[this.getStateRefName(state)] = element}
-              onMouseDown={() => this.props.dispatch(selectState(state))}
-              onMouseUp={this.stateMouseUp}
+              onMouseDown={e => this.stateMouseDown(e, state)}
+              onMouseUp={e => this.stateMouseUp(e, state)}
               onDoubleClick={() => this.startCreatingTransition(state)}
-            >{state}</div>
+            >
+              <div
+                className={'state-child' + (this.props.fsm.acceptStates.contains(state) ? ' state-child-accept' : '')}>
+                {state}
+              </div>
+            </div>
           ))}
           <svg xmlns="http://www.w3.org/2000/svg" id="arrows-svg">
             <defs>

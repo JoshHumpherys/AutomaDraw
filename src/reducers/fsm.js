@@ -54,15 +54,19 @@ export default function fsm(
           .set(action.payload.name, state.transitionFunctions.get(action.payload.state))
           .remove(action.payload.state)
           .mapEntries(([ fromState, transitions ]) => {
-            return [fromState, transitions.mapEntries(([ letter, toState ]) => {
-              if(toState === action.payload.state) {
-                return [letter, action.payload.name];
-              }
-              return [letter, toState];
-            })];
+            if(transitions !== undefined) {
+              return [fromState, transitions.mapEntries(([letter, toState]) => {
+                if (toState === action.payload.state) {
+                  return [letter, action.payload.name];
+                }
+                return [letter, toState];
+              })];
+            }
           }),
         initialState: state.initialState === action.payload.state ? action.payload.name : state.initialState,
-        acceptStates: state.acceptStates.subtract(action.payload.state).add(action.payload.name),
+        acceptStates: state.acceptStates.contains(action.payload.state) ?
+          state.acceptStates.remove(action.payload.state).add(action.payload.name) :
+          state.acceptStates,
         statePositions: state.statePositions
           .set(action.payload.name, state.statePositions.get(action.payload.state))
           .remove(action.payload.state),

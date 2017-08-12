@@ -729,6 +729,14 @@ export class FsmPage extends Component {
                 ref={dropdown => this[this.contextMenuRef] = dropdown}
                 onClick={() => this.setState({ contextMenuState: null })}>
                 <Dropdown.Menu className="visible">
+                  <Dropdown.Item
+                    text="Add transition"
+                    icon="add"
+                    onClick={() => this.startCreatingTransition(this.state.contextMenuState)} />
+                  <Dropdown.Item
+                    text="Rename"
+                    icon="write"
+                    onClick={() => this.renameStateWithPopup(this.state.contextMenuState)} />
                   <Dropdown.Item>
                     <Checkbox
                       id="initial-state-checkbox"
@@ -754,14 +762,6 @@ export class FsmPage extends Component {
                         );
                       }} />
                   </Dropdown.Item>
-                  <Dropdown.Item
-                    text="Rename"
-                    icon="write"
-                    onClick={() => this.renameStateWithPopup(this.state.contextMenuState)} />
-                  <Dropdown.Item
-                    text="Add transition"
-                    icon="add"
-                    onClick={() => this.startCreatingTransition(this.state.contextMenuState)} />
                   <Dropdown.Divider />
                   <Dropdown.Item
                     text="Delete"

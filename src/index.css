@@ -129,8 +129,15 @@ body {
   z-index: 1;
 }
 
+/*
 .state:hover {
-  /* background-color: #689F38; */
+  background-color: #E91E63;
+}
+*/
+
+/*
+.state:hover {
+  / background-color: #689F38; /
 }
 
 .selected-state {
@@ -142,8 +149,9 @@ body {
 }
 
 .selected-state:hover {
-  /* background-color: #C2185B; */
+  / background-color: #C2185B; /
 }
+*/
 
 .state-child {
   width: 36px;

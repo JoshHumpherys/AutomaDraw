@@ -1,4 +1,4 @@
-export const arrayToString = array => '{' + array.join(', ') + '}';
+export const arrayToString = array => array.length > 0 ? '{' + array.join(', ') + '}' : '\u2205';
 
 export const stringToArray = string => string.split(' ').join('').split(',');
 
@@ -13,6 +13,10 @@ export const transitionFunctionsToString = transitionFunctions => {
 };
 
 export const transitionFunctionsToTable = (states, alphabet, transitionFunctions) => {
+  if(states.size === 0) {
+    return new Array(0);
+  }
+
   let table = new Array(states.length);
   let i = 0;
   for(const state of states) {

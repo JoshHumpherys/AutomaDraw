@@ -13,7 +13,8 @@ import {
   removeAcceptState,
   addTransition,
   addLetter,
-  initializeFsmFromJsonString
+  initializeFsmFromJsonString,
+  resetFsm
 } from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
 import { getSettings } from '../selectors/settings'
@@ -462,6 +463,10 @@ export class FsmPage extends Component {
     );
 
     const createTransitionTable = () => {
+      if(transitionTable.length === 0) {
+        return '\u2205';
+      }
+
       const rows = [];
       for(const fromState of this.props.fsm.states.keys()) {
         const cols = [];
@@ -503,6 +508,7 @@ export class FsmPage extends Component {
       );
     };
 
+    /*
     const createSingleStateTransitionTable = () => {
       return (
         <table className="transition-table">
@@ -528,6 +534,7 @@ export class FsmPage extends Component {
         </table>
       );
     };
+    */
 
     const createTransitionLine = (fromStatePosition, toStatePosition, letter, lineRefString, textRefString) => {
       const startCoords = this.getStateCenterPosition(fromStatePosition);
@@ -680,10 +687,10 @@ export class FsmPage extends Component {
               onChange={name => this.props.dispatch(changeFsmName(name))} />
           </h2>
           <div className="control-panel-text">
-            <span>Q: {arrayToString(this.props.fsm.states)}</span>
+            <span>Q: {arrayToString(this.props.fsm.states.toArray())}</span>
           </div>
           <div className="control-panel-text">
-            <span>&Sigma;: {arrayToString(this.props.fsm.alphabet)}</span>
+            <span>&Sigma;: {arrayToString(this.props.fsm.alphabet.toArray())}</span>
           </div>
           <div className="control-panel-text">
             <span>&delta;: </span>
@@ -693,7 +700,7 @@ export class FsmPage extends Component {
             <span>q&#8320;: {this.props.fsm.initialState}</span>
           </div>
           <div className="control-panel-text">
-            <span>F: {arrayToString(this.props.fsm.acceptStates)}</span>
+            <span>F: {arrayToString(this.props.fsm.acceptStates.toArray())}</span>
           </div>
           <div className="control-panel-text">
             <Button onClick={() => $('#upload').click()}>
@@ -715,6 +722,11 @@ export class FsmPage extends Component {
               `${this.props.fsm.name}.dat`
             )}>
               <Icon name="download" className="clickable-icon" /> Download
+            </Button>
+          </div>
+          <div className="control-panel-text">
+            <Button onClick={() => this.props.dispatch(resetFsm())}>
+              <Icon name="refresh" className="clickable-icon" /> Reset
             </Button>
           </div>
         </div>

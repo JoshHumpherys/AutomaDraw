@@ -5,17 +5,19 @@ import { OrderedSet, OrderedMap } from 'immutable';
 export default function fsm(
   state = {
     name: 'My FSM',
-    states: new OrderedSet(['A', 'B']),
-    alphabet: new OrderedSet(['a', 'b']),
+    states: new OrderedSet(['A', 'B', 'C']),
+    alphabet: new OrderedSet(['a', 'b', 'c']),
     transitionFunctions: new OrderedMap({
       'A': new OrderedMap({ a: 'B' }),
-      'B': new OrderedMap({ b: 'B' })
+      'B': new OrderedMap({ b: 'C' }),
+      'C': new OrderedMap({ c: 'A' })
     }),
     initialState: 'A',
-    acceptStates: new OrderedSet(['B']),
+    acceptStates: new OrderedSet(['A']),
     statePositions: new OrderedMap({
-      'A': { x: 100, y: 200 },
-      'B': { x: 300, y: 100 }
+      'A': { x: 130, y: 200 },
+      'B': { x: 250, y: 50 },
+      'C': { x: 370, y: 200 }
     }),
     selected: 'A'
   },
@@ -77,14 +79,16 @@ export default function fsm(
       return {
         ...state,
         states: state.states.remove(action.payload.state),
-        transitionFunctions: state.transitionFunctions.mapEntries(([ key, value ]) => {
-          if(key !== undefined) {
-            if(key !== action.payload.state) {
-              return [key, value.filter(value => value !== action.payload.state)];
+        transitionFunctions: state.transitionFunctions.size !== 0 ?
+          state.transitionFunctions.mapEntries(([ key, value ]) => {
+            if(key !== undefined) {
+              if(key !== action.payload.state) {
+                return [key, value.filter(value => value !== action.payload.state)];
+              }
             }
-          }
-          return [key, value];
-        }).remove(action.payload.state),
+            return [key, value];
+          }).remove(action.payload.state) :
+          new OrderedMap(),
         initialState: state.initialState === action.payload.state ? null : state.initialState,
         acceptStates: state.acceptStates.remove(action.payload.state),
         statePositions: state.statePositions.remove(action.payload.state),
@@ -139,6 +143,18 @@ export default function fsm(
           }),
         acceptStates: new OrderedSet(fsm.acceptStates),
         statePositions: new OrderedMap(fsm.statePositions)
+      }
+    }
+    case actionTypes.FSM_RESET: {
+      return {
+        name: 'My FSM',
+        states: new OrderedSet(),
+        alphabet: new OrderedSet(),
+        transitionFunctions: new Map(),
+        initialState: null,
+        acceptStates: new OrderedSet(),
+        statePositions: new OrderedMap(),
+        selected: null
       }
     }
     default: {

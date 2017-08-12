@@ -65,3 +65,7 @@ export function addLetter(letter) {
 export function initializeFsmFromJsonString(jsonString) {
   return { type: actionTypes.FSM_INITIALIZED_FROM_JSON_STRING, payload: { jsonString } };
 }
+
+export function resetFsm() {
+  return { type: actionTypes.FSM_RESET };
+}

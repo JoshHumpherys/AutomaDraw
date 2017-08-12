@@ -55,11 +55,12 @@ body {
 }
 
 .center-container {
-  flex: 2;
+  flex: 3;
   -webkit-box-shadow: inset 0 0 12px black;
   -moz-box-shadow: inset 0 0 12px black;
   box-shadow: inset 0 0 12px black;
   position: relative;
+  overflow: hidden; /* TODO move context menu to appear fully on screen */
 }
 
 .center-container-dark-theme {
@@ -169,14 +170,6 @@ body {
   cursor: pointer;
 }
 
-#initial-state-checkbox label { /* TODO figure out a better way to change semantic styles */
-  color: #fff;
-}
-
-#accept-state-checkbox label { /* TODO figure out a better way to change semantic styles */
-  color: #fff;
-}
-
 .popup {
   position: absolute;
   background-color: #8BC34A;
@@ -201,4 +194,8 @@ body {
   height: 100%;
   position: absolute;
   pointer-events: none
+}
+
+.ui.dropdown {
+  position: absolute;
 }

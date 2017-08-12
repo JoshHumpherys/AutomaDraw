@@ -19,7 +19,7 @@ import { getSettings } from '../selectors/settings'
 import { arrayToString, transitionFunctionsToTable } from '../utility/utility'
 import interact from 'interactjs'
 import $ from 'jquery'
-import { Button, Checkbox, Icon } from 'semantic-ui-react'
+import { Button, Checkbox, Dropdown, Icon } from 'semantic-ui-react'
 
 import EditableTextField from './EditableTextField'
 import TransitionPopup from './TransitionPopup'
@@ -39,7 +39,8 @@ export class FsmPage extends Component {
       transitionPopupFromState: null,
       transitionPopup: false,
       creatingTransition: false,
-      creatingTransitionFromState: null
+      creatingTransitionFromState: null,
+      contextMenuState: null
     };
 
     this.creatingTransitionLineRef = 'creating_transition_line_ref';
@@ -62,6 +63,8 @@ export class FsmPage extends Component {
     this.getMouseCoordsRelativeToContainer = this.getMouseCoordsRelativeToContainer.bind(this);
     this.setStatePosition = this.setStatePosition.bind(this);
     this.updateStatePositions = this.updateStatePositions.bind(this);
+    this.stateRightClick = this.stateRightClick.bind(this);
+    this.renameStateWithPopup = this.renameStateWithPopup.bind(this);
   }
 
   getStateRefName(state) {
@@ -156,9 +159,11 @@ export class FsmPage extends Component {
         return nextState;
       };
 
-      const name = getNextStateName(this.props.fsm.states);
-      this.props.dispatch(addState(name, x, y));
-      this.props.dispatch(selectState(name));
+      if(this.state.contextMenuState === null) {
+        const name = getNextStateName(this.props.fsm.states);
+        this.props.dispatch(addState(name, x, y));
+        this.props.dispatch(selectState(name));
+      }
       this.setState({ placingNewState: false });
     }
 
@@ -212,7 +217,7 @@ export class FsmPage extends Component {
         return letter;
       };
       const letter = getLetter();
-      if(letter !== null) { // user clicked cancel
+      if(letter !== null) { // user didn't click cancel
         if(!this.props.fsm.alphabet.contains(letter)) {
           this.props.dispatch(addLetter(letter));
         }
@@ -311,6 +316,45 @@ export class FsmPage extends Component {
         const position = this.props.fsm.statePositions.get(state);
         this.setStatePosition(element, state, position.x, position.y);
       });
+    }
+  }
+
+  stateRightClick(e, state) {
+    this.setState({ contextMenuState: state });
+
+    const { target } = e;
+
+    const self = this;
+
+    const registerCloseHandler = () => {
+      $(document).one('click', e => {
+        if(self.state.contextMenuState) {
+          if(e.target === target) {
+            self.registerCloseHandler();
+          } else {
+            this.setState({ contextMenuState: null });
+          }
+        }
+      });
+    };
+
+    registerCloseHandler();
+  }
+
+  renameStateWithPopup(state) {
+    const getStateName = (nameAlreadyExists = false) => {
+      // TODO make something better than a prompt
+      const nameAlreadyExistsString = (nameAlreadyExists ? 'Name already exists.\n' : '');
+      const promptString = nameAlreadyExistsString + `What should state "${state}" be renamed?`;
+      const name = prompt(promptString);
+      if(this.props.fsm.states.contains(name)) {
+        return getStateName(true);
+      }
+      return name;
+    };
+    const name = getStateName();
+    if(name !== null) { // user didn't click cancel
+      this.props.dispatch(changeStateName(state, name));
     }
   }
 
@@ -570,6 +614,18 @@ export class FsmPage extends Component {
         })}/>
     ) : null;
 
+    let dropdownX = 0;
+    let dropdownY = 0;
+    if(this.state.contextMenuState !== null) {
+      const contextMenuStatePosition = this.props.fsm.statePositions.get(this.state.contextMenuState);
+      if(contextMenuStatePosition !== undefined) {
+        const contextMenuStateCenterPosition = this.getStateCenterPosition(contextMenuStatePosition);
+        dropdownX = contextMenuStateCenterPosition.x;
+        dropdownY = contextMenuStateCenterPosition.y;
+      }
+    }
+
+
     return (
       <div className="content-container">
         <div className="control-panel-left">
@@ -602,6 +658,7 @@ export class FsmPage extends Component {
              onKeyDown={this.centerContainerKeyDown}
              onKeyUp={this.centerContainerKeyUp}
              onMouseMove={this.centerContainerMouseMove}
+             onContextMenu={e => e.preventDefault()}
              tabIndex="0"> {/* TODO figure out why tabIndex attribute is required for onKeyDown to fire */}
            <div className={'popup' + (this.state.transitionPopup ? '' : ' popup-hidden')}>
              {popupContents}
@@ -613,6 +670,7 @@ export class FsmPage extends Component {
               onMouseDown={e => this.stateMouseDown(e, state)}
               onMouseUp={e => this.stateMouseUp(e, state)}
               onDoubleClick={() => this.startCreatingTransition(state)}
+              onContextMenu={e => this.stateRightClick(e, state)}
             >
               <div
                 className={'state-child' + (this.props.fsm.acceptStates.contains(state) ? ' state-child-accept' : '')}>
@@ -631,55 +689,56 @@ export class FsmPage extends Component {
             </defs>
             {lines}
           </svg>
+          {
+            this.state.contextMenuState !== null ? (
+              <div className="ui dropdown" style={{ top: dropdownY, left: dropdownX }}>
+                <Dropdown.Menu className="visible">
+                  <Dropdown.Item>
+                    <Checkbox
+                      id="initial-state-checkbox"
+                      label="Initial state"
+                      key={this.props.fsm.selected}
+                      defaultChecked={this.props.fsm.initialState === this.props.fsm.selected}
+                      onChange={(e, value) => {
+                        this.props.dispatch(
+                          value.checked ? changeInitialState(this.props.fsm.selected) : removeInitialState()
+                        );
+                      }} />
+                  </Dropdown.Item>
+                  <Dropdown.Item>
+                    <Checkbox
+                      id="accept-state-checkbox"
+                      label="Accept state"
+                      key={this.props.fsm.selected}
+                      defaultChecked={this.props.fsm.acceptStates.includes(this.props.fsm.selected)}
+                      onChange={(e, value) => {
+                        const { selected } = this.props.fsm;
+                        this.props.dispatch(
+                          value.checked ? addAcceptState(selected) : removeAcceptState(selected)
+                        );
+                      }} />
+                  </Dropdown.Item>
+                  <Dropdown.Item
+                    text="Rename"
+                    icon="write"
+                    onClick={() => this.renameStateWithPopup(this.state.contextMenuState)} />
+                  <Dropdown.Item
+                    text="Add transition"
+                    icon="add"
+                    onClick={() => alert('TODO add transition')} />
+                  <Dropdown.Divider />
+                  <Dropdown.Item
+                    text="Delete"
+                    icon="trash"
+                    onClick={() => this.props.dispatch(deleteState(this.state.contextMenuState))}
+                  />
+                </Dropdown.Menu>
+              </div>
+            ) : (
+              null
+            )
+          }
         </div>
-        {
-          this.props.fsm.selected ? (
-            <div className="control-panel-right">
-              <h2 className="control-panel-text">
-                <EditableTextField
-                  value={this.props.fsm.selected}
-                  onChange={name => this.props.dispatch(changeStateName(this.props.fsm.selected, name))}/>
-              </h2>
-              <h4 className="control-panel-text">
-                <Checkbox
-                  id="initial-state-checkbox"
-                  label="Initial State"
-                  key={this.props.fsm.selected}
-                  defaultChecked={this.props.fsm.initialState === this.props.fsm.selected}
-                  onChange={(e, value) => {
-                    this.props.dispatch(
-                      value.checked ? changeInitialState(this.props.fsm.selected) : removeInitialState()
-                    );
-                  }} />
-              </h4>
-              <h4 className="control-panel-text">
-                <Checkbox
-                  id="accept-state-checkbox"
-                  label="Accept State"
-                  key={this.props.fsm.selected}
-                  defaultChecked={this.props.fsm.acceptStates.includes(this.props.fsm.selected)}
-                  onChange={(e, value) => {
-                    const { selected } = this.props.fsm;
-                    this.props.dispatch(
-                      value.checked ? addAcceptState(selected) : removeAcceptState(selected)
-                    );
-                  }} />
-              </h4>
-              <h4 className="control-panel-text">
-                {createSingleStateTransitionTable()}
-              </h4>
-              <h4 className="control-panel-text">
-                <Button onClick={() => this.props.dispatch(deleteState(this.props.fsm.selected))}>
-                  Delete <Icon name="trash" className="clickable-icon" />
-                </Button>
-              </h4>
-            </div>
-          ) : (
-            <div className="control-panel-right">
-              <h4 className="control-panel-text">Click on a state to make its properties appear here!</h4>
-            </div>
-          )
-        }
       </div>
     );
   }

@@ -14,8 +14,8 @@ export default function fsm(
     initialState: 'A',
     acceptStates: new OrderedSet(['B']),
     statePositions: new OrderedMap({
-      'A': { x: 0, y: 0 },
-      'B': { x: 200, y: 100 }
+      'A': { x: 100, y: 200 },
+      'B': { x: 300, y: 100 }
     }),
     selected: 'A'
   },
@@ -123,6 +123,22 @@ export default function fsm(
       return {
         ...state,
         alphabet: state.alphabet.add(action.payload.letter)
+      }
+    }
+    case actionTypes.FSM_INITIALIZED_FROM_JSON_STRING: {
+      const fsm = JSON.parse(action.payload.jsonString);
+      return {
+        ...fsm,
+        states: new OrderedSet(fsm.states),
+        alphabet: new OrderedSet(fsm.alphabet),
+        transitionFunctions: new OrderedMap(fsm.transitionFunctions)
+          .mapEntries(([ fromState, transitions ]) => {
+            if(transitions !== undefined) {
+              return [fromState, new OrderedMap(transitions)];
+            }
+          }),
+        acceptStates: new OrderedSet(fsm.acceptStates),
+        statePositions: new OrderedMap(fsm.statePositions)
       }
     }
     default: {

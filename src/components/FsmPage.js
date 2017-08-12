@@ -12,7 +12,8 @@ import {
   addAcceptState,
   removeAcceptState,
   addTransition,
-  addLetter
+  addLetter,
+  initializeFsmFromJsonString
 } from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
 import { getSettings } from '../selectors/settings'
@@ -20,6 +21,7 @@ import { arrayToString, transitionFunctionsToTable } from '../utility/utility'
 import interact from 'interactjs'
 import $ from 'jquery'
 import { Button, Checkbox, Dropdown, Icon } from 'semantic-ui-react'
+import { saveAs } from 'file-saver'
 
 import EditableTextField from './EditableTextField'
 import TransitionPopup from './TransitionPopup'
@@ -379,6 +381,16 @@ export class FsmPage extends Component {
     }
   }
 
+  uploadFile(file) {
+    const fileReader = new FileReader();
+
+    fileReader.onload = e => {
+      this.props.dispatch(initializeFsmFromJsonString(e.target.result));
+    };
+
+    fileReader.readAsText(file, 'UTF-8');
+  }
+
   componentDidUpdate() {
     this.updateStatePositions();
   }
@@ -681,6 +693,25 @@ export class FsmPage extends Component {
           </div>
           <div className="control-panel-text">
             <span>F: {arrayToString(this.props.fsm.acceptStates)}</span>
+          </div>
+          <div className="control-panel-text">
+            <Button onClick={() => $('#upload').click()}>
+              <Icon name="upload" className="clickable-icon" /> Upload
+            </Button>
+            <input
+              type="file"
+              id="upload"
+              style={{ display: 'none'}}
+              onChange={() => this.uploadFile($('#upload').get(0).files[0])}
+            />
+          </div>
+          <div className="control-panel-text">
+            <Button onClick={() => saveAs(
+              new Blob([JSON.stringify(this.props.fsm)], { type: 'text/plain;charset=utf-8' }),
+              `${this.props.fsm.name}.dat`
+            )}>
+              <Icon name="download" className="clickable-icon" /> Download
+            </Button>
           </div>
         </div>
         <div className={'center-container' + (this.props.settings.darkTheme ? ' center-container-dark-theme' : '')}

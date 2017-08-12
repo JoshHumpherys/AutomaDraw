@@ -61,3 +61,7 @@ export function removeTransition(state, letter) {
 export function addLetter(letter) {
   return { type: actionTypes.FSM_LETTER_ADDED, payload: { letter } };
 }
+
+export function initializeFsmFromJsonString(jsonString) {
+  return { type: actionTypes.FSM_INITIALIZED_FROM_JSON_STRING, payload: { jsonString } };
+}

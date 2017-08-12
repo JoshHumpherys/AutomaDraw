@@ -2,11 +2,12 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import logo from './logo.svg'
 import './index.css'
+import { getSettings } from './selectors/settings'
 
 export class App extends Component {
   render() {
     return (
-      <div className="main-container">
+      <div className={'main-container' + (this.props.settings.darkTheme ? ' main-container-dark-theme' : '')}>
         <div id="navbar" className="ui fixed inverted menu">
           <div className="ui container">
             <a href="/" className="header item">
@@ -37,5 +38,7 @@ export class App extends Component {
 }
 
 export default connect(
-  state => ({})
+  state => ({
+    settings: getSettings(state)
+  })
 )(App);

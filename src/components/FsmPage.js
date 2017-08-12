@@ -15,6 +15,7 @@ import {
   addLetter
 } from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
+import { getSettings } from '../selectors/settings'
 import { arrayToString, transitionFunctionsToTable } from '../utility/utility'
 import interact from 'interactjs'
 import $ from 'jquery'
@@ -466,7 +467,7 @@ export class FsmPage extends Component {
           y1={startCoords.y}
           x2={endCoords.x}
           y2={endCoords.y}
-          stroke="#000"
+          stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
           strokeWidth="2"
           markerEnd="url(#arrowhead)"
           ref={line => this[lineRefString] = line}/>,
@@ -476,6 +477,8 @@ export class FsmPage extends Component {
           transform={`rotate(${angle} ${textPositionAndAngle.x}, ${textPositionAndAngle.y})`}
           fontSize="20"
           textAnchor="middle"
+          stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
+          fill={this.props.settings.darkTheme ? '#fff' : '#000'}
           ref={text => this[textRefString] = text}>{letter}</text>
       };
     };
@@ -493,7 +496,7 @@ export class FsmPage extends Component {
           rx="10"
           ry="30"
           fill="none"
-          stroke="#000"
+          stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
           strokeWidth="2"
           markerEnd="url(#arrowhead)"
           ref={loop => this[loopRefString] = loop} />,
@@ -502,6 +505,8 @@ export class FsmPage extends Component {
           y={textCoords.y}
           fontSize="20"
           textAnchor="middle"
+          stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
+          fill={this.props.settings.darkTheme ? '#fff' : '#000'}
           ref={text => this[textRefString] = text}>{letter}</text>
       };
     };
@@ -590,7 +595,7 @@ export class FsmPage extends Component {
             <span>F: {arrayToString(this.props.fsm.acceptStates)}</span>
           </div>
         </div>
-        <div className="center-container"
+        <div className={'center-container' + (this.props.settings.darkTheme ? ' center-container-dark-theme' : '')}
              onMouseDown={this.centerContainerMouseDown}
              onMouseUp={this.centerContainerMouseUp}
              ref={element => this.centerContainer = element}
@@ -618,7 +623,9 @@ export class FsmPage extends Component {
           <svg xmlns="http://www.w3.org/2000/svg" id="arrows-svg">
             <defs>
               <marker id="arrowhead" markerWidth="10" markerHeight="7"
-                      refX="8" refY="3.5" orient="auto">
+                  refX="8" refY="3.5" orient="auto"
+                  stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
+                  fill={this.props.settings.darkTheme ? '#fff' : '#000'}>
                 <polygon points="0 0, 10 3.5, 0 7" />
               </marker>
             </defs>
@@ -680,6 +687,7 @@ export class FsmPage extends Component {
 
 export default connect(
   state => ({
-    fsm: getFsm(state)
+    fsm: getFsm(state),
+    settings: getSettings(state)
   })
 )(FsmPage);

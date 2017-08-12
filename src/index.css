@@ -62,6 +62,10 @@ body {
   position: relative;
 }
 
+.center-container-dark-theme {
+  background-color: #333;
+}
+
 .control-panel-right {
   flex: 1;
   background-color: #03A9F4;

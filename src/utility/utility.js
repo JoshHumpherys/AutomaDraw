@@ -2,19 +2,7 @@ import $ from 'jquery'
 
 export const arrayToString = array => array.length > 0 ? '{' + array.join(', ') + '}' : '\u2205';
 
-export const arrayToSortedString = array => arrayToString(array.sort());
-
 export const stringToArray = string => string.split(' ').join('').split(',');
-
-export const transitionFunctionsToString = transitionFunctions => {
-  let transitionFunctionsShallow = [];
-  for(let fromKey in transitionFunctions) {
-    for(let letterKey in transitionFunctions[fromKey]) {
-      transitionFunctionsShallow.push(fromKey + '--(' + letterKey + ')-->' + transitionFunctions[fromKey][letterKey]);
-    }
-  }
-  return arrayToString(transitionFunctionsShallow);
-};
 
 export const transitionFunctionsToTable = (states, alphabet, transitionFunctions) => {
   if(states.size === 0) {

@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import {
   changeFsmName,
-  moveStatePosition,
+  moveState,
   addState,
   selectState,
   changeStateName,
@@ -33,16 +33,13 @@ export class FsmPage extends Component {
     super(props);
 
     this.state = {
-      ctrlKey: false, // TODO this might not be true
       draggedElement: null,
       mouseDownOnState: null,
-      ctrlReleasedDuringDrag: false,
       placingNewState: false,
       transitionPopupToState: null,
       transitionPopupLetter: null,
       transitionPopupFromState: null,
       transitionPopup: false,
-      creatingTransition: false,
       creatingTransitionFromState: null,
       contextMenuState: null
     };
@@ -125,23 +122,22 @@ export class FsmPage extends Component {
   }
 
   startCreatingTransition(state) {
-    this.setState({ creatingTransition: true, creatingTransitionFromState: state });
+    this.setState({ creatingTransitionFromState: state });
   }
 
   centerContainerMouseDown(e) {
     if(
       e.target === this.centerContainer &&
       this.state.draggedElement === null &&
-      this.state.creatingTransition === false &&
+      this.state.creatingTransitionFromState === null &&
       this.state.contextMenuState === null
     ) {
-      // TODO evaluate if I need to store this in state because ctrl key is no longer required to drag state
       this.setState({ placingNewState: true });
     }
   }
 
   centerContainerMouseUp(e) {
-    if(this.state.placingNewState && !this.state.creatingTransition) {
+    if(this.state.placingNewState && this.state.creatingTransitionFromState === null) {
       const { x, y } = this.getMouseCoordsRelativeToContainer(e);
 
       const getNextStateName = states => {
@@ -183,12 +179,12 @@ export class FsmPage extends Component {
       this.setState({ placingNewState: false });
     }
 
-    this.setState({ creatingTransition: false, creatingTransitionFromState: null });
+    this.setState({ creatingTransitionFromState: null });
   }
 
   centerContainerMouseMove(e) {
     e.target.focus();
-    if(this.state.creatingTransition) {
+    if(this.state.creatingTransitionFromState !== null) {
       const line = this[this.creatingTransitionLineRef];
       const mouseCoords = this.getMouseCoordsRelativeToContainer(e);
       const endCoords = this.getStateCenterPosition(mouseCoords);
@@ -197,25 +193,9 @@ export class FsmPage extends Component {
     }
   }
 
-  centerContainerKeyDown(e) {
-    if(e.ctrlKey && !this.state.ctrlKey) {
-      this.props.fsm.states.forEach(state => $(this[this.getStateRefName(state)]).addClass('draggable'));
-      this.setState({ ctrlKey: e.ctrlKey });
-      /*
-      $('body').css('cursor', 'move');
-      */
-    }
-  }
+  centerContainerKeyDown(e) {}
 
-  centerContainerKeyUp(e) {
-    if(!e.ctrlKey && this.state.ctrlKey) {
-      this.props.fsm.states.forEach(state => $(this[this.getStateRefName(state)]).removeClass('draggable'));
-      this.setState({ ctrlKey: e.ctrlKey });
-      /*
-      $('body').css('cursor', 'default');
-      */
-    }
-  }
+  centerContainerKeyUp(e) {}
 
   stateMouseDown(e, state) {
     this.props.dispatch(selectState(state));
@@ -223,7 +203,7 @@ export class FsmPage extends Component {
   }
 
   stateMouseUp(e, state) {
-    if(this.state.creatingTransition) {
+    if(this.state.creatingTransitionFromState !== null) {
       const getLetter = () => {
         // TODO make something better than a prompt
         const letter = prompt('What letter should be used for this transition?');
@@ -411,11 +391,6 @@ export class FsmPage extends Component {
         },
         onstart: e => {
           this.setState({ draggedElement: e.target });
-          /*
-          if(e.ctrlKey) {
-            this.setState({ draggedElement: e.target });
-          }
-          */
         },
         onmove: e => {
           const target = this.state.draggedElement;
@@ -424,16 +399,6 @@ export class FsmPage extends Component {
             const state = this.state.mouseDownOnState;
 
             this.setStatePosition(target, state, x, y);
-            /*
-            if(this.state.ctrlReleasedDuringDrag === false) {
-              if(e.ctrlKey) {
-                this.setElementPosition(target, x, y);
-              } else {
-                this.setState({ ctrlReleasedDuringDrag: true });
-                this.props.dispatch(moveStatePosition(state, x, y));
-              }
-            }
-            */
           }
         },
         onend: e => {
@@ -441,14 +406,8 @@ export class FsmPage extends Component {
           const state = this.state.mouseDownOnState;
           if(target !== null) {
             const { x, y } = this.getMouseCoordsRelativeToContainer(e);
-            this.props.dispatch(moveStatePosition(state, x, y));
-            /*
-            if(this.state.ctrlReleasedDuringDrag === false) {
-              const { x, y } = this.getMouseCoordsRelativeToContainer(e);
-              this.props.dispatch(moveStatePosition(target.innerHTML, x, y));
-            }
-            */
-            this.setState({ draggedElement: null, ctrlReleasedDuringDrag: false });
+            this.props.dispatch(moveState(state, x, y));
+            this.setState({ draggedElement: null });
           }
         }
       });
@@ -642,7 +601,7 @@ export class FsmPage extends Component {
         });
       }
     }
-    if(this.state.creatingTransition) {
+    if(this.state.creatingTransitionFromState !== null) {
       const statePosition = this.props.fsm.statePositions.get(this.state.creatingTransitionFromState);
       lines.push(
         createTransitionLine(

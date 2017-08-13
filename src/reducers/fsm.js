@@ -26,12 +26,6 @@ export default function fsm(
     case actionTypes.FSM_NAME_CHANGED: {
       return { ...state, name: action.payload.name };
     }
-    case actionTypes.FSM_STATES_CHANGED: {
-      return { ...state, states: new Set(stringToArray(action.payload.states)) };
-    }
-    case actionTypes.FSM_ALPHABET_CHANGED: {
-      return { ...state, alphabet: new Set(stringToArray(action.payload.alphabet)) };
-    }
     case actionTypes.FSM_STATE_MOVED: {
       return {
         ...state,

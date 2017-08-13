@@ -150,7 +150,7 @@ export default function fsm(
         name: 'My FSM',
         states: new OrderedSet(),
         alphabet: new OrderedSet(),
-        transitionFunctions: new Map(),
+        transitionFunctions: new OrderedMap(),
         initialState: null,
         acceptStates: new OrderedSet(),
         statePositions: new OrderedMap(),

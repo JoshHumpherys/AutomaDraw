@@ -23,7 +23,7 @@ import interact from 'interactjs'
 import $ from 'jquery'
 import { Button, Checkbox, Dropdown, Icon } from 'semantic-ui-react'
 import { saveAs } from 'file-saver'
-import { OrderedMap, OrderedSet } from 'immutable'
+import { Map, Set } from 'immutable'
 
 import EditableTextField from './EditableTextField'
 import TransitionPopup from './TransitionPopup'
@@ -603,13 +603,13 @@ export class FsmPage extends Component {
     for(const fromState of this.props.fsm.states) {
       const transitions = this.props.fsm.transitionFunctions.get(fromState);
       if(transitions !== undefined) {
-        const transitionsToStateMap = new OrderedMap({}).withMutations(transitionsToStateMap => {
+        const transitionsToStateMap = new Map({}).withMutations(transitionsToStateMap => {
           for(const [ letter, toState ] of transitions.entries()) {
             const transitionsToState = transitionsToStateMap.get(toState);
             if(transitionsToState !== undefined) {
               transitionsToStateMap.set(toState, transitionsToState.add(letter));
             } else {
-              transitionsToStateMap.set(toState, new OrderedSet([letter]));
+              transitionsToStateMap.set(toState, new Set([letter]));
             }
           }
         });
@@ -620,7 +620,7 @@ export class FsmPage extends Component {
           if(fromState === toState) {
             const transitionLoop = createTransitionLoop(
               fromStatePosition,
-              letters,
+              letters.sort(),
               loopRefString,
               textRefString
             );
@@ -632,7 +632,7 @@ export class FsmPage extends Component {
             const transitionLine = createTransitionLine(
               fromStatePosition,
               toStatePosition,
-              letters,
+              letters.sort(),
               loopRefString,
               textRefString
             );
@@ -642,48 +642,13 @@ export class FsmPage extends Component {
         });
       }
     }
-    /*
-    console.log(transitionsMap);
-    for(const fromState of this.props.fsm.states) {
-      const transitions = this.props.fsm.transitionFunctions.get(fromState);
-      if(transitions) {
-        for(const [ letter, toState ] of transitions.entries()) {
-          const fromStatePosition = this.props.fsm.statePositions.get(fromState);
-          const loopRefString = this.getTransitionLineRefName(fromState, toState);
-          const textRefString = this.getTransitionTextRefName(fromState, toState);
-          if(fromState === toState) {
-            const transitionLoop = createTransitionLoop(
-              fromStatePosition,
-              letter,
-              loopRefString,
-              textRefString
-            );
-            lines.push(transitionLoop.loop);
-            lines.push(transitionLoop.text);
-          }
-          else {
-            const toStatePosition = this.props.fsm.statePositions.get(toState);
-            const transitionLine = createTransitionLine(
-              fromStatePosition,
-              toStatePosition,
-              letter,
-              loopRefString,
-              textRefString
-            );
-            lines.push(transitionLine.line);
-            lines.push(transitionLine.text);
-          }
-        }
-      }
-    }
-    */
     if(this.state.creatingTransition) {
       const statePosition = this.props.fsm.statePositions.get(this.state.creatingTransitionFromState);
       lines.push(
         createTransitionLine(
           statePosition,
           statePosition,
-          new OrderedSet([]),
+          new Set(),
           this.creatingTransitionLineRef,
           null
         ).line
@@ -695,7 +660,7 @@ export class FsmPage extends Component {
         createTransitionLine(
           this.getInitialTransitionStartPosition(statePosition),
           statePosition,
-          new OrderedSet([]),
+          new Set(),
           this.initialTransitionLineRef,
           null
         ).line

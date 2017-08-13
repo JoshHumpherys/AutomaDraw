@@ -2,6 +2,8 @@ import $ from 'jquery'
 
 export const arrayToString = array => array.length > 0 ? '{' + array.join(', ') + '}' : '\u2205';
 
+export const arrayToSortedString = array => arrayToString(array.sort());
+
 export const stringToArray = string => string.split(' ').join('').split(',');
 
 export const transitionFunctionsToString = transitionFunctions => {

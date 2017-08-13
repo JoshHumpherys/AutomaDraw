@@ -1,20 +1,20 @@
 import * as actionTypes from '../constants/actionTypes'
 import { stringToArray } from '../utility/utility'
-import { OrderedSet, OrderedMap } from 'immutable';
+import { Set, Map } from 'immutable';
 
 export default function fsm(
   state = {
     name: 'My FSM',
-    states: new OrderedSet(['A', 'B', 'C']),
-    alphabet: new OrderedSet(['a', 'b', 'c']),
-    transitionFunctions: new OrderedMap({
-      'A': new OrderedMap({ a: 'B' }),
-      'B': new OrderedMap({ b: 'C' }),
-      'C': new OrderedMap({ c: 'A' })
+    states: new Set(['A', 'B', 'C']),
+    alphabet: new Set(['a', 'b', 'c']),
+    transitionFunctions: new Map({
+      'A': new Map({ a: 'B' }),
+      'B': new Map({ b: 'C' }),
+      'C': new Map({ c: 'A' })
     }),
     initialState: 'A',
-    acceptStates: new OrderedSet(['A']),
-    statePositions: new OrderedMap({
+    acceptStates: new Set(['A']),
+    statePositions: new Map({
       'A': { x: 130, y: 200 },
       'B': { x: 250, y: 50 },
       'C': { x: 370, y: 200 }
@@ -27,10 +27,10 @@ export default function fsm(
       return { ...state, name: action.payload.name };
     }
     case actionTypes.FSM_STATES_CHANGED: {
-      return { ...state, states: new OrderedSet(stringToArray(action.payload.states)) };
+      return { ...state, states: new Set(stringToArray(action.payload.states)) };
     }
     case actionTypes.FSM_ALPHABET_CHANGED: {
-      return { ...state, alphabet: new OrderedSet(stringToArray(action.payload.alphabet)) };
+      return { ...state, alphabet: new Set(stringToArray(action.payload.alphabet)) };
     }
     case actionTypes.FSM_STATE_MOVED: {
       return {
@@ -88,7 +88,7 @@ export default function fsm(
             }
             return [key, value];
           }).remove(action.payload.state) :
-          new OrderedMap(),
+          new Map(),
         initialState: state.initialState === action.payload.state ? null : state.initialState,
         acceptStates: state.acceptStates.remove(action.payload.state),
         statePositions: state.statePositions.remove(action.payload.state),
@@ -109,7 +109,7 @@ export default function fsm(
     }
     case actionTypes.FSM_TRANSITION_ADDED: {
       const { fromState, letter, toState } = action.payload;
-      const transitionsFromState = state.transitionFunctions.get(fromState) || new OrderedMap();
+      const transitionsFromState = state.transitionFunctions.get(fromState) || new Map();
       return {
         ...state,
         transitionFunctions: state.transitionFunctions
@@ -133,27 +133,27 @@ export default function fsm(
       const fsm = JSON.parse(action.payload.jsonString);
       return {
         ...fsm,
-        states: new OrderedSet(fsm.states),
-        alphabet: new OrderedSet(fsm.alphabet),
-        transitionFunctions: new OrderedMap(fsm.transitionFunctions)
+        states: new Set(fsm.states),
+        alphabet: new Set(fsm.alphabet),
+        transitionFunctions: new Map(fsm.transitionFunctions)
           .mapEntries(([ fromState, transitions ]) => {
             if(transitions !== undefined) {
-              return [fromState, new OrderedMap(transitions)];
+              return [fromState, new Map(transitions)];
             }
           }),
-        acceptStates: new OrderedSet(fsm.acceptStates),
-        statePositions: new OrderedMap(fsm.statePositions)
+        acceptStates: new Set(fsm.acceptStates),
+        statePositions: new Map(fsm.statePositions)
       }
     }
     case actionTypes.FSM_RESET: {
       return {
         name: 'My FSM',
-        states: new OrderedSet(),
-        alphabet: new OrderedSet(),
-        transitionFunctions: new OrderedMap(),
+        states: new Set(),
+        alphabet: new Set(),
+        transitionFunctions: new Map(),
         initialState: null,
-        acceptStates: new OrderedSet(),
-        statePositions: new OrderedMap(),
+        acceptStates: new Set(),
+        statePositions: new Map(),
         selected: null
       }
     }

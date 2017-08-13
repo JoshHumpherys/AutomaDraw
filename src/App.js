@@ -5,6 +5,7 @@ import './index.css'
 import { getSettings } from './selectors/settings'
 import { isMobileBrowser } from './utility/utility'
 import MobileSite from './components/MobileSite'
+import { browserHistory } from 'react-router'
 
 export class App extends Component {
   render() {
@@ -13,21 +14,29 @@ export class App extends Component {
         <div className={'main-container' + (this.props.settings.darkTheme ? ' main-container-dark-theme' : '')}>
           <div id="navbar" className="ui fixed inverted menu">
             <div className="ui container">
-              <a href="/" className="header item">
+              <a onClick={() => browserHistory.push('/')} className="header item">
                 <img className="logo" src={logo}/>
                 AutomaDraw
               </a>
-              <a href="fsm" className="item">FSM</a>
-              <a href="pda" className="item">PDA</a>
-              <a href="tm" className="item">TM</a>
-              <a href="regex" className="item">Regular Expression</a>
+              <a onClick={() => browserHistory.push('/fsm')} className="item">FSM</a>
+              <a onClick={() => browserHistory.push('/pda')} className="item">PDA</a>
+              <a onClick={() => browserHistory.push('/tm')} className="item">TM</a>
+              <a onClick={() => browserHistory.push('/regex')} className="item">Regular Expression</a>
               <div className="ui simple dropdown item">
                 Grammar <i className="dropdown icon"/>
                 <div className="menu">
-                  <a href="unrestricted" className="item">Recursively Enumerable</a>
-                  <a href="contextsensitive" className="item">Context-Sensitive</a>
-                  <a href="contextfree" className="item">Context-Free</a>
-                  <a href="regular" className="item">Regular</a>
+                  <a onClick={() => browserHistory.push('/unrestricted')} className="item">
+                    Recursively Enumerable
+                  </a>
+                  <a onClick={() => browserHistory.push('/contextsensitive')} className="item">
+                    Context-Sensitive
+                  </a>
+                  <a onClick={() => browserHistory.push('/contextfree')} className="item">
+                    Context-Free
+                  </a>
+                  <a onClick={() => browserHistory.push('/regular')} className="item">
+                    Regular
+                  </a>
                 </div>
               </div>
             </div>

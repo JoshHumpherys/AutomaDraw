@@ -1,5 +1,4 @@
 import * as actionTypes from '../constants/actionTypes'
-import { stringToArray } from '../utility/utility'
 import { Set, Map } from 'immutable';
 
 export default function fsm(

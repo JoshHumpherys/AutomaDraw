@@ -23,6 +23,7 @@ import interact from 'interactjs'
 import $ from 'jquery'
 import { Button, Checkbox, Dropdown, Icon } from 'semantic-ui-react'
 import { saveAs } from 'file-saver'
+import { OrderedMap, OrderedSet } from 'immutable'
 
 import EditableTextField from './EditableTextField'
 import TransitionPopup from './TransitionPopup'
@@ -77,12 +78,12 @@ export class FsmPage extends Component {
     return 'state_' + state;
   }
 
-  getTransitionLineRefName(state1, transition, state2) {
-    return 'transition_' + state1 + '_' + transition + '_' + state2;
+  getTransitionLineRefName(state1, state2) {
+    return 'transition_line_svg_' + state1 + '_' + state2;
   }
 
-  getTransitionTextRefName(state1, transition, state2) {
-    return 'transition_text_' + state1 + '_' + transition + '_' + state2;
+  getTransitionTextRefName(state1, state2) {
+    return 'transition_text_svg_' + state1 + state2;
   }
 
   getStateCenterPosition(coords) {
@@ -259,8 +260,8 @@ export class FsmPage extends Component {
     if(transitions !== undefined) {
       for(const letter of transitions.keys()) {
         const toState = transitions.get(letter);
-        const transitionSvg = this[this.getTransitionLineRefName(state, letter, toState)];
-        const text = this[this.getTransitionTextRefName(state, letter, toState)];
+        const transitionSvg = this[this.getTransitionLineRefName(state, toState)];
+        const text = this[this.getTransitionTextRefName(state, toState)];
         if(state === toState) {
           const startCoords = this.getTransitionLoopStartCoords(statePosition);
           const textPosition = this.getTransitionLoopTextPosition(statePosition);
@@ -297,8 +298,8 @@ export class FsmPage extends Component {
       if(fromState !== state && transitions) {
         for(const letter of transitions.keys()) {
           if(this.props.fsm.transitionFunctions.get(fromState).get(letter) === state) {
-            const transitionSvg = this[this.getTransitionLineRefName(fromState, letter, state)];
-            const text = this[this.getTransitionTextRefName(fromState, letter, state)];
+            const transitionSvg = this[this.getTransitionLineRefName(fromState, state)];
+            const text = this[this.getTransitionTextRefName(fromState, state)];
             const fromStatePosition = this.props.fsm.statePositions.get(fromState);
             const coords = this.getTransitionLineEndCoords({
               x1: fromStatePosition.x,
@@ -536,7 +537,7 @@ export class FsmPage extends Component {
     };
     */
 
-    const createTransitionLine = (fromStatePosition, toStatePosition, letter, lineRefString, textRefString) => {
+    const createTransitionLine = (fromStatePosition, toStatePosition, letters, lineRefString, textRefString) => {
       const startCoords = this.getStateCenterPosition(fromStatePosition);
       const endCoords = this.getTransitionLineEndCoords({
         x1: fromStatePosition.x,
@@ -564,11 +565,13 @@ export class FsmPage extends Component {
           textAnchor="middle"
           stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
           fill={this.props.settings.darkTheme ? '#fff' : '#000'}
-          ref={text => this[textRefString] = text}>{letter}</text>
+          ref={text => {
+            this[textRefString] = text
+          }}>{letters.join(', ')}</text>
       };
     };
 
-    const createTransitionLoop = (fromStatePosition, letter, loopRefString, textRefString) => {
+    const createTransitionLoop = (fromStatePosition, letters, loopRefString, textRefString) => {
       const startCoords = this.getTransitionLoopStartCoords({
         x: fromStatePosition.x,
         y: fromStatePosition.y
@@ -592,18 +595,62 @@ export class FsmPage extends Component {
           textAnchor="middle"
           stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
           fill={this.props.settings.darkTheme ? '#fff' : '#000'}
-          ref={text => this[textRefString] = text}>{letter}</text>
+          ref={text => this[textRefString] = text}>{letters.join(', ')}</text>
       };
     };
 
     const lines = [];
     for(const fromState of this.props.fsm.states) {
       const transitions = this.props.fsm.transitionFunctions.get(fromState);
+      if(transitions !== undefined) {
+        const transitionsToStateMap = new OrderedMap({}).withMutations(transitionsToStateMap => {
+          for(const [ letter, toState ] of transitions.entries()) {
+            const transitionsToState = transitionsToStateMap.get(toState);
+            if(transitionsToState !== undefined) {
+              transitionsToStateMap.set(toState, transitionsToState.add(letter));
+            } else {
+              transitionsToStateMap.set(toState, new OrderedSet([letter]));
+            }
+          }
+        });
+        transitionsToStateMap.mapEntries(([ toState, letters ]) => {
+          const fromStatePosition = this.props.fsm.statePositions.get(fromState);
+          const loopRefString = this.getTransitionLineRefName(fromState, toState);
+          const textRefString = this.getTransitionTextRefName(fromState, toState);
+          if(fromState === toState) {
+            const transitionLoop = createTransitionLoop(
+              fromStatePosition,
+              letters,
+              loopRefString,
+              textRefString
+            );
+            lines.push(transitionLoop.loop);
+            lines.push(transitionLoop.text);
+          }
+          else {
+            const toStatePosition = this.props.fsm.statePositions.get(toState);
+            const transitionLine = createTransitionLine(
+              fromStatePosition,
+              toStatePosition,
+              letters,
+              loopRefString,
+              textRefString
+            );
+            lines.push(transitionLine.line);
+            lines.push(transitionLine.text);
+          }
+        });
+      }
+    }
+    /*
+    console.log(transitionsMap);
+    for(const fromState of this.props.fsm.states) {
+      const transitions = this.props.fsm.transitionFunctions.get(fromState);
       if(transitions) {
         for(const [ letter, toState ] of transitions.entries()) {
           const fromStatePosition = this.props.fsm.statePositions.get(fromState);
-          const loopRefString = this.getTransitionLineRefName(fromState, letter, toState);
-          const textRefString = this.getTransitionTextRefName(fromState, letter, toState);
+          const loopRefString = this.getTransitionLineRefName(fromState, toState);
+          const textRefString = this.getTransitionTextRefName(fromState, toState);
           if(fromState === toState) {
             const transitionLoop = createTransitionLoop(
               fromStatePosition,
@@ -629,13 +676,14 @@ export class FsmPage extends Component {
         }
       }
     }
+    */
     if(this.state.creatingTransition) {
       const statePosition = this.props.fsm.statePositions.get(this.state.creatingTransitionFromState);
       lines.push(
         createTransitionLine(
           statePosition,
           statePosition,
-          null,
+          new OrderedSet([]),
           this.creatingTransitionLineRef,
           null
         ).line
@@ -647,7 +695,7 @@ export class FsmPage extends Component {
         createTransitionLine(
           this.getInitialTransitionStartPosition(statePosition),
           statePosition,
-          null,
+          new OrderedSet([]),
           this.initialTransitionLineRef,
           null
         ).line
@@ -731,17 +779,17 @@ export class FsmPage extends Component {
           </div>
         </div>
         <div className={'center-container' + (this.props.settings.darkTheme ? ' center-container-dark-theme' : '')}
-             onMouseDown={this.centerContainerMouseDown}
-             onMouseUp={this.centerContainerMouseUp}
-             ref={element => this.centerContainer = element}
-             onKeyDown={this.centerContainerKeyDown}
-             onKeyUp={this.centerContainerKeyUp}
-             onMouseMove={this.centerContainerMouseMove}
-             onContextMenu={e => e.preventDefault()}
-             tabIndex="0"> {/* TODO figure out why tabIndex attribute is required for onKeyDown to fire */}
-           <div className={'popup' + (this.state.transitionPopup ? '' : ' popup-hidden')}>
-             {popupContents}
-           </div>
+          onMouseDown={this.centerContainerMouseDown}
+          onMouseUp={this.centerContainerMouseUp}
+          ref={element => this.centerContainer = element}
+          onKeyDown={this.centerContainerKeyDown}
+          onKeyUp={this.centerContainerKeyUp}
+          onMouseMove={this.centerContainerMouseMove}
+          onContextMenu={e => e.preventDefault()}
+          tabIndex="0"> {/* TODO figure out why tabIndex attribute is required for onKeyDown to fire */}
+          <div className={'popup' + (this.state.transitionPopup ? '' : ' popup-hidden')}>
+            {popupContents}
+          </div>
           {this.props.fsm.states.map(state => (
             <div
               className={'state' + (state === this.props.fsm.selected ? ' selected-state' : '')}

@@ -16,18 +16,18 @@ export class TransitionPopup extends Component {
   }
 
   onSubmit() {
-    this.props.dispatch(addTransition(this.props.fromState, this.state.selected, this.props.letter));
+    this.props.dispatch(addTransition(this.props.fromState, this.props.letter,  this.state.selected));
     this.props.closePopup();
   }
 
   onDelete() {
-    this.props.dispatch(removeTransition(this.props.fromState, this.props.letter));
+    this.props.dispatch(removeTransition(this.props.fromState, this.props.letter, this.state.selected));
     this.props.closePopup();
   }
 
   render() {
     return (
-      <div>
+      <div className={'popup ' + (this.props.className || '')}>
         <Dropdown
           placeholder={this.state.selected}
           fluid

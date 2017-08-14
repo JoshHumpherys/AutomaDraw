@@ -110,10 +110,11 @@ export default function fsm(
       };
     }
     case actionTypes.FSM_TRANSITION_REMOVED: {
+      const { fromState, letter } = action.payload;
       return {
         ...state,
         transitionFunctions: state.transitionFunctions
-          .set(action.payload.state, state.transitionFunctions.get(action.payload.state).remove(action.payload.letter))
+          .set(fromState, state.transitionFunctions.get(fromState).remove(letter))
       };
     }
     case actionTypes.FSM_LETTER_ADDED: {

@@ -217,7 +217,7 @@ export class FsmPage extends Component {
         if(!this.props.fsm.alphabet.contains(letter)) {
           this.props.dispatch(addLetter(letter));
         }
-        this.props.dispatch(addTransition(this.state.creatingTransitionFromState, state, letter));
+        this.props.dispatch(addTransition(this.state.creatingTransitionFromState, letter, state));
       }
     }
 
@@ -630,13 +630,13 @@ export class FsmPage extends Component {
       <TransitionPopup
         fromState={this.state.transitionPopupFromState}
         letter={this.state.transitionPopupLetter}
-        toState={this.state.transitionPopupToState}
         closePopup={() => this.setState({
           transitionPopup: false,
           transitionPopupFromState: null,
           transitionPopupLetter: null,
           transitionPopupToState: null
-        })}/>
+        })}
+        className={this.state.transitionPopup ? '' : 'popup-hidden'} />
     ) : null;
 
     let dropdownX = 0;
@@ -711,9 +711,7 @@ export class FsmPage extends Component {
           onMouseMove={this.centerContainerMouseMove}
           onContextMenu={e => e.preventDefault()}
           tabIndex="0"> {/* TODO figure out why tabIndex attribute is required for onKeyDown to fire */}
-          <div className={'popup' + (this.state.transitionPopup ? '' : ' popup-hidden')}>
-            {popupContents}
-          </div>
+          {popupContents}
           {this.props.fsm.states.map(state => (
             <div
               className={'state' + (state === this.props.fsm.selected ? ' selected-state' : '')}

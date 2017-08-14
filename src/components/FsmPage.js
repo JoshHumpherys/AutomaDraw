@@ -630,6 +630,7 @@ export class FsmPage extends Component {
       <TransitionPopup
         fromState={this.state.transitionPopupFromState}
         letter={this.state.transitionPopupLetter}
+        toState={this.state.transitionPopupToState}
         closePopup={() => this.setState({
           transitionPopup: false,
           transitionPopupFromState: null,

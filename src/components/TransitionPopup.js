@@ -9,7 +9,7 @@ export class TransitionPopup extends Component {
     super(props);
 
     this.state = {
-      selected: props.toState !== "" ? props.toState : props.states.toArray()[0]
+      selected: props.toState !== '' ? props.toState : props.states.toArray()[0]
     };
 
     this.onSubmit = this.onSubmit.bind(this);

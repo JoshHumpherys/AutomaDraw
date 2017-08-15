@@ -18,6 +18,17 @@ import UnrestrictedPage from './components/UnrestrictedPage'
 import ContextSensitivePage from './components/ContextSensitivePage'
 import ContextFreePage from './components/ContextFreePage'
 import RegularPage from './components/RegularPage'
+import {
+  HomeHelp,
+  FsmHelp,
+  PdaHelp,
+  TmHelp,
+  RegexHelp,
+  UnrestrictedHelp,
+  ContextSensitiveHelp,
+  ContextFreeHelp,
+  RegularHelp
+} from './components/Help'
 
 const middleware = compose(
   window.devToolsExtension ? window.devToolsExtension() : f => f
@@ -32,7 +43,19 @@ const history = syncHistoryWithStore(browserHistory, store);
 
 ReactDOM.render(
   <Provider store={store}>
-    <App>
+    <App popupText={
+      <Router history={browserHistory}>
+        <Route path="/" component={HomeHelp} />
+        <Route path="/fsm" component={FsmHelp} />
+        <Route path="/pda" component={PdaHelp} />
+        <Route path="/tm" component={TmHelp} />
+        <Route path="/regex" component={RegexHelp} />
+        <Route path="/unrestricted" component={UnrestrictedHelp} />
+        <Route path="/contextsensitive" component={ContextSensitiveHelp} />
+        <Route path="/contextfree" component={ContextFreeHelp} />
+        <Route path="/regular" component={RegularHelp} />
+      </Router>
+    }>
       <Router history={browserHistory}>
         <Route path="/" component={HomePage} />
         <Route path="/fsm" component={FsmPage} />

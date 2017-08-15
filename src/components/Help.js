@@ -4,10 +4,10 @@ export class HomeHelp extends Component {
   render() {
     return (
       <p>
+        This website contains tools for modeling and analyzing finite state machines, pushdown automata, Turing machines, regular expressions, and the four types of formal grammars in the Chomsky hierarchy.
+        <br />
+        <br />
         Click on a menu item to get started!
-        <br />
-        <br />
-        This application contains tools for modeling and analyzing finite state machines, pushdown automata, Turing machines, regular expressions, and the four types of formal grammars in the Chomsky hierarchy.
       </p>
     );
   }

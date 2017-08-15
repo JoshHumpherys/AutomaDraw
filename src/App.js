@@ -6,6 +6,7 @@ import { getSettings } from './selectors/settings'
 import { isMobileBrowser } from './utility/utility'
 import MobileSite from './components/MobileSite'
 import { browserHistory } from 'react-router'
+import { Icon, Menu, Popup } from 'semantic-ui-react'
 
 export class App extends Component {
   render() {
@@ -18,11 +19,11 @@ export class App extends Component {
                 <img className="logo" src={logo}/>
                 AutomaDraw
               </a>
-              <a onClick={() => browserHistory.push('/fsm')} className="item">FSM</a>
-              <a onClick={() => browserHistory.push('/pda')} className="item">PDA</a>
-              <a onClick={() => browserHistory.push('/tm')} className="item">TM</a>
-              <a onClick={() => browserHistory.push('/regex')} className="item">Regular Expression</a>
-              <div className="ui simple dropdown item">
+              <Menu.Item name="FSM" onClick={() => browserHistory.push('/fsm')} />
+              <Menu.Item name="PDA" onClick={() => browserHistory.push('/pda')} />
+              <Menu.Item name="TM" onClick={() => browserHistory.push('/tm')} />
+              <Menu.Item name="Regular Expression" onClick={() => browserHistory.push('/regex')} />
+              <Menu.Item className="ui simple dropdown item">
                 Grammar <i className="dropdown icon"/>
                 <div className="menu">
                   <a onClick={() => browserHistory.push('/unrestricted')} className="item">
@@ -38,7 +39,26 @@ export class App extends Component {
                     Regular
                   </a>
                 </div>
-              </div>
+              </Menu.Item>
+              <Menu.Menu position='right'>
+                <Popup hoverable trigger={
+                  <Menu.Item>
+                    <Icon name="help circle"/> Help
+                  </Menu.Item>
+                }>
+                  <p>
+                    A finite-state machine (FSM) is a mathematical model of computation. It is an abstract machine that can be in exactly one of a finite number of states at any given time. The FSM can change from one state to another in response to some external inputs. An FSM is defined by a list of its states, its initial state, and the conditions for each transition.
+                    <br />
+                    <br />
+                    Click on the background to add a state, drag a state to move it, or right click on a state for more options.
+                    <br />
+                    <br />
+                    <a href="https://en.wikipedia.org/wiki/Finite-state_machine" target="blank">
+                      Click here for more information on finite state machines!
+                    </a>
+                  </p>
+                </Popup>
+              </Menu.Menu>
             </div>
           </div>
 

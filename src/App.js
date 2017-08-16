@@ -7,6 +7,7 @@ import { isMobileBrowser } from './utility/utility'
 import MobileSite from './components/MobileSite'
 import { browserHistory } from 'react-router'
 import { Icon, Menu, Popup } from 'semantic-ui-react'
+import SettingsPopup from './components/SettingsPopup'
 
 export class App extends Component {
   render() {
@@ -47,6 +48,13 @@ export class App extends Component {
                   </Menu.Item>
                 }>
                   {this.props.popupText}
+                </Popup>
+                <Popup hoverable trigger={
+                  <Menu.Item>
+                    <Icon name="setting"/> Settings
+                  </Menu.Item>
+                }>
+                  <SettingsPopup />
                 </Popup>
               </Menu.Menu>
             </div>

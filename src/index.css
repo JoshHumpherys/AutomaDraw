@@ -201,3 +201,19 @@ body {
   position: absolute;
   pointer-events: none
 }
+
+.centered-element {
+  margin: auto;
+}
+
+.regex-input-container {
+  display: flex;
+}
+
+.regex-input-container > * {
+  margin: 0 5px;
+}
+
+.regex-input {
+  flex: 1;
+}

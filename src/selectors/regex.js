@@ -1,0 +1,1 @@
+export const getRegex = state => state.regex;

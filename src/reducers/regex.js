@@ -1,13 +1,15 @@
 import * as actionTypes from '../constants/actionTypes'
+import CreateRegex from '../objects/Regex'
 
 export default function regex(
   state = {
-    regex: ''
+    regex: CreateRegex()
   },
   action) {
   switch (action.type) {
     case actionTypes.REGEX_SET: {
-      return { ...state, regex: action.payload.regex };
+      const { regex, emptyStringSymbol, alternationSymbol } = action.payload;
+      return { ...state, regex: state.regex.setRegex(regex, emptyStringSymbol, alternationSymbol) };
     }
     default: {
       return state;

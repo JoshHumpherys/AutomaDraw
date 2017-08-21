@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Button, Input } from 'semantic-ui-react'
 import { setRegex } from '../actions/regex'
-import { getRegex } from '../selectors/regex'
+import { getRegexString } from '../selectors/regex'
 import { getSettings } from '../selectors/settings'
 import { getEmptyStringSymbol, getAlternationSymbol } from '../utility/utility'
 import $ from 'jquery'
@@ -13,36 +13,51 @@ export class RegexPage extends Component {
 
     this.regexInputRef = 'regex_input_ref';
 
+    this.inputChanged = this.inputChanged.bind(this);
     this.addSymbol = this.addSymbol.bind(this);
-    this.setRegex = this.setRegex.bind(this);
+    this.addEmptyStringSymbol = this.addEmptyStringSymbol.bind(this);
+    this.addAlternationSymbol = this.addAlternationSymbol.bind(this);
+  }
+
+  inputChanged(input) {
+    this.props.dispatch(setRegex(input, this.props.emptyStringSymbol, this.props.alternationSymbol));
   }
 
   addSymbol(symbol) {
-    const regexInputRef = $(this[this.regexInputRef].inputRef);
-    const newRegex = regexInputRef.val() + symbol;
-    regexInputRef.val(newRegex);
-    regexInputRef.focus();
+    const regexInput = $(this[this.regexInputRef].inputRef);
+    regexInput.val(regexInput.val() + symbol);
+    regexInput.focus();
+    this.props.dispatch(setRegex(regexInput.val(), this.props.emptyStringSymbol, this.props.alternationSymbol));
   }
 
-  setRegex() {
-    const newRegex = $(this[this.regexInputRef].inputRef).val();
-    this.props.dispatch(setRegex(newRegex));
+  addEmptyStringSymbol() {
+    this.addSymbol(this.props.emptyStringSymbol);
+  }
+
+  addAlternationSymbol() {
+    this.addSymbol(this.props.alternationSymbol);
+  }
+
+  componentDidUpdate(prevProps) {
+    const emptyStringSymbolChanged = prevProps.emptyStringSymbol !== this.props.emptyStringSymbol;
+    const alternationSymbolChanged = prevProps.alternationSymbol !== this.props.alternationSymbol;
+    if(emptyStringSymbolChanged || alternationSymbolChanged) {
+      $(this[this.regexInputRef].inputRef).val(this.props.regex)
+    }
   }
 
   render() {
-    const emptyStringSymbol = getEmptyStringSymbol(this.props.settings.emptyStringSymbol);
-    const alternationSymbol = getAlternationSymbol(this.props.settings.alternationSymbol);
     return (
-      <div className="page-container" style={{ color: (this.props.settings.darkTheme ? '#fff' : '#000') }}>
+      <div className="page-container" style={{ color: (this.props.darkTheme ? '#fff' : '#000') }}>
         <div className="regex-input-container">
           <Input
             ref={input => this[this.regexInputRef] = input}
             className='regex-input'
-            onBlur={this.setRegex}
-            defaultValue={this.props.regex.regex}
+            onChange={(e, data) => this.inputChanged(data.value)}
+            defaultValue={this.props.regex}
           />
-          <Button onClick={() => this.addSymbol(emptyStringSymbol)} content={emptyStringSymbol} />
-          <Button onClick={() => this.addSymbol(alternationSymbol)} content={alternationSymbol} />
+          <Button content={this.props.emptyStringSymbol} onClick={this.addEmptyStringSymbol} />
+          <Button content={this.props.alternationSymbol} onClick={this.addAlternationSymbol} />
         </div>
       </div>
     );
@@ -50,8 +65,13 @@ export class RegexPage extends Component {
 }
 
 export default connect(
-  state => ({
-    regex: getRegex(state),
-    settings: getSettings(state)
-  })
+  state => {
+    const settings = getSettings(state);
+    return {
+      regex: getRegexString(state),
+      darkTheme: settings.darkTheme,
+      emptyStringSymbol: getEmptyStringSymbol(settings.emptyStringSymbol),
+      alternationSymbol: getAlternationSymbol(settings.alternationSymbol)
+    };
+  }
 )(RegexPage);

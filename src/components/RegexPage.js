@@ -17,6 +17,7 @@ export class RegexPage extends Component {
     this.addSymbol = this.addSymbol.bind(this);
     this.addEmptyStringSymbol = this.addEmptyStringSymbol.bind(this);
     this.addAlternationSymbol = this.addAlternationSymbol.bind(this);
+    this.onInputBlur = this.onInputBlur.bind(this);
   }
 
   inputChanged(input) {
@@ -25,9 +26,13 @@ export class RegexPage extends Component {
 
   addSymbol(symbol) {
     const regexInput = $(this[this.regexInputRef].inputRef);
-    regexInput.val(regexInput.val() + symbol);
+    const { cursorPosition } = this.state;
+    const currentVal = regexInput.val();
+    const newVal = currentVal.substring(0, cursorPosition) + symbol + currentVal.substring(cursorPosition);
+    regexInput.val(newVal);
     regexInput.focus();
-    this.props.dispatch(setRegex(regexInput.val(), this.props.emptyStringSymbol, this.props.alternationSymbol));
+    this.props.dispatch(setRegex(newVal, this.props.emptyStringSymbol, this.props.alternationSymbol));
+    regexInput[0].setSelectionRange(cursorPosition + 1, cursorPosition + 1);
   }
 
   addEmptyStringSymbol() {
@@ -36,6 +41,10 @@ export class RegexPage extends Component {
 
   addAlternationSymbol() {
     this.addSymbol(this.props.alternationSymbol);
+  }
+
+  onInputBlur() {
+    this.setState({ cursorPosition: this[this.regexInputRef].inputRef.selectionStart });
   }
 
   componentDidUpdate(prevProps) {
@@ -55,6 +64,7 @@ export class RegexPage extends Component {
             className='regex-input'
             onChange={(e, data) => this.inputChanged(data.value)}
             defaultValue={this.props.regex}
+            onBlur={this.onInputBlur}
           />
           <Button content={this.props.emptyStringSymbol} onClick={this.addEmptyStringSymbol} />
           <Button content={this.props.alternationSymbol} onClick={this.addAlternationSymbol} />

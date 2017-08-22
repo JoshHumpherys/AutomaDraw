@@ -11,6 +11,11 @@ export class RegexPage extends Component {
   constructor(props) {
     super(props);
 
+    this.state = {
+      selectionStart: 0,
+      selectionEnd: 0
+    };
+
     this.regexInputRef = 'regex_input_ref';
 
     this.inputChanged = this.inputChanged.bind(this);

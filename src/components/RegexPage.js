@@ -26,13 +26,15 @@ export class RegexPage extends Component {
 
   addSymbol(symbol) {
     const regexInput = $(this[this.regexInputRef].inputRef);
-    const { cursorPosition } = this.state;
+    const { selectionStart, selectionEnd } = this.state;
     const currentVal = regexInput.val();
-    const newVal = currentVal.substring(0, cursorPosition) + symbol + currentVal.substring(cursorPosition);
+    const beginningString = currentVal.slice(0, selectionStart);
+    const endString = currentVal.slice(selectionEnd);
+    const newVal = beginningString + symbol + endString;
     regexInput.val(newVal);
     regexInput.focus();
     this.props.dispatch(setRegex(newVal, this.props.emptyStringSymbol, this.props.alternationSymbol));
-    regexInput[0].setSelectionRange(cursorPosition + 1, cursorPosition + 1);
+    regexInput[0].setSelectionRange(selectionStart + 1, selectionStart + 1);
   }
 
   addEmptyStringSymbol() {
@@ -44,7 +46,11 @@ export class RegexPage extends Component {
   }
 
   onInputBlur() {
-    this.setState({ cursorPosition: this[this.regexInputRef].inputRef.selectionStart });
+    const regexInput = this[this.regexInputRef].inputRef;
+    this.setState({
+      selectionStart: regexInput.selectionStart,
+      selectionEnd: regexInput.selectionEnd
+    });
   }
 
   componentDidUpdate(prevProps) {

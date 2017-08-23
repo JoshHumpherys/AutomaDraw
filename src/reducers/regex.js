@@ -11,6 +11,9 @@ export default function regex(
       const { regex, emptyStringSymbol, alternationSymbol } = action.payload;
       return { ...state, regex: state.regex.setRegex(regex, emptyStringSymbol, alternationSymbol) };
     }
+    case actionTypes.REGEX_CLEARED: {
+      return { ...state, regex: state.regex.clearRegex() };
+    }
     default: {
       return state;
     }

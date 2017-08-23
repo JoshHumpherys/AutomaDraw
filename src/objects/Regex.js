@@ -39,6 +39,10 @@ const CreateRegex = () => {
       return newRegex;
     },
 
+    clearRegex() {
+      return CreateRegex();
+    },
+
     getRegexString(emptyStringSymbol, alternationSymbol) {
       let regexString = '';
       for(const symbol of this.regex) {

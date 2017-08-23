@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Button, Input } from 'semantic-ui-react'
-import { setRegex } from '../actions/regex'
+import { setRegex, clearRegex } from '../actions/regex'
 import { getRegexString } from '../selectors/regex'
 import { getSettings } from '../selectors/settings'
 import { getEmptyStringSymbol, getAlternationSymbol } from '../utility/utility'
@@ -23,6 +23,7 @@ export class RegexPage extends Component {
     this.addEmptyStringSymbol = this.addEmptyStringSymbol.bind(this);
     this.addAlternationSymbol = this.addAlternationSymbol.bind(this);
     this.onInputBlur = this.onInputBlur.bind(this);
+    this.clear = this.clear.bind(this);
   }
 
   inputChanged(input) {
@@ -36,7 +37,7 @@ export class RegexPage extends Component {
     const beginningString = currentVal.slice(0, selectionStart);
     const endString = currentVal.slice(selectionEnd);
     const newVal = beginningString + symbol + endString;
-    regexInput.val(newVal);
+    regexInput.val(newVal); // TODO figure out why I need to do this
     regexInput.focus();
     this.props.dispatch(setRegex(newVal, this.props.emptyStringSymbol, this.props.alternationSymbol));
     regexInput[0].setSelectionRange(selectionStart + 1, selectionStart + 1);
@@ -58,11 +59,16 @@ export class RegexPage extends Component {
     });
   }
 
+  clear() {
+    this.props.dispatch(clearRegex());
+    $(this[this.regexInputRef].inputRef).val(''); // TODO figure out why I need to do this
+  }
+
   componentDidUpdate(prevProps) {
     const emptyStringSymbolChanged = prevProps.emptyStringSymbol !== this.props.emptyStringSymbol;
     const alternationSymbolChanged = prevProps.alternationSymbol !== this.props.alternationSymbol;
     if(emptyStringSymbolChanged || alternationSymbolChanged) {
-      $(this[this.regexInputRef].inputRef).val(this.props.regex)
+      $(this[this.regexInputRef].inputRef).val(this.props.regex) // TODO figure out why I need to do this
     }
   }
 
@@ -80,6 +86,7 @@ export class RegexPage extends Component {
           <Button content={this.props.emptyStringSymbol} onClick={this.addEmptyStringSymbol} />
           <Button content={this.props.alternationSymbol} onClick={this.addAlternationSymbol} />
         </div>
+        <Button content="Clear" onClick={this.clear} />
       </div>
     );
   }

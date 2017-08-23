@@ -17,6 +17,7 @@ export const FSM_RESET = 'FSM_RESET';
 
 // regex
 export const REGEX_SET = 'REGEX_SET';
+export const REGEX_CLEARED = 'REGEX_CLEARED';
 
 // settings
 export const SETTINGS_DARK_THEME_SET = 'SETTINGS_DARK_THEME_SET';

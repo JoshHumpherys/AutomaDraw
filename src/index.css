@@ -77,6 +77,10 @@ body {
   margin: 20px auto;
 }
 
+.page-container > *:not(:last-child) {
+  margin-bottom: 10px;
+}
+
 .control-panel-text {
   text-align: center;
   margin-top: 10px;

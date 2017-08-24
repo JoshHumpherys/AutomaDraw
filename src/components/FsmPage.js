@@ -52,6 +52,7 @@ export class FsmPage extends Component {
     this.getTransitionLineRefName = this.getTransitionLineRefName.bind(this);
     this.getTransitionTextRefName = this.getTransitionTextRefName.bind(this);
     this.getStateCenterPosition = this.getStateCenterPosition.bind(this);
+    this.getStatePositionFromCenterPosition = this.getStatePositionFromCenterPosition.bind(this);
     this.getTransitionLoopStartCoords = this.getTransitionLoopStartCoords.bind(this);
     this.getTransitionLineEndCoords = this.getTransitionLineEndCoords.bind(this);
     this.getTransitionLineTextPositionAndAngle = this.getTransitionLineTextPositionAndAngle.bind(this);
@@ -85,6 +86,10 @@ export class FsmPage extends Component {
 
   getStateCenterPosition(coords) {
     return { x: coords.x + 20, y: coords.y + 20 };
+  }
+
+  getStatePositionFromCenterPosition(coords) {
+    return { x: coords.x - 20, y: coords.y - 20 };
   }
 
   getTransitionLoopStartCoords(coords) {
@@ -138,7 +143,7 @@ export class FsmPage extends Component {
 
   centerContainerMouseUp(e) {
     if(this.state.placingNewState && this.state.creatingTransitionFromState === null) {
-      const { x, y } = this.getMouseCoordsRelativeToContainer(e);
+      const mousePosition = this.getMouseCoordsRelativeToContainer(e);
 
       const getNextStateName = states => {
         const statesArray = states.toArray();
@@ -173,7 +178,8 @@ export class FsmPage extends Component {
 
       if(this.state.contextMenuState === null) {
         const name = getNextStateName(this.props.fsm.states);
-        this.props.dispatch(addState(name, x, y));
+        const statePosition = this.getStatePositionFromCenterPosition(mousePosition);
+        this.props.dispatch(addState(name, statePosition.x, statePosition.y));
         this.props.dispatch(selectState(name));
       }
       this.setState({ placingNewState: false });
@@ -187,9 +193,8 @@ export class FsmPage extends Component {
     if(this.state.creatingTransitionFromState !== null) {
       const line = this[this.creatingTransitionLineRef];
       const mouseCoords = this.getMouseCoordsRelativeToContainer(e);
-      const endCoords = this.getStateCenterPosition(mouseCoords);
-      line.setAttribute('x2', endCoords.x);
-      line.setAttribute('y2', endCoords.y);
+      line.setAttribute('x2', mouseCoords.x);
+      line.setAttribute('y2', mouseCoords.y);
     }
   }
 
@@ -225,16 +230,13 @@ export class FsmPage extends Component {
   }
 
   getMouseCoordsRelativeToContainer(event) {
-    // TODO remove fudge factor for centering state on mouse position
-    const x = event.pageX - $(this.centerContainer).offset().left - 20;
-    const y = event.pageY - $(this.centerContainer).offset().top - 20;
+    const x = event.pageX - $(this.centerContainer).offset().left;
+    const y = event.pageY - $(this.centerContainer).offset().top;
     return { x, y };
   }
 
   setStatePosition(element, state, x, y) {
     element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
-    element.setAttribute('data-x', x); // TODO I don't think these are ever used
-    element.setAttribute('data-y', y);
     const statePosition = { x, y };
     const transitions = this.props.fsm.transitionFunctions.get(state);
     if(transitions !== undefined) {
@@ -395,7 +397,7 @@ export class FsmPage extends Component {
         onmove: e => {
           const target = this.state.draggedElement;
           if(target !== null) {
-            const { x, y } = this.getMouseCoordsRelativeToContainer(e);
+            const { x, y } = this.getStatePositionFromCenterPosition(this.getMouseCoordsRelativeToContainer(e));
             const state = this.state.mouseDownOnState;
 
             this.setStatePosition(target, state, x, y);
@@ -405,7 +407,7 @@ export class FsmPage extends Component {
           const target = this.state.draggedElement;
           const state = this.state.mouseDownOnState;
           if(target !== null) {
-            const { x, y } = this.getMouseCoordsRelativeToContainer(e);
+            const { x, y } = this.getStatePositionFromCenterPosition(this.getMouseCoordsRelativeToContainer(e));
             this.props.dispatch(moveState(state, x, y));
             this.setState({ draggedElement: null });
           }
@@ -467,34 +469,6 @@ export class FsmPage extends Component {
         </table>
       );
     };
-
-    /*
-    const createSingleStateTransitionTable = () => {
-      return (
-        <table className="transition-table">
-          <tbody>
-          {
-            this.props.fsm.alphabet.map(letter => {
-              const transition = this.props.fsm.transitionFunctions.get(this.props.fsm.selected);
-              const toState = transition ? transition.get(letter) : '';
-              return (
-                <tr>
-                  <td>{letter}</td>
-                  <td onClick={() => this.setState({
-                    transitionPopup: true,
-                    transitionPopupFromState: this.props.fsm.selected,
-                    transitionPopupLetter: letter,
-                    transitionPopupToState: toState || ''
-                  })}>{toState}</td>
-                </tr>
-              );
-            })
-          }
-          </tbody>
-        </table>
-      );
-    };
-    */
 
     const createTransitionLine = (fromStatePosition, toStatePosition, letters, lineRefString, textRefString) => {
       const startCoords = this.getStateCenterPosition(fromStatePosition);

@@ -16,8 +16,6 @@ export class RegexPage extends Component {
       selectionEnd: 0
     };
 
-    this.regexInputRef = 'regex_input_ref';
-
     this.inputChanged = this.inputChanged.bind(this);
     this.addSymbol = this.addSymbol.bind(this);
     this.addEmptyStringSymbol = this.addEmptyStringSymbol.bind(this);
@@ -26,12 +24,13 @@ export class RegexPage extends Component {
     this.clear = this.clear.bind(this);
   }
 
-  inputChanged(input) {
+  inputChanged(e) {
+    const input = e.target.value;
     this.props.dispatch(setRegex(input, this.props.emptyStringSymbol, this.props.alternationSymbol));
   }
 
   addSymbol(symbol) {
-    const regexInput = $(this[this.regexInputRef].inputRef);
+    const regexInput = $(this.inputRef);
     const { selectionStart, selectionEnd } = this.state;
     const currentVal = regexInput.val();
     const beginningString = currentVal.slice(0, selectionStart);
@@ -52,7 +51,7 @@ export class RegexPage extends Component {
   }
 
   onInputBlur() {
-    const regexInput = this[this.regexInputRef].inputRef;
+    const regexInput = this.inputRef;
     this.setState({
       selectionStart: regexInput.selectionStart,
       selectionEnd: regexInput.selectionEnd
@@ -61,14 +60,14 @@ export class RegexPage extends Component {
 
   clear() {
     this.props.dispatch(clearRegex());
-    $(this[this.regexInputRef].inputRef).val(''); // TODO figure out why I need to do this
+    $(this.inputRef).val(''); // TODO figure out why I need to do this
   }
 
   componentDidUpdate(prevProps) {
     const emptyStringSymbolChanged = prevProps.emptyStringSymbol !== this.props.emptyStringSymbol;
     const alternationSymbolChanged = prevProps.alternationSymbol !== this.props.alternationSymbol;
     if(emptyStringSymbolChanged || alternationSymbolChanged) {
-      $(this[this.regexInputRef].inputRef).val(this.props.regex) // TODO figure out why I need to do this
+      $(this.inputRef).val(this.props.regex) // TODO figure out why I need to do this
     }
   }
 
@@ -76,13 +75,15 @@ export class RegexPage extends Component {
     return (
       <div className="page-container" style={{ color: (this.props.darkTheme ? '#fff' : '#000') }}>
         <div className="regex-input-container">
-          <Input
-            ref={input => this[this.regexInputRef] = input}
-            className='regex-input'
-            onChange={(e, data) => this.inputChanged(data.value)}
-            defaultValue={this.props.regex}
-            onBlur={this.onInputBlur}
-          />
+          <div className="ui input regex-input">
+            <input
+              type="text"
+              ref={input => this.inputRef = input}
+              onChange={e => this.inputChanged(e)}
+              defaultValue={this.props.regex}
+              onBlur={this.onInputBlur}
+              spellCheck="false" />
+          </div>
           <Button content={this.props.emptyStringSymbol} onClick={this.addEmptyStringSymbol} />
           <Button content={this.props.alternationSymbol} onClick={this.addAlternationSymbol} />
         </div>

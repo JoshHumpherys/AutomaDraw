@@ -221,3 +221,7 @@ body {
 .regex-input {
   flex: 1;
 }
+
+.ui.input.regex-input > input {
+  text-align: center;
+}

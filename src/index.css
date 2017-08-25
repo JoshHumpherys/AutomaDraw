@@ -225,3 +225,7 @@ body {
 .ui.input.regex-input > input {
   text-align: center;
 }
+
+.centered-children {
+  text-align: center;
+}

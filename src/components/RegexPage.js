@@ -84,10 +84,17 @@ export class RegexPage extends Component {
               onBlur={this.onInputBlur}
               spellCheck="false" />
           </div>
+        </div>
+        <div className="centered-children">
           <Button content={this.props.emptyStringSymbol} onClick={this.addEmptyStringSymbol} />
           <Button content={this.props.alternationSymbol} onClick={this.addAlternationSymbol} />
+          <Button content="(" onClick={() => this.addSymbol('(')} />
+          <Button content=")" onClick={() => this.addSymbol(')')} />
+          <Button content="*" onClick={() => this.addSymbol('*')} />
         </div>
-        <Button content="Clear" onClick={this.clear} />
+        <div className="centered-children">
+          <Button content="Clear" onClick={this.clear} />
+        </div>
       </div>
     );
   }

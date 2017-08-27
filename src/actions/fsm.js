@@ -1,6 +1,6 @@
 import * as actionTypes from '../constants/actionTypes'
 
-export function changeFsmName(name) {
+export function changeName(name) {
   return { type: actionTypes.FSM_NAME_CHANGED, payload: { name } };
 }
 
@@ -52,10 +52,10 @@ export function addLetter(letter) {
   return { type: actionTypes.FSM_LETTER_ADDED, payload: { letter } };
 }
 
-export function initializeFsmFromJsonString(jsonString) {
+export function initializeFromJsonString(jsonString) {
   return { type: actionTypes.FSM_INITIALIZED_FROM_JSON_STRING, payload: { jsonString } };
 }
 
-export function resetFsm() {
+export function reset() {
   return { type: actionTypes.FSM_RESET };
 }

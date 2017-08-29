@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { getFsm } from '../selectors/fsm'
 import { getSettings } from '../selectors/settings'
-import { arrayToString, transitionFunctionsToTable } from '../utility/utility'
 import interact from 'interactjs'
 import $ from 'jquery'
 import { Button, Checkbox, Dropdown, Icon } from 'semantic-ui-react'
@@ -10,7 +9,6 @@ import { saveAs } from 'file-saver'
 import { Map, Set } from 'immutable'
 
 import EditableTextField from './EditableTextField'
-import TransitionPopup from './TransitionPopup'
 
 export class AutomataPage extends Component {
   constructor(props) {
@@ -20,17 +18,12 @@ export class AutomataPage extends Component {
       draggedElement: null,
       mouseDownOnState: null,
       placingNewState: false,
-      transitionPopupToState: null,
-      transitionPopupLetter: null,
-      transitionPopupFromState: null,
-      transitionPopup: false,
       creatingTransitionFromState: null,
       contextMenuState: null
     };
 
     this.creatingTransitionLineRef = 'creating_transition_line_ref';
     this.initialTransitionLineRef = 'initial_transition_life_ref';
-    this.contextMenuRef = 'context_menu_ref';
 
     this.getStateRefName = this.getStateRefName.bind(this);
     this.getTransitionLineRefName = this.getTransitionLineRefName.bind(this);
@@ -38,10 +31,16 @@ export class AutomataPage extends Component {
     this.getStateCenterPosition = this.getStateCenterPosition.bind(this);
     this.getStatePositionFromCenterPosition = this.getStatePositionFromCenterPosition.bind(this);
     this.getTransitionLoopStartCoords = this.getTransitionLoopStartCoords.bind(this);
-    this.getTransitionLineEndCoords = this.getTransitionLineEndCoords.bind(this);
+    this.getTransitionLineEndPosition = this.getTransitionLineEndPosition.bind(this);
     this.getTransitionLineTextPositionAndAngle = this.getTransitionLineTextPositionAndAngle.bind(this);
     this.getTransitionLoopTextPosition = this.getTransitionLoopTextPosition.bind(this);
     this.getInitialTransitionStartPosition = this.getInitialTransitionStartPosition.bind(this);
+    this.setSvgTransitionLinePosition = this.setSvgTransitionLinePosition.bind(this);
+    this.setSvgTransitionLineStartCoords = this.setSvgTransitionLineStartCoords.bind(this);
+    this.setSvgTransitionLineEndCoords = this.setSvgTransitionLineEndCoords.bind(this);
+    this.setSvgTransitionLoopPosition = this.setSvgTransitionLoopPosition.bind(this);
+    this.setSvgTextPosition = this.setSvgTextPosition.bind(this);
+    this.setSvgTextPositionAndAngle = this.setSvgTextPositionAndAngle.bind(this);
     this.centerContainerMouseDown = this.centerContainerMouseDown.bind(this);
     this.centerContainerMouseUp = this.centerContainerMouseUp.bind(this);
     this.centerContainerMouseMove = this.centerContainerMouseMove.bind(this);
@@ -49,7 +48,7 @@ export class AutomataPage extends Component {
     this.centerContainerKeyUp = this.centerContainerKeyUp.bind(this);
     this.stateMouseDown = this.stateMouseDown.bind(this);
     this.stateMouseUp = this.stateMouseUp.bind(this);
-    this.getMouseCoordsRelativeToContainer = this.getMouseCoordsRelativeToContainer.bind(this);
+    this.getMousePositionRelativeToContainer = this.getMousePositionRelativeToContainer.bind(this);
     this.setStatePosition = this.setStatePosition.bind(this);
     this.updateStatePositions = this.updateStatePositions.bind(this);
     this.stateRightClick = this.stateRightClick.bind(this);
@@ -80,7 +79,7 @@ export class AutomataPage extends Component {
     return { x: coords.x + 20, y: coords.y };
   }
 
-  getTransitionLineEndCoords(coords) {
+  getTransitionLineEndPosition(coords) {
     if(coords.x1 === coords.x2 && coords.y1 === coords.y2) {
       return { x: coords.x2 + 20, y: coords.y2 + 20 };
     }
@@ -110,6 +109,36 @@ export class AutomataPage extends Component {
     return { ...statePosition, x: statePosition.x - 100 };
   }
 
+  setSvgTransitionLinePosition(transitionRef, startCoords, endCoords) {
+    this.setSvgTransitionLineStartCoords(transitionRef, startCoords);
+    this.setSvgTransitionLineEndCoords(transitionRef, endCoords);
+  }
+
+  setSvgTransitionLineStartCoords(transitionRef, startCoords) {
+    transitionRef.setAttribute('x1', startCoords.x);
+    transitionRef.setAttribute('y1', startCoords.y);
+  }
+
+  setSvgTransitionLineEndCoords(transitionRef, endCoords) {
+    transitionRef.setAttribute('x2', endCoords.x);
+    transitionRef.setAttribute('y2', endCoords.y);
+  }
+
+  setSvgTransitionLoopPosition(transitionRef, coords) {
+    transitionRef.setAttribute('cx', coords.x);
+    transitionRef.setAttribute('cy', coords.y);
+  }
+
+  setSvgTextPosition(textRef, position) {
+    textRef.setAttribute('x', position.x);
+    textRef.setAttribute('y', position.y);
+  }
+
+  setSvgTextPositionAndAngle(textRef, positionAndAngle) {
+    this.setSvgTextPosition(textRef, positionAndAngle);
+    textRef.setAttribute('transform', `rotate(${positionAndAngle.angle} ${positionAndAngle.x}, ${positionAndAngle.y})`);
+  }
+
   startCreatingTransition(state) {
     this.setState({ creatingTransitionFromState: state });
   }
@@ -127,7 +156,7 @@ export class AutomataPage extends Component {
 
   centerContainerMouseUp(e) {
     if(this.state.placingNewState && this.state.creatingTransitionFromState === null) {
-      const mousePosition = this.getMouseCoordsRelativeToContainer(e);
+      const mousePosition = this.getMousePositionRelativeToContainer(e);
 
       const getNextStateName = states => {
         const statesArray = states.toArray();
@@ -176,7 +205,7 @@ export class AutomataPage extends Component {
     e.target.focus();
     if(this.state.creatingTransitionFromState !== null) {
       const line = this[this.creatingTransitionLineRef];
-      const mouseCoords = this.getMouseCoordsRelativeToContainer(e);
+      const mouseCoords = this.getMousePositionRelativeToContainer(e);
       line.setAttribute('x2', mouseCoords.x);
       line.setAttribute('y2', mouseCoords.y);
     }
@@ -191,7 +220,6 @@ export class AutomataPage extends Component {
     this.setState({ mouseDownOnState: state });
   }
 
-  // TODO make this work for PDA/TM
   stateMouseUp(e, state) {
     if(this.state.creatingTransitionFromState !== null) {
       this.props.addTransition(this.state.creatingTransitionFromState, state);
@@ -200,7 +228,7 @@ export class AutomataPage extends Component {
     this.setState({ mouseDownOnState: null });
   }
 
-  getMouseCoordsRelativeToContainer(event) {
+  getMousePositionRelativeToContainer(event) {
     const x = event.pageX - $(this.centerContainer).offset().left;
     const y = event.pageY - $(this.centerContainer).offset().top;
     return { x, y };
@@ -210,24 +238,22 @@ export class AutomataPage extends Component {
   setStatePosition(element, state, x, y) {
     element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
     const statePosition = { x, y };
-    const transitions = this.props.transitionFunctions.get(state);
-    if(transitions !== undefined) {
-      for(const letter of transitions.keys()) { // Update all transitions FROM the state being moved
-        const toState = transitions.get(letter);
-        const transitionSvg = this[this.getTransitionLineRefName(state, toState)];
-        const text = this[this.getTransitionTextRefName(state, toState)];
-        if(state === toState) {
-          const startCoords = this.getTransitionLoopStartCoords(statePosition);
+    const transitionsFromState = this.props.simplifiedTransitionFunction.get(state);
+    if(transitionsFromState !== undefined) {
+      for(const transitionText of transitionsFromState.keys()) { // Update all transitions FROM the state being moved
+        const toState = transitionsFromState.get(transitionText);
+        const transitionRef = this[this.getTransitionLineRefName(state, toState)];
+        const textRef = this[this.getTransitionTextRefName(state, toState)];
+        if(state === toState) { // Transition to self
+          const transitionStartPosition = this.getTransitionLoopStartCoords(statePosition);
           const textPosition = this.getTransitionLoopTextPosition(statePosition);
-          transitionSvg.setAttribute('cx', startCoords.x);
-          transitionSvg.setAttribute('cy', startCoords.y);
-          text.setAttribute('x', textPosition.x);
-          text.setAttribute('y', textPosition.y);
+          this.setSvgTransitionLoopPosition(transitionRef, transitionStartPosition);
+          this.setSvgTextPosition(textRef, textPosition);
         }
-        else {
+        else { // Transition to another state
           const toStatePosition = this.props.statePositions.get(toState);
-          const startCoords = this.getStateCenterPosition(statePosition);
-          const endCoords = this.getTransitionLineEndCoords({
+          const transitionStartPosition = this.getStateCenterPosition(statePosition);
+          const transitionEndPosition = this.getTransitionLineEndPosition({
             x1: statePosition.x,
             y1: statePosition.y,
             x2: toStatePosition.x,
@@ -237,25 +263,19 @@ export class AutomataPage extends Component {
             statePosition,
             toStatePosition
           );
-          const { angle } = textPositionAndAngle;
-          transitionSvg.setAttribute('x1', startCoords.x);
-          transitionSvg.setAttribute('y1', startCoords.y);
-          transitionSvg.setAttribute('x2', endCoords.x);
-          transitionSvg.setAttribute('y2', endCoords.y);
-          text.setAttribute('x', textPositionAndAngle.x);
-          text.setAttribute('y', textPositionAndAngle.y);
-          text.setAttribute('transform', `rotate(${angle} ${textPositionAndAngle.x}, ${textPositionAndAngle.y})`);
+          this.setSvgTransitionLinePosition(transitionRef, transitionStartPosition, transitionEndPosition);
+          this.setSvgTextPositionAndAngle(textRef, textPositionAndAngle);
         }
       }
     }
-    for(const [ fromState, transitions ] of this.props.transitionFunctions) { // Update all transitions TO the state being moved
-      if(fromState !== state && transitions) {
-        for(const letter of transitions.keys()) {
-          if(this.props.transitionFunctions.get(fromState).get(letter) === state) {
-            const transitionSvg = this[this.getTransitionLineRefName(fromState, state)];
-            const text = this[this.getTransitionTextRefName(fromState, state)];
+    for(const [ fromState, transitionsFromState ] of this.props.simplifiedTransitionFunction) { // Update all transitions TO the state being moved
+      if(fromState !== state && transitionsFromState) {
+        for(const transitionText of transitionsFromState.keys()) {
+          if(this.props.simplifiedTransitionFunction.get(fromState).get(transitionText) === state) {
+            const transitionRef = this[this.getTransitionLineRefName(fromState, state)];
+            const textRef = this[this.getTransitionTextRefName(fromState, state)];
             const fromStatePosition = this.props.statePositions.get(fromState);
-            const coords = this.getTransitionLineEndCoords({
+            const transitionEndPosition = this.getTransitionLineEndPosition({
               x1: fromStatePosition.x,
               y1: fromStatePosition.y,
               x2: x,
@@ -265,30 +285,23 @@ export class AutomataPage extends Component {
               fromStatePosition,
               statePosition
             );
-            const { angle } = textPositionAndAngle;
-            transitionSvg.setAttribute('x2', coords.x);
-            transitionSvg.setAttribute('y2', coords.y);
-            text.setAttribute('x', textPositionAndAngle.x);
-            text.setAttribute('y', textPositionAndAngle.y);
-            text.setAttribute('transform', `rotate(${angle} ${textPositionAndAngle.x}, ${textPositionAndAngle.y})`);
+            this.setSvgTransitionLineEndCoords(transitionRef, transitionEndPosition);
+            this.setSvgTextPositionAndAngle(textRef, textPositionAndAngle);
           }
         }
       }
     }
-    if(this.props.initialState === state) {
-      const initialTransitionSvg = this[this.initialTransitionLineRef];
+    if(this.props.initialState === state) { // The state being moved is the initial state
+      const initialTransitionRef = this[this.initialTransitionLineRef];
       const stateCenterPosition = this.getStateCenterPosition(statePosition);
       const transitionStartPosition = this.getInitialTransitionStartPosition(stateCenterPosition);
-      const transitionEndPosition = this.getTransitionLineEndCoords({
+      const transitionEndPosition = this.getTransitionLineEndPosition({
         x1: statePosition.x - 1,
         y1: statePosition.y,
         x2: statePosition.x,
         y2: statePosition.y
       });
-      initialTransitionSvg.setAttribute('x1', transitionStartPosition.x);
-      initialTransitionSvg.setAttribute('y1', transitionStartPosition.y);
-      initialTransitionSvg.setAttribute('x2', transitionEndPosition.x);
-      initialTransitionSvg.setAttribute('y2', transitionEndPosition.y);
+      this.setSvgTransitionLinePosition(initialTransitionRef, transitionStartPosition, transitionEndPosition);
     }
   }
 
@@ -313,7 +326,7 @@ export class AutomataPage extends Component {
 
     $(document).one('mousedown', e => {
       if(self.state.contextMenuState !== null) {
-        if(!$.contains(this[this.contextMenuRef], e.target)) {
+        if(!$.contains(this.contextMenuRef, e.target)) {
           removeContextMenu();
         }
       }
@@ -371,7 +384,7 @@ export class AutomataPage extends Component {
         onmove: e => {
           const target = this.state.draggedElement;
           if(target !== null) {
-            const { x, y } = this.getStatePositionFromCenterPosition(this.getMouseCoordsRelativeToContainer(e));
+            const { x, y } = this.getStatePositionFromCenterPosition(this.getMousePositionRelativeToContainer(e));
             const state = this.state.mouseDownOnState;
 
             this.setStatePosition(target, state, x, y);
@@ -381,7 +394,7 @@ export class AutomataPage extends Component {
           const target = this.state.draggedElement;
           const state = this.state.mouseDownOnState;
           if(target !== null) {
-            const { x, y } = this.getStatePositionFromCenterPosition(this.getMouseCoordsRelativeToContainer(e));
+            const { x, y } = this.getStatePositionFromCenterPosition(this.getMousePositionRelativeToContainer(e));
             this.props.moveState(state, x, y);
             this.setState({ draggedElement: null });
           }
@@ -393,102 +406,35 @@ export class AutomataPage extends Component {
 
   // TODO make this work for PDA/TM
   render() {
-    const transitionTable = transitionFunctionsToTable(
-      this.props.states,
-      this.props.alphabet,
-      this.props.transitionFunctions
-    );
-
-    const createTransitionTable = () => {
-      if(transitionTable.length === 0) {
-        return '\u2205';
-      }
-
-      const rows = [];
-      for(const fromState of this.props.states.keys()) {
-        const cols = [];
-        cols.push(<td>{fromState}</td>);
-        for(const letter of this.props.alphabet.keys()) {
-          const toState = transitionTable[rows.length][cols.length - 1];
-          cols.push(
-            transitionTable[rows.length] ? (
-              <td onClick={() => this.setState({
-                transitionPopup: true,
-                transitionPopupToState: toState,
-                transitionPopupLetter: letter,
-                transitionPopupFromState: fromState
-              })}>{toState}</td>
-            ) : (
-              <td />
-            )
-          );
-        }
-        rows.push(
-          <tr>
-            {cols}
-          </tr>
-        );
-      }
-
-      return (
-        <table className="transition-table">
-          <thead>
-            <tr>
-              <td>Q x &Sigma;</td>
-              {this.props.alphabet.map(letter => <td>{letter}</td>)}
-            </tr>
-          </thead>
-          <tbody>
-            {rows}
-          </tbody>
-        </table>
-      );
-    };
-
-    const createTransitionLine = (fromStatePosition, toStatePosition, letters, lineRefString, textRefString) => {
-      const startCoords = this.getStateCenterPosition(fromStatePosition);
-      const endCoords = this.getTransitionLineEndCoords({
-        x1: fromStatePosition.x,
-        y1: fromStatePosition.y,
-        x2: toStatePosition.x,
-        y2: toStatePosition.y
-      });
-      const textPositionAndAngle = this.getTransitionLineTextPositionAndAngle(fromStatePosition, toStatePosition);
-      const { angle } = textPositionAndAngle;
+    const defaultPosition = { x1: 0, y1: 0, x2: 0, y2: 0 };
+    const createTransitionLine = (transitionTexts, lineRefString, textRefString, linePosition = defaultPosition) => {
       return {
         line: <line
-          x1={startCoords.x}
-          y1={startCoords.y}
-          x2={endCoords.x}
-          y2={endCoords.y}
+          x1={linePosition.x1}
+          y1={linePosition.y1}
+          x2={linePosition.x2}
+          y2={linePosition.y2}
+          key={lineRefString}
           stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
           strokeWidth="2"
           markerEnd="url(#arrowhead)"
           ref={line => this[lineRefString] = line}/>,
         text: <text
-          x={textPositionAndAngle.x}
-          y={textPositionAndAngle.y}
-          transform={`rotate(${angle} ${textPositionAndAngle.x}, ${textPositionAndAngle.y})`}
+          key={textRefString}
           fontSize="20"
           textAnchor="middle"
           stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
           fill={this.props.settings.darkTheme ? '#fff' : '#000'}
           ref={text => {
             this[textRefString] = text
-          }}>{letters.join(', ')}</text>
+          }}>{transitionTexts.join(', ')}</text>
       };
     };
 
-    const createTransitionLoop = (fromStatePosition, letters, loopRefString, textRefString) => {
-      const startCoords = this.getTransitionLoopStartCoords({
-        x: fromStatePosition.x,
-        y: fromStatePosition.y
-      });
-      const textCoords = this.getTransitionLoopTextPosition(fromStatePosition);
+    const createTransitionLoop = (transitionTexts, loopRefString, textRefString) => {
       return {
         loop: <ellipse
-          cx={startCoords.x}
-          cy={startCoords.y}
+          key={loopRefString}
           rx="10"
           ry="30"
           fill="none"
@@ -497,97 +443,78 @@ export class AutomataPage extends Component {
           markerEnd="url(#arrowhead)"
           ref={loop => this[loopRefString] = loop} />,
         text: <text
-          x={textCoords.x}
-          y={textCoords.y}
+          key={textRefString}
           fontSize="20"
           textAnchor="middle"
           stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
           fill={this.props.settings.darkTheme ? '#fff' : '#000'}
-          ref={text => this[textRefString] = text}>{letters.join(', ')}</text>
+          ref={text => this[textRefString] = text}>{transitionTexts.join(', ')}</text>
       };
     };
 
-    const lines = [];
+    const svgChildren = [];
     for(const fromState of this.props.states) {
-      const transitions = this.props.transitionFunctions.get(fromState);
+      const transitions = this.props.simplifiedTransitionFunction.get(fromState);
       if(transitions !== undefined) {
         const transitionsToStateMap = new Map({}).withMutations(transitionsToStateMap => {
-          for(const [ letter, toState ] of transitions.entries()) {
+          for(const [ transitionText, toState ] of transitions.entries()) {
             const transitionsToState = transitionsToStateMap.get(toState);
             if(transitionsToState !== undefined) {
-              transitionsToStateMap.set(toState, transitionsToState.add(letter));
+              transitionsToStateMap.set(toState, transitionsToState.add(transitionText));
             } else {
-              transitionsToStateMap.set(toState, new Set([letter]));
+              transitionsToStateMap.set(toState, new Set([transitionText]));
             }
           }
         });
-        transitionsToStateMap.mapEntries(([ toState, letters ]) => {
-          const fromStatePosition = this.props.statePositions.get(fromState);
+        transitionsToStateMap.mapEntries(([ toState, transitionTexts ]) => {
           const loopRefString = this.getTransitionLineRefName(fromState, toState);
           const textRefString = this.getTransitionTextRefName(fromState, toState);
           if(fromState === toState) {
             const transitionLoop = createTransitionLoop(
-              fromStatePosition,
-              letters.sort(),
+              transitionTexts.sort(),
               loopRefString,
               textRefString
             );
-            lines.push(transitionLoop.loop);
-            lines.push(transitionLoop.text);
+            svgChildren.push(transitionLoop.loop);
+            svgChildren.push(transitionLoop.text);
           }
           else {
-            const toStatePosition = this.props.statePositions.get(toState);
             const transitionLine = createTransitionLine(
-              fromStatePosition,
-              toStatePosition,
-              letters.sort(),
+              transitionTexts.sort(),
               loopRefString,
               textRefString
             );
-            lines.push(transitionLine.line);
-            lines.push(transitionLine.text);
+            svgChildren.push(transitionLine.line);
+            svgChildren.push(transitionLine.text);
           }
         });
       }
     }
     if(this.state.creatingTransitionFromState !== null) {
-      const statePosition = this.props.statePositions.get(this.state.creatingTransitionFromState);
-      lines.push(
-        createTransitionLine(
-          statePosition,
-          statePosition,
-          new Set(),
-          this.creatingTransitionLineRef,
-          null
-        ).line
-      );
+      const fromStatePosition = this.props.statePositions.get(this.state.creatingTransitionFromState);
+      const transitionStartPosition = this.getStateCenterPosition(fromStatePosition);
+      const creatingTransitionLine = createTransitionLine(
+        new Set(),
+        this.creatingTransitionLineRef,
+        null,
+        {
+          x1: transitionStartPosition.x,
+          y1: transitionStartPosition.y,
+          x2: transitionStartPosition.x,
+          y2: transitionStartPosition.y
+        }
+      ).line;
+      svgChildren.push(creatingTransitionLine);
     }
     if(this.props.initialState !== null) {
-      const statePosition = this.props.statePositions.get(this.props.initialState);
-      lines.push(
+      svgChildren.push(
         createTransitionLine(
-          this.getInitialTransitionStartPosition(statePosition),
-          statePosition,
           new Set(),
           this.initialTransitionLineRef,
           null
         ).line
       );
     }
-
-    const popupContents = this.state.transitionPopup ? (
-      <TransitionPopup
-        fromState={this.state.transitionPopupFromState}
-        letter={this.state.transitionPopupLetter}
-        toState={this.state.transitionPopupToState}
-        closePopup={() => this.setState({
-          transitionPopup: false,
-          transitionPopupFromState: null,
-          transitionPopupLetter: null,
-          transitionPopupToState: null
-        })}
-        className={this.state.transitionPopup ? '' : 'popup-hidden'} />
-    ) : null;
 
     let dropdownX = 0;
     let dropdownY = 0;
@@ -608,22 +535,13 @@ export class AutomataPage extends Component {
               value={this.props.name}
               onChange={name => this.props.changeName(name)} />
           </h2>
-          <div className="control-panel-text">
-            <span>Q: {arrayToString(this.props.states.toArray())}</span>
-          </div>
-          <div className="control-panel-text">
-            <span>&Sigma;: {arrayToString(this.props.alphabet.toArray())}</span>
-          </div>
-          <div className="control-panel-text">
-            <span>&delta;: </span>
-            {createTransitionTable()}
-          </div>
-          <div className="control-panel-text">
-            <span>q&#8320;: {this.props.initialState}</span>
-          </div>
-          <div className="control-panel-text">
-            <span>F: {arrayToString(this.props.acceptStates.toArray())}</span>
-          </div>
+          {
+            this.props.formalProperties.map(formalProperty =>
+              <div className="control-panel-text" key={formalProperty.name}>
+                <span>{formalProperty.name}: {formalProperty.value}</span>
+              </div>
+            )
+          }
           <div className="control-panel-text">
             <Button onClick={() => $('#upload').click()}>
               <Icon name="upload" className="clickable-icon" /> Upload
@@ -661,16 +579,15 @@ export class AutomataPage extends Component {
           onMouseMove={this.centerContainerMouseMove}
           onContextMenu={e => e.preventDefault()}
           tabIndex="0"> {/* TODO figure out why tabIndex attribute is required for onKeyDown to fire */}
-          {popupContents}
           {this.props.states.map(state => (
             <div
+              key={state}
               className={'state' + (state === this.props.selected ? ' selected-state' : '')}
               ref={element => this[this.getStateRefName(state)] = element}
               onMouseDown={e => this.stateMouseDown(e, state)}
               onMouseUp={e => this.stateMouseUp(e, state)}
               onDoubleClick={() => this.startCreatingTransition(state)}
-              onContextMenu={e => this.stateRightClick(e, state)}
-            >
+              onContextMenu={e => this.stateRightClick(e, state)}>
               <div
                 className={'state-child' + (this.props.acceptStates.contains(state) ? ' state-child-accept' : '')}>
                 {state}
@@ -686,14 +603,14 @@ export class AutomataPage extends Component {
                 <polygon points="0 0, 10 3.5, 0 7" />
               </marker>
             </defs>
-            {lines}
+            {svgChildren}
           </svg>
           {
             this.state.contextMenuState !== null ? (
               <div
                 className="ui dropdown context-menu"
                 style={{ top: dropdownY, left: dropdownX }}
-                ref={dropdown => this[this.contextMenuRef] = dropdown}
+                ref={dropdown => this.contextMenuRef = dropdown}
                 onClick={() => this.setState({ contextMenuState: null })}>
                 <Dropdown.Menu className="visible">
                   <Dropdown.Item

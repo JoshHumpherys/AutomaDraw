@@ -17,6 +17,7 @@ import {
   reset
 } from '../actions/fsm'
 import { getFsm } from '../selectors/fsm'
+import { arrayToString } from '../utility/utility'
 import AutomataPage from './AutomataPage'
 
 export class FsmPage extends Component {
@@ -115,15 +116,118 @@ export class FsmPage extends Component {
   }
 
   render() {
+    const {
+      name,
+      states,
+      alphabet,
+      transitionFunction,
+      initialState,
+      acceptStates,
+      statePositions,
+      selected
+    } = this.props.fsm;
+
+    const transitionFunctionToTable = () => {
+      if(states.size === 0) {
+        return new Array(0);
+      }
+
+      let table = new Array(states.length);
+      let i = 0;
+      for(const state of states) {
+        const transitions = transitionFunction.get(state);
+        table[i] = new Array(alphabet.length);
+        let j = 0;
+        for(const letter of alphabet) {
+          table[i][j] = (transitions ? transitions.get(letter) : '') || '';
+          j++;
+        }
+        i++;
+      }
+      return table;
+    };
+
+    const transitionTable = transitionFunctionToTable();
+
+    const createTransitionTable = () => {
+      if(transitionTable.length === 0) {
+        return '\u2205';
+      }
+
+      const rows = [];
+      for(const fromState of states.keys()) {
+        const cols = [];
+        cols.push(<td key="0">{fromState}</td>);
+        for(const letter of alphabet.keys()) {
+          const toState = transitionTable[rows.length][cols.length - 1];
+          cols.push(
+            transitionTable[rows.length] ? (
+              <td key={cols.length} onClick={() => this.setState({
+                transitionPopup: true,
+                transitionPopupToState: toState,
+                transitionPopupLetter: letter,
+                transitionPopupFromState: fromState
+              })}>{toState}</td>
+            ) : (
+              <td />
+            )
+          );
+        }
+        rows.push(
+          <tr key={rows.length}>
+            {cols}
+          </tr>
+        );
+      }
+
+      return (
+        <table className="transition-table">
+          <thead>
+          <tr>
+            <td>Q x &Sigma;</td>
+            {alphabet.map(letter => <td key={letter}>{letter}</td>)}
+          </tr>
+          </thead>
+          <tbody>
+            {rows}
+          </tbody>
+        </table>
+      );
+    };
+
+    const formalProperties = [
+      { name: 'Q', value: arrayToString(states.toArray()) },
+      { name: '\u03A3', value: arrayToString(alphabet.toArray()) },
+      { name: '\u03B4', value: createTransitionTable() },
+      { name: 'q\u2080', value: initialState },
+      { name: 'F', value: arrayToString(acceptStates.toArray()) },
+    ];
+
+    /* TODO fix popups
+    const popupContents = this.state.transitionPopup ? (
+      <TransitionPopup
+        fromState={this.state.transitionPopupFromState}
+        letter={this.state.transitionPopupLetter}
+        toState={this.state.transitionPopupToState}
+        closePopup={() => this.setState({
+          transitionPopup: false,
+          transitionPopupFromState: null,
+          transitionPopupLetter: null,
+          transitionPopupToState: null
+        })}
+        className={this.state.transitionPopup ? '' : 'popup-hidden'} />
+    ) : null;
+    */
+
     return <AutomataPage
-      name={this.props.fsm.name}
-      states={this.props.fsm.states}
-      alphabet={this.props.fsm.alphabet}
-      transitionFunctions={this.props.fsm.transitionFunctions}
-      initialState={this.props.fsm.initialState}
-      acceptStates={this.props.fsm.acceptStates}
-      statePositions={this.props.fsm.statePositions}
-      selected={this.props.fsm.selected}
+      name={name}
+      states={states}
+      alphabet={alphabet}
+      simplifiedTransitionFunction={transitionFunction}
+      initialState={initialState}
+      acceptStates={acceptStates}
+      statePositions={statePositions}
+      selected={selected}
       changeName={this.changeName}
       addState={this.addState}
       selectState={this.selectState}
@@ -139,6 +243,7 @@ export class FsmPage extends Component {
       initializeFromJsonString={this.initializeFromJsonString}
       reset={this.reset}
       stringifyAutomaton={this.stringifyAutomaton}
+      formalProperties={formalProperties}
     />;
   }
 }

@@ -6,7 +6,7 @@ export default function pda(
     states: new Set(['A', 'B', 'C']),
     inputAlphabet: new Set(['a', 'b', 'c']),
     stackAlphabet: new Set(['#']),
-    transitionFunctions: new Map({
+    transitionFunction: new Map({
       'A': new Map({
         a: new Map({
           '#': { toState: 'B', pushSymbol: '#' }

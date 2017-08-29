@@ -6,7 +6,6 @@ import { createStore, compose } from 'redux'
 import registerServiceWorker from './registerServiceWorker'
 import rootReducer from './reducers/rootReducer'
 import { Router, Route, browserHistory } from 'react-router'
-import { syncHistoryWithStore } from 'react-router-redux'
 
 import App from './App'
 import HomePage from './components/HomePage'
@@ -38,8 +37,6 @@ const store = createStore(
   rootReducer,
   middleware
 );
-
-const history = syncHistoryWithStore(browserHistory, store);
 
 ReactDOM.render(
   <Provider store={store}>

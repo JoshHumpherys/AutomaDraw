@@ -17,7 +17,7 @@ export class App extends Component {
           <div id="navbar" className="ui fixed inverted menu">
             <div className="ui container">
               <a onClick={() => browserHistory.push('/')} className="header item">
-                <img className="logo" src={logo}/>
+                <img className="logo" src={logo} alt="logo" />
                 AutomaDraw
               </a>
               <Menu.Item name="FSM" onClick={() => browserHistory.push('/fsm')} />

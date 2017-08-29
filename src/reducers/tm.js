@@ -7,7 +7,7 @@ export default function tm(
     tapeAlphabet: new Set(['a', 'b', 'c']),
     blankSymbol: '\u0394',
     inputAlphabet: new Set(['a, b, c']),
-    transitionFunctions: new Map({
+    transitionFunction: new Map({
       'B': new Map({
         a: { toState: 'B', writeSymbol: 'a', move: 'left' }
       })

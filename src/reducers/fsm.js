@@ -6,7 +6,7 @@ export default function fsm(
     name: 'My FSM',
     states: new Set(['A', 'B', 'C']),
     alphabet: new Set(['a', 'b', 'c']),
-    transitionFunctions: new Map({
+    transitionFunction: new Map({
       'A': new Map({ a: 'B' }),
       'B': new Map({ b: 'C' }),
       'C': new Map({ c: 'A' })
@@ -45,8 +45,8 @@ export default function fsm(
       return {
         ...state,
         states: state.states.remove(action.payload.state).add(action.payload.name),
-        transitionFunctions: state.transitionFunctions
-          .set(action.payload.name, state.transitionFunctions.get(action.payload.state))
+        transitionFunction: state.transitionFunction
+          .set(action.payload.name, state.transitionFunction.get(action.payload.state))
           .remove(action.payload.state)
           .mapEntries(([ fromState, transitions ]) => {
             if(transitions !== undefined) {
@@ -72,8 +72,8 @@ export default function fsm(
       return {
         ...state,
         states: state.states.remove(action.payload.state),
-        transitionFunctions: state.transitionFunctions.size !== 0 ?
-          state.transitionFunctions.mapEntries(([ key, value ]) => {
+        transitionFunction: state.transitionFunction.size !== 0 ?
+          state.transitionFunction.mapEntries(([ key, value ]) => {
             if(key !== undefined) {
               if(key !== action.payload.state) {
                 return [key, value.filter(value => value !== action.payload.state)];
@@ -102,10 +102,10 @@ export default function fsm(
     }
     case actionTypes.FSM_TRANSITION_ADDED: {
       const { fromState, letter, toState } = action.payload;
-      const transitionsFromState = state.transitionFunctions.get(fromState) || new Map();
+      const transitionsFromState = state.transitionFunction.get(fromState) || new Map();
       return {
         ...state,
-        transitionFunctions: state.transitionFunctions
+        transitionFunction: state.transitionFunction
           .set(fromState, transitionsFromState.set(letter, toState)),
       };
     }
@@ -113,8 +113,8 @@ export default function fsm(
       const { fromState, letter } = action.payload;
       return {
         ...state,
-        transitionFunctions: state.transitionFunctions
-          .set(fromState, state.transitionFunctions.get(fromState).remove(letter))
+        transitionFunction: state.transitionFunction
+          .set(fromState, state.transitionFunction.get(fromState).remove(letter))
       };
     }
     case actionTypes.FSM_LETTER_ADDED: {
@@ -129,7 +129,7 @@ export default function fsm(
         ...fsm,
         states: new Set(fsm.states),
         alphabet: new Set(fsm.alphabet),
-        transitionFunctions: new Map(fsm.transitionFunctions)
+        transitionFunction: new Map(fsm.transitionFunction)
           .mapEntries(([ fromState, transitions ]) => {
             if(transitions !== undefined) {
               return [fromState, new Map(transitions)];
@@ -144,7 +144,7 @@ export default function fsm(
         name: 'My FSM',
         states: new Set(),
         alphabet: new Set(),
-        transitionFunctions: new Map(),
+        transitionFunction: new Map(),
         initialState: null,
         acceptStates: new Set(),
         statePositions: new Map(),

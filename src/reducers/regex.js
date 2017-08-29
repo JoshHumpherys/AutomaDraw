@@ -1,5 +1,6 @@
 import { OrderedSet, Record } from 'immutable'
 import * as actionTypes from '../constants/actionTypes'
+import { getEmptyStringSymbol, getAlternationSymbol } from '../utility/utility'
 
 export const symbolTypes = {
   SYMBOL: 0,
@@ -36,6 +37,28 @@ class Regex extends Record({ regex: new OrderedSet() }) {
     return this.setRegex(new OrderedSet());
   }
 
+  changeEmptyStringSymbolAction(emptyStringSymbol) {
+    const emptyStringSymbolCharacter = getEmptyStringSymbol(emptyStringSymbol);
+    return this.setRegex(this.regex.map(symbol => {
+      if(symbol.symbol === emptyStringSymbolCharacter) {
+        return this.createEmptyStringSymbol();
+      } else {
+        return symbol;
+      }
+    }));
+  }
+
+  changeAlternationSymbolAction(alternationSymbol) {
+    const alternationSymbolCharacter = getAlternationSymbol(alternationSymbol);
+    return this.setRegex(this.regex.map(symbol => {
+      if(symbol.symbol === alternationSymbolCharacter) {
+        return this.createAlternationSymbol();
+      } else {
+        return symbol;
+      }
+    }));
+  }
+
   setRegex(orderedSet) {
     return this.set('regex', orderedSet);
   }
@@ -61,6 +84,14 @@ export default function regex(state = new Regex(), action) {
     }
     case actionTypes.REGEX_CLEARED: {
       return state.clearRegexAction();
+    }
+    case actionTypes.SETTINGS_EMPTY_STRING_SYMBOL_SET: {
+      const { emptyStringSymbol } = action.payload;
+      return state.changeEmptyStringSymbolAction(emptyStringSymbol);
+    }
+    case actionTypes.SETTINGS_ALTERNATION_SYMBOL_SET: {
+      const { alternationSymbol } = action.payload;
+      return state.changeAlternationSymbolAction(alternationSymbol);
     }
     default: {
       return state;

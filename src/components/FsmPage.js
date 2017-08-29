@@ -80,8 +80,22 @@ export class FsmPage extends Component {
     this.props.dispatch(removeAcceptState(state));
   }
 
-  addTransition(fromState, letter, toState) {
-    this.props.dispatch(addTransition(fromState, letter, toState));
+  addTransition(fromState, toState) {
+    const getLetter = () => {
+      // TODO make something better than a prompt
+      const letter = prompt('What letter should be used for this transition?');
+      if(letter !== null && letter.length !== 1) {
+        return getLetter();
+      }
+      return letter;
+    };
+    const letter = getLetter();
+    if(letter !== null) { // user didn't click cancel
+      if(!this.props.fsm.alphabet.contains(letter)) {
+        this.addLetter(letter);
+      }
+      this.props.dispatch(addTransition(fromState, letter, toState));
+    }
   }
 
   addLetter(letter) {

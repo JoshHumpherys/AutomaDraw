@@ -191,23 +191,10 @@ export class AutomataPage extends Component {
     this.setState({ mouseDownOnState: state });
   }
 
+  // TODO make this work for PDA/TM
   stateMouseUp(e, state) {
     if(this.state.creatingTransitionFromState !== null) {
-      const getLetter = () => {
-        // TODO make something better than a prompt
-        const letter = prompt('What letter should be used for this transition?');
-        if(letter !== null && letter.length !== 1) {
-          return getLetter();
-        }
-        return letter;
-      };
-      const letter = getLetter();
-      if(letter !== null) { // user didn't click cancel
-        if(!this.props.alphabet.contains(letter)) {
-          this.props.addLetter(letter);
-        }
-        this.props.addTransition(this.state.creatingTransitionFromState, letter, state);
-      }
+      this.props.addTransition(this.state.creatingTransitionFromState, state);
     }
 
     this.setState({ mouseDownOnState: null });
@@ -219,12 +206,13 @@ export class AutomataPage extends Component {
     return { x, y };
   }
 
+  // TODO make this work for PDA/TM
   setStatePosition(element, state, x, y) {
     element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
     const statePosition = { x, y };
     const transitions = this.props.transitionFunctions.get(state);
     if(transitions !== undefined) {
-      for(const letter of transitions.keys()) {
+      for(const letter of transitions.keys()) { // Update all transitions FROM the state being moved
         const toState = transitions.get(letter);
         const transitionSvg = this[this.getTransitionLineRefName(state, toState)];
         const text = this[this.getTransitionTextRefName(state, toState)];
@@ -260,7 +248,7 @@ export class AutomataPage extends Component {
         }
       }
     }
-    for(const [ fromState, transitions ] of this.props.transitionFunctions) {
+    for(const [ fromState, transitions ] of this.props.transitionFunctions) { // Update all transitions TO the state being moved
       if(fromState !== state && transitions) {
         for(const letter of transitions.keys()) {
           if(this.props.transitionFunctions.get(fromState).get(letter) === state) {
@@ -361,6 +349,8 @@ export class AutomataPage extends Component {
   }
 
   componentDidUpdate() {
+    // TODO share code with render and refactor so that we don't have to loop through every state
+    // for every state to update transitions because all are getting updated
     this.updateStatePositions();
   }
 
@@ -401,6 +391,7 @@ export class AutomataPage extends Component {
     this.updateStatePositions();
   }
 
+  // TODO make this work for PDA/TM
   render() {
     const transitionTable = transitionFunctionsToTable(
       this.props.states,

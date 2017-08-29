@@ -1,6 +1,5 @@
 import { OrderedSet, Record } from 'immutable'
 import * as actionTypes from '../constants/actionTypes'
-import { getEmptyStringSymbol, getAlternationSymbol } from '../utility/utility'
 
 export const symbolTypes = {
   SYMBOL: 0,
@@ -38,9 +37,8 @@ class Regex extends Record({ regex: new OrderedSet() }) {
   }
 
   changeEmptyStringSymbolAction(emptyStringSymbol) {
-    const emptyStringSymbolCharacter = getEmptyStringSymbol(emptyStringSymbol);
     return this.setRegex(this.regex.map(symbol => {
-      if(symbol.symbol === emptyStringSymbolCharacter) {
+      if(symbol.symbol === emptyStringSymbol) {
         return this.createEmptyStringSymbol();
       } else {
         return symbol;
@@ -49,9 +47,8 @@ class Regex extends Record({ regex: new OrderedSet() }) {
   }
 
   changeAlternationSymbolAction(alternationSymbol) {
-    const alternationSymbolCharacter = getAlternationSymbol(alternationSymbol);
     return this.setRegex(this.regex.map(symbol => {
-      if(symbol.symbol === alternationSymbolCharacter) {
+      if(symbol.symbol === alternationSymbol) {
         return this.createAlternationSymbol();
       } else {
         return symbol;

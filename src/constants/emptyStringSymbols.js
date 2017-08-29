@@ -1,2 +1,2 @@
-export const LAMBDA = 'LAMBDA';
-export const EPSILON = 'EPSILON';
+export const LAMBDA = '\u03BB';
+export const EPSILON = '\u03B5';

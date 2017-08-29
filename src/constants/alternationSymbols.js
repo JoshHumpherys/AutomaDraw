@@ -1,4 +1,4 @@
-export const PIPE = 'PIPE';
-export const UNION = 'UNION';
-export const PLUS = 'PLUS';
-export const LOGICAL_OR = 'LOGICAL_OR';
+export const PIPE = '|';
+export const UNION = '\u222A';
+export const PLUS = '+';
+export const LOGICAL_OR = '\u2228';

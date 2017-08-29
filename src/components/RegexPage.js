@@ -106,8 +106,8 @@ export default connect(
     return {
       regex: getRegexString(state),
       darkTheme: settings.darkTheme,
-      emptyStringSymbol: getEmptyStringSymbol(settings.emptyStringSymbol),
-      alternationSymbol: getAlternationSymbol(settings.alternationSymbol)
+      emptyStringSymbol: settings.emptyStringSymbol,
+      alternationSymbol: settings.alternationSymbol
     };
   }
 )(RegexPage);

@@ -1,10 +1,9 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { Button, Input } from 'semantic-ui-react'
+import { Button } from 'semantic-ui-react'
 import { setRegex, clearRegex } from '../actions/regex'
-import { getRegexString } from '../selectors/regex'
+import { getRegexString, getRegexSymbols } from '../selectors/regex'
 import { getSettings } from '../selectors/settings'
-import { getEmptyStringSymbol, getAlternationSymbol } from '../utility/utility'
 import $ from 'jquery'
 
 export class RegexPage extends Component {
@@ -72,6 +71,7 @@ export class RegexPage extends Component {
   }
 
   render() {
+    console.log(this.props.regexSymbols);
     return (
       <div className="page-container" style={{ color: (this.props.darkTheme ? '#fff' : '#000') }}>
         <div className="regex-input-container">
@@ -93,6 +93,13 @@ export class RegexPage extends Component {
           <Button content="*" onClick={() => this.addSymbol('*')} />
         </div>
         <div className="centered-children">
+          {
+            this.props.regexSymbols.map(symbol =>
+              <Button content={symbol} onClick={() => this.addSymbol(symbol)} key={symbol} />
+            )
+          }
+        </div>
+        <div className="centered-children">
           <Button content="Clear" onClick={this.clear} />
         </div>
       </div>
@@ -105,6 +112,7 @@ export default connect(
     const settings = getSettings(state);
     return {
       regex: getRegexString(state),
+      regexSymbols: getRegexSymbols(state),
       darkTheme: settings.darkTheme,
       emptyStringSymbol: settings.emptyStringSymbol,
       alternationSymbol: settings.alternationSymbol

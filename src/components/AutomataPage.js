@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { getFsm } from '../selectors/fsm'
 import { getSettings } from '../selectors/settings'
 import interact from 'interactjs'
 import $ from 'jquery'
@@ -662,7 +661,6 @@ export class AutomataPage extends Component {
 
 export default connect(
   state => ({
-    fsm: getFsm(state),
     settings: getSettings(state)
   })
 )(AutomataPage);

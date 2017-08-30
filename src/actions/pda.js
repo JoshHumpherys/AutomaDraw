@@ -65,6 +65,14 @@ export function addStackSymbol(stackSymbol) {
   return { type: actionTypes.PDA_STACK_SYMBOL_ADDED, payload: { stackSymbol } };
 }
 
+export function changeInitialStackSymbol(stackSymbol) {
+  return { type: actionTypes.PDA_INITIAL_STACK_SYMBOL_CHANGED, payload: { stackSymbol } };
+}
+
+export function removeInitialStackSymbol() {
+  return { type: actionTypes.PDA_INITIAL_STACK_SYMBOL_REMOVED };
+}
+
 export function initializeFromJsonString(jsonString) {
   return { type: actionTypes.PDA_INITIALIZED_FROM_JSON_STRING, payload: { jsonString } };
 }

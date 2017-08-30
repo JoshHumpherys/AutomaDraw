@@ -105,7 +105,7 @@ export class PdaPage extends Component {
   }
 
   stringifyAutomaton() {
-    return JSON.stringify(this.props.fsm);
+    return JSON.stringify(this.props.pda);
   }
 
   render() {
@@ -140,8 +140,6 @@ export class PdaPage extends Component {
       </div>
     );
 
-    console.log(transitionFunctionDiv);
-
     const formalProperties = [
       { name: 'Q', value: arrayToString(states.toArray()) },
       { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()) },
@@ -151,8 +149,6 @@ export class PdaPage extends Component {
       { name: 'Z', value: initialStackSymbol },
       { name: 'F', value: arrayToString(acceptStates.toArray()) },
     ];
-
-    console.log(simplifiedTransitionFunction.toString());
 
     return <AutomataPage
       name={name}

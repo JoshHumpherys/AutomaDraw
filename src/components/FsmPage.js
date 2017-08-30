@@ -12,7 +12,7 @@ import {
   addAcceptState,
   removeAcceptState,
   addTransition,
-  addLetter,
+  addSymbol,
   initializeFromJsonString,
   reset
 } from '../actions/fsm'
@@ -35,7 +35,7 @@ export class FsmPage extends Component {
     this.addAcceptState = this.addAcceptState.bind(this);
     this.removeAcceptState = this.removeAcceptState.bind(this);
     this.addTransition = this.addTransition.bind(this);
-    this.addLetter = this.addLetter.bind(this);
+    this.addSymbol = this.addSymbol.bind(this);
     this.initializeFromJsonString = this.initializeFromJsonString.bind(this);
     this.reset = this.reset.bind(this);
     this.stringifyAutomaton = this.stringifyAutomaton.bind(this);
@@ -82,25 +82,25 @@ export class FsmPage extends Component {
   }
 
   addTransition(fromState, toState) {
-    const getLetter = () => {
+    const getSymbol = () => {
       // TODO make something better than a prompt
-      const letter = prompt('What letter should be used for this transition?');
-      if(letter !== null && letter.length !== 1) {
-        return getLetter();
+      const symbol = prompt('What symbol should be used for this transition?');
+      if(symbol !== null && symbol.length !== 1) {
+        return getSymbol();
       }
-      return letter;
+      return symbol;
     };
-    const letter = getLetter();
-    if(letter !== null) { // user didn't click cancel
-      if(!this.props.fsm.alphabet.contains(letter)) {
-        this.addLetter(letter);
+    const symbol = getSymbol();
+    if(symbol !== null) { // user didn't click cancel
+      if(!this.props.fsm.alphabet.contains(symbol)) {
+        this.addSymbol(symbol);
       }
-      this.props.dispatch(addTransition(fromState, letter, toState));
+      this.props.dispatch(addTransition(fromState, symbol, toState));
     }
   }
 
-  addLetter(letter) {
-    this.props.dispatch(addLetter(letter));
+  addSymbol(symbol) {
+    this.props.dispatch(addSymbol(symbol));
   }
 
   initializeFromJsonString(jsonString) {
@@ -203,26 +203,9 @@ export class FsmPage extends Component {
       { name: 'F', value: arrayToString(acceptStates.toArray()) },
     ];
 
-    /* TODO fix popups
-    const popupContents = this.state.transitionPopup ? (
-      <TransitionPopup
-        fromState={this.state.transitionPopupFromState}
-        letter={this.state.transitionPopupLetter}
-        toState={this.state.transitionPopupToState}
-        closePopup={() => this.setState({
-          transitionPopup: false,
-          transitionPopupFromState: null,
-          transitionPopupLetter: null,
-          transitionPopupToState: null
-        })}
-        className={this.state.transitionPopup ? '' : 'popup-hidden'} />
-    ) : null;
-    */
-
     return <AutomataPage
       name={name}
       states={states}
-      alphabet={alphabet}
       simplifiedTransitionFunction={transitionFunction}
       initialState={initialState}
       acceptStates={acceptStates}
@@ -239,7 +222,6 @@ export class FsmPage extends Component {
       addAcceptState={this.addAcceptState}
       removeAcceptState={this.removeAcceptState}
       addTransition={this.addTransition}
-      addLetter={this.addLetter}
       initializeFromJsonString={this.initializeFromJsonString}
       reset={this.reset}
       stringifyAutomaton={this.stringifyAutomaton}

@@ -48,7 +48,7 @@ export function removeTransition(fromState, letter, toState) {
   return { type: actionTypes.FSM_TRANSITION_REMOVED, payload: { fromState, letter, toState } };
 }
 
-export function addLetter(letter) {
+export function addSymbol(letter) {
   return { type: actionTypes.FSM_LETTER_ADDED, payload: { letter } };
 }
 

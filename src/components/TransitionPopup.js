@@ -4,6 +4,7 @@ import { Button, Dropdown } from 'semantic-ui-react'
 import { addTransition, removeTransition } from '../actions/fsm';
 import { getFsm } from '../selectors/fsm'
 
+/* TODO fix this class */
 export class TransitionPopup extends Component {
   constructor(props) {
     super(props);

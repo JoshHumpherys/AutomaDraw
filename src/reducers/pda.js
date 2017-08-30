@@ -9,7 +9,7 @@ export default function pda(
     transitionFunction: new Map({
       'A': new Map({
         a: new Map({
-          '#': { toState: 'B', pushSymbol: '#' }
+          '#': { toState: 'B', pushSymbols: '#' }
         })
       })
     }),

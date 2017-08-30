@@ -538,7 +538,7 @@ export class AutomataPage extends Component {
           {
             this.props.formalProperties.map(formalProperty =>
               <div className="control-panel-text" key={formalProperty.name}>
-                <span>{formalProperty.name}: {formalProperty.value}</span>
+                <div>{formalProperty.name}: {formalProperty.value}</div>
               </div>
             )
           }

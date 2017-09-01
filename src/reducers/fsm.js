@@ -1,5 +1,15 @@
 import * as actionTypes from '../constants/actionTypes'
 import { Set, Map } from 'immutable';
+import {
+  changeName,
+  moveState,
+  addState,
+  selectState,
+  changeInitialState,
+  removeInitialState,
+  addAcceptState,
+  removeAcceptState
+} from './sharedAutomataFunctions'
 
 export default function fsm(
   state = {
@@ -23,23 +33,18 @@ export default function fsm(
   action) {
   switch (action.type) {
     case actionTypes.FSM_NAME_CHANGED: {
-      return { ...state, name: action.payload.name };
+      return changeName(state, action.payload.name);
     }
     case actionTypes.FSM_STATE_MOVED: {
-      return {
-        ...state,
-        statePositions: state.statePositions.set(action.payload.state, { x: action.payload.x, y: action.payload.y })
-      };
+      const { x, y } = action.payload;
+      return moveState(state, action.payload.state, x, y);
     }
     case actionTypes.FSM_STATE_ADDED: {
-      return {
-        ...state,
-        states: state.states.add(action.payload.state),
-        statePositions: state.statePositions.set(action.payload.state, { x: action.payload.x, y: action.payload.y })
-      };
+      const { x, y } = action.payload;
+      return addState(state, action.payload.state, x, y);
     }
     case actionTypes.FSM_STATE_SELECTED: {
-      return { ...state, selected: action.payload.state };
+      return selectState(state, action.payload.state);
     }
     case actionTypes.FSM_STATE_NAME_CHANGED: {
       return {
@@ -89,16 +94,16 @@ export default function fsm(
       };
     }
     case actionTypes.FSM_INITIAL_STATE_CHANGED: {
-      return { ...state, initialState: action.payload.state };
+      return changeInitialState(state, action.payload.state);
     }
     case actionTypes.FSM_INITIAL_STATE_REMOVED: {
-      return { ...state, initialState: null };
+      return removeInitialState(state);
     }
     case actionTypes.FSM_ACCEPT_STATE_ADDED: {
-      return { ...state, acceptStates: state.acceptStates.add(action.payload.state) };
+      return addAcceptState(state, action.payload.state);
     }
     case actionTypes.FSM_ACCEPT_STATE_REMOVED: {
-      return { ...state, acceptStates: state.acceptStates.remove(action.payload.state) };
+      return removeAcceptState(state, action.payload.state);
     }
     case actionTypes.FSM_TRANSITION_ADDED: {
       const { fromState, letter, toState } = action.payload;

@@ -1,5 +1,15 @@
 import { Set, Map } from 'immutable';
 import * as actionTypes from '../constants/actionTypes'
+import {
+  changeName,
+  moveState,
+  addState,
+  selectState,
+  changeInitialState,
+  removeInitialState,
+  addAcceptState,
+  removeAcceptState
+} from './sharedAutomataFunctions'
 
 export default function pda(
   state = {
@@ -27,23 +37,18 @@ export default function pda(
   action) {
   switch(action.type) {
     case actionTypes.PDA_NAME_CHANGED: {
-      return { ...state, name: action.payload.name };
+      return changeName(state, action.payload.name);
     }
     case actionTypes.PDA_STATE_MOVED: {
-      return {
-        ...state,
-        statePositions: state.statePositions.set(action.payload.state, { x: action.payload.x, y: action.payload.y })
-      };
+      const { x, y } = action.payload;
+      return moveState(state, action.payload.state, x, y);
     }
     case actionTypes.PDA_STATE_ADDED: {
-      return {
-        ...state,
-        states: state.states.add(action.payload.state),
-        statePositions: state.statePositions.set(action.payload.state, { x: action.payload.x, y: action.payload.y })
-      };
+      const { x, y } = action.payload;
+      return addState(state, action.payload.state, x, y);
     }
     case actionTypes.PDA_STATE_SELECTED: {
-      return { ...state, selected: action.payload.state };
+      return selectState(state, action.payload.state);
     }
     case actionTypes.PDA_STATE_NAME_CHANGED: { // TODO fix this
       return {
@@ -93,16 +98,16 @@ export default function pda(
       };
     }
     case actionTypes.PDA_INITIAL_STATE_CHANGED: {
-      return {...state, initialState: action.payload.state};
+      return changeInitialState(state, action.payload.state);
     }
     case actionTypes.PDA_INITIAL_STATE_REMOVED: {
-      return {...state, initialState: null};
+      return removeInitialState(state);
     }
     case actionTypes.PDA_ACCEPT_STATE_ADDED: {
-      return {...state, acceptStates: state.acceptStates.add(action.payload.state)};
+      return addAcceptState(state, action.payload.state);
     }
     case actionTypes.PDA_ACCEPT_STATE_REMOVED: {
-      return {...state, acceptStates: state.acceptStates.remove(action.payload.state)};
+      return removeAcceptState(state, action.payload.state);
     }
     case actionTypes.PDA_TRANSITION_ADDED: { // TODO fix this
       const { fromState, letter, toState } = action.payload;

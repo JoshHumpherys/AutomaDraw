@@ -85,7 +85,39 @@ export class PdaPage extends Component {
   }
 
   addTransition(fromState, toState) {
-    // TODO add transition
+    const transitionPrompt = (message, numCharactersMin, numCharactersMax) => {
+      // TODO make something better than a prompt
+      const response = prompt(message);
+      if(response !== null && (response.length < numCharactersMin || response.length > numCharactersMax)) {
+        return transitionPrompt(message, numCharactersMin, numCharactersMax);
+      }
+      return response;
+    };
+    const inputSymbol = transitionPrompt('What input symbol should be used for this transition?', 1, 1);
+    if(inputSymbol === null) {
+      return;
+    }
+    const stackSymbol = transitionPrompt('What stack symbol should be used for this transition?', 1, 1);
+    if(stackSymbol === null) {
+      return;
+    }
+    const pushSymbolsMessage = 'What symbol(s) should be pushed to the stack as a result of this transition?';
+    const pushSymbols = transitionPrompt(pushSymbolsMessage, 1, 2);
+    if(pushSymbols === null) {
+      return;
+    }
+    if(!this.props.pda.inputAlphabet.contains(inputSymbol)) {
+      this.addInputSymbol(inputSymbol);
+    }
+    if(!this.props.pda.stackAlphabet.contains(stackSymbol)) {
+      this.addStackSymbol(stackSymbol);
+    }
+    for(const pushSymbol of pushSymbols.split('')) {
+      if(pushSymbol !== stackSymbol && !this.props.pda.stackAlphabet.contains(pushSymbol)) {
+        this.addStackSymbol(pushSymbol);
+      }
+    }
+    this.props.dispatch(addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols));
   }
 
   addInputSymbol(inputSymbol) {

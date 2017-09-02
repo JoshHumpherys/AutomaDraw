@@ -114,13 +114,15 @@ export default function pda(
     case actionTypes.PDA_ACCEPT_STATE_REMOVED: {
       return removeAcceptState(state, action.payload.state);
     }
-    case actionTypes.PDA_TRANSITION_ADDED: { // TODO fix this
-      const { fromState, letter, toState } = action.payload;
-      const transitionsFromState = state.transitionFunction.get(fromState) || new Map();
+    case actionTypes.PDA_TRANSITION_ADDED: {
+      const { fromState, inputSymbol, stackSymbol, toState, pushSymbols } = action.payload;
+      const { transitionFunction } = state;
+      const inputSymbolMap = transitionFunction.get(fromState) || new Map();
+      const stackSymbolMap = inputSymbolMap.get(inputSymbol) || new Map();
       return {
         ...state,
-        transitionFunction: state.transitionFunction
-          .set(fromState, transitionsFromState.set(letter, toState)),
+        transitionFunction: transitionFunction
+          .set(fromState, inputSymbolMap.set(inputSymbol, stackSymbolMap.set(stackSymbol, { toState, pushSymbols })))
       };
     }
     case actionTypes.PDA_TRANSITION_REMOVED: { // TODO fix this
@@ -140,7 +142,7 @@ export default function pda(
     case actionTypes.PDA_STACK_SYMBOL_ADDED: {
       return {
         ...state,
-        stackAlphabet: state.stackAlphabet.add(action.payload.inputSymbol)
+        stackAlphabet: state.stackAlphabet.add(action.payload.stackSymbol)
       }
     }
     case actionTypes.PDA_INITIAL_STACK_SYMBOL_CHANGED: {

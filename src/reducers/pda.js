@@ -1,4 +1,4 @@
-import { Set, Map } from 'immutable';
+import { Set, Map, fromJS } from 'immutable';
 import * as actionTypes from '../constants/actionTypes'
 import {
   changeName,
@@ -50,22 +50,25 @@ export default function pda(
     case actionTypes.PDA_STATE_SELECTED: {
       return selectState(state, action.payload.state);
     }
-    case actionTypes.PDA_STATE_NAME_CHANGED: { // TODO fix this
+    case actionTypes.PDA_STATE_NAME_CHANGED: {
       return {
         ...state,
         states: state.states.remove(action.payload.state).add(action.payload.name),
         transitionFunction: state.transitionFunction
           .set(action.payload.name, state.transitionFunction.get(action.payload.state))
           .remove(action.payload.state)
-          .mapEntries(([fromState, transitions]) => {
-            if(transitions !== undefined) {
-              return [fromState, transitions.mapEntries(([ letter, toState ]) => {
-                if(toState === action.payload.state) {
-                  return [letter, action.payload.name];
-                }
-                return [letter, toState];
+          .mapEntries(([ fromState, inputSymbolMap ]) => {
+            if (inputSymbolMap !== undefined) {
+              return [fromState, inputSymbolMap.mapEntries(([ inputSymbol, stackSymbolMap ]) => {
+                return [inputSymbol, stackSymbolMap.mapEntries(([ stackSymbol, transitionObject ]) => {
+                  if(transitionObject.toState === action.payload.state) {
+                    return [stackSymbol, { ...transitionObject, toState: action.payload.name }];
+                  }
+                  return [stackSymbol, transitionObject];
+                })];
               })];
             }
+            return [ fromState, inputSymbolMap ];
           }),
         initialState: state.initialState === action.payload.state ? action.payload.name : state.initialState,
         acceptStates: state.acceptStates.contains(action.payload.state) ?
@@ -77,18 +80,20 @@ export default function pda(
         selected: state.selected === action.payload.state ? action.payload.name : state.selected
       };
     }
-    case actionTypes.PDA_STATE_DELETED: { // TODO fix this
+    case actionTypes.PDA_STATE_DELETED: {
       return {
         ...state,
         states: state.states.remove(action.payload.state),
         transitionFunction: state.transitionFunction.size !== 0 ?
-          state.transitionFunction.mapEntries(([key, value]) => {
-            if(key !== undefined) {
-              if(key !== action.payload.state) {
-                return [key, value.filter(value => value !== action.payload.state)];
-              }
+          state.transitionFunction.mapEntries(([ fromState, inputSymbolMap ]) => {
+            if(inputSymbolMap !== undefined) {
+              return [fromState, inputSymbolMap.mapEntries(([ inputSymbol, stackSymbolMap ]) => {
+                return [inputSymbol, stackSymbolMap.filter(({ toState }) => {
+                  return toState !== action.payload.state;
+                })];
+              })];
             }
-            return [key, value];
+            return [ fromState, inputSymbolMap ];
           }).remove(action.payload.state) :
           new Map(),
         initialState: state.initialState === action.payload.state ? null : state.initialState,
@@ -144,19 +149,20 @@ export default function pda(
     case actionTypes.PDA_INITIAL_STACK_SYMBOL_REMOVED: {
       return { ...state, initialStackSymbol: null };
     }
-    case actionTypes.PDA_INITIALIZED_FROM_JSON_STRING: { // TODO fix this
+    case actionTypes.PDA_INITIALIZED_FROM_JSON_STRING: {
       const pda = JSON.parse(action.payload.jsonString);
       return {
         ...pda,
         states: new Set(pda.states),
         inputAlphabet: new Set(pda.inputAlphabet),
         stackAlphabet: new Set(pda.stackAlphabet),
-        transitionFunction: new Map(pda.transitionFunction)
-          .mapEntries(([ fromState, transitions ]) => {
-            if(transitions !== undefined) {
-              return [fromState, new Map(transitions)];
-            }
-          }),
+        transitionFunction: fromJS(pda.transitionFunction).map(inputSymbolMap =>
+          inputSymbolMap.map(stackSymbolMap =>
+            stackSymbolMap.map(transitionObject =>
+              transitionObject.toObject()
+            )
+          )
+        ),
         acceptStates: new Set(pda.acceptStates),
         statePositions: new Map(pda.statePositions)
       }

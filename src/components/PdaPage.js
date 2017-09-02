@@ -124,14 +124,17 @@ export class PdaPage extends Component {
 
     const instructions = [];
     const simplifiedTransitionFunction = transitionFunction.map((fromStateMap, fromState) => {
-      return new Map().withMutations(map => {
-        fromStateMap.forEach((onInputSymbolMap, inputSymbol) => {
-          onInputSymbolMap.forEach(({ toState, pushSymbols }, stackSymbol) => {
-            instructions.push('(' + [fromState, inputSymbol, stackSymbol, toState, pushSymbols].join(', ') + ')');
-            map.set(inputSymbol + '; ' + stackSymbol + '/' + pushSymbols, toState);
-          })
+      if(fromStateMap !== undefined) {
+        return new Map().withMutations(map => {
+          fromStateMap.forEach((onInputSymbolMap, inputSymbol) => {
+            onInputSymbolMap.forEach(({ toState, pushSymbols }, stackSymbol) => {
+              instructions.push('(' + [fromState, inputSymbol, stackSymbol, toState, pushSymbols].join(', ') + ')');
+              map.set(inputSymbol + '; ' + stackSymbol + '/' + pushSymbols, toState);
+            })
+          });
         });
-      });
+      }
+      return fromStateMap;
     });
 
     const transitionFunctionDiv = (

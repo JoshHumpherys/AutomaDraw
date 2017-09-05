@@ -14,8 +14,8 @@ import {
 export default function pda(
   state = {
     name: 'My PDA',
-    states: new Set(['A', 'B', 'C']),
-    inputAlphabet: new Set(['a', 'b', 'c']),
+    states: new Set(['A', 'B']),
+    inputAlphabet: new Set(['a']),
     stackAlphabet: new Set(['#']),
     transitionFunction: new Map({
       'A': new Map({
@@ -29,8 +29,7 @@ export default function pda(
     acceptStates: new Set(['A']),
     statePositions: new Map({
       'A': { x: 130, y: 200 },
-      'B': { x: 250, y: 50 },
-      'C': { x: 370, y: 200 }
+      'B': { x: 370, y: 200 }
     }),
     selected: 'A'
   },

@@ -14,10 +14,10 @@ import {
 export default function tm(
   state = {
     name: 'My TM',
-    states: new Set(['A', 'B', 'C']),
-    tapeAlphabet: new Set(['a', 'b', 'c']),
+    states: new Set(['A', 'B']),
+    tapeAlphabet: new Set(['a']),
     blankSymbol: '\u0394',
-    inputAlphabet: new Set(['a', 'b', 'c']),
+    inputAlphabet: new Set(['a']),
     transitionFunction: new Map({
       'A': new Map({
         a: { toState: 'B', writeSymbol: 'a', moveDirection: 'R' }
@@ -27,8 +27,7 @@ export default function tm(
     acceptStates: new Set(['A']),
     statePositions: new Map({
       'A': { x: 130, y: 200 },
-      'B': { x: 250, y: 50 },
-      'C': { x: 370, y: 200 }
+      'B': { x: 370, y: 200 }
     }),
     selected: 'A'
   },

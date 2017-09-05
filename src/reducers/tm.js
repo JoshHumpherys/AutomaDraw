@@ -6,10 +6,10 @@ export default function tm(
     states: new Set(['A', 'B', 'C']),
     tapeAlphabet: new Set(['a', 'b', 'c']),
     blankSymbol: '\u0394',
-    inputAlphabet: new Set(['a, b, c']),
+    inputAlphabet: new Set(['a', 'b', 'c']),
     transitionFunction: new Map({
-      'B': new Map({
-        a: { toState: 'B', writeSymbol: 'a', move: 'left' }
+      'A': new Map({
+        a: { toState: 'B', writeSymbol: 'a', moveDirection: 'R' }
       })
     }),
     initialState: 'A',

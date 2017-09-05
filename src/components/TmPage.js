@@ -159,11 +159,11 @@ export class TmPage extends Component {
       return fromStateMap;
     });
 
-    const transitionFunctionDiv = (
+    const transitionFunctionDiv = instructions.length > 0 ? (
       <div>
         {instructions.map(instruction => <div key={instruction}>{instruction}</div>)}
       </div>
-    );
+    ) : '\u2205';
 
     const formalProperties = [
       { name: 'Q', value: arrayToString(states.toArray()) },

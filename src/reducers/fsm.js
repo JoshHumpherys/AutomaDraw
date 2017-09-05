@@ -55,11 +55,11 @@ export default function fsm(
           .remove(action.payload.state)
           .mapEntries(([ fromState, transitions ]) => {
             if(transitions !== undefined) {
-              return [fromState, transitions.mapEntries(([letter, toState]) => {
+              return [fromState, transitions.mapEntries(([ symbol, toState ]) => {
                 if (toState === action.payload.state) {
-                  return [letter, action.payload.name];
+                  return [symbol, action.payload.name];
                 }
-                return [letter, toState];
+                return [symbol, toState];
               })];
             }
           }),

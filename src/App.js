@@ -35,17 +35,20 @@ export class App extends Component {
           break;
       }
       switch(this.props.modalType) {
-        case modalTypes.INITIAL_STATE_MODAL:
+        case modalTypes.INITIAL_STATE_MODAL: {
+          const states = this.props.automaton.states.toArray().sort();
           modalContents = {
             header: 'Initial State',
             body: <Dropdown
-              placeholder={this.props.automaton.initialState}
+              placeholder="Select an initial state"
+              defaultValue={this.props.automaton.initialState}
               fluid
               selection
-              options={this.props.automaton.states.toArray().sort().map(state => ({ text: state, value: state }))}
+              options={states.map(state => ({ text: state, value: state, key: state }))}
               ref={dropdown => this.modalDropdown = dropdown} />,
             actions: [
               <Button
+                key="delete"
                 negative
                 icon="trash"
                 labelPosition="right"
@@ -54,7 +57,12 @@ export class App extends Component {
                   this.props.dispatch(actions.removeInitialState());
                   this.props.dispatch(removeModal());
                 }} />,
-              <Button positive icon="checkmark" labelPosition="right" content="Submit"
+              <Button
+                key="submit"
+                positive
+                icon="checkmark"
+                labelPosition="right"
+                content="Submit"
                 onClick={() => {
                   const value = this.modalDropdown.state.value;
                   if(this.props.automaton.states.contains(value)) {
@@ -64,6 +72,41 @@ export class App extends Component {
                 }} />,
             ]
           };
+          break;
+        }
+        case modalTypes.ACCEPT_STATES_MODAL: {
+          const states = this.props.automaton.states.toArray().sort();
+          const acceptStates = this.props.automaton.acceptStates.toArray().sort();
+          modalContents = {
+            header: 'Accept States',
+            body: <Dropdown
+              placeholder="Select accept states"
+              defaultValue={acceptStates}
+              fluid
+              multiple
+              selection
+              options={states.map(state => ({ text: state, value: state, key: state }))}
+              ref={dropdown => this.modalDropdown = dropdown} />,
+            actions: [
+              <Button
+                key="cancel"
+                content="Cancel"
+                onClick={() => this.props.dispatch(removeModal())}/>,
+              <Button
+                key="submit"
+                positive
+                icon="checkmark"
+                labelPosition="right"
+                content="Submit"
+                onClick={() => {
+                  const value = this.modalDropdown.state.value;
+                  this.props.dispatch(actions.setAcceptStates(value.sort()));
+                  this.props.dispatch(removeModal());
+                }}/>,
+            ]
+          };
+          break;
+        }
       }
       return (
         <div className={'main-container' + (this.props.settings.darkTheme ? ' main-container-dark-theme' : '')}>

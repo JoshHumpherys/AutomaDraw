@@ -10,7 +10,8 @@ import {
   changeInitialState,
   removeInitialState,
   addAcceptState,
-  removeAcceptState
+  removeAcceptState,
+  setAcceptStates
 } from './sharedAutomataFunctions'
 
 const createInstruction = (fromState, inputSymbol, stackSymbol, toState, pushSymbols) =>
@@ -67,6 +68,9 @@ export default function pda(
     }
     case actionTypes.PDA_ACCEPT_STATE_REMOVED: {
       return removeAcceptState(state, action.payload.state);
+    }
+    case actionTypes.PDA_ACCEPT_STATES_SET: {
+      return setAcceptStates(state, action.payload.states);
     }
     case actionTypes.PDA_TRANSITION_ADDED: {
       const { fromState, inputSymbol, stackSymbol, toState, pushSymbols } = action.payload;

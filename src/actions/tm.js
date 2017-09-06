@@ -40,6 +40,10 @@ export function removeAcceptState(state) {
   return { type: actionTypes.TM_ACCEPT_STATE_REMOVED, payload: { state } };
 }
 
+export function setAcceptStates(states) {
+  return { type: actionTypes.TM_ACCEPT_STATES_SET, payload: { states } };
+}
+
 export function addTransition(fromState, tapeSymbol, toState, writeSymbol, moveDirection) {
   return {
     type: actionTypes.TM_TRANSITION_ADDED,

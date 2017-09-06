@@ -10,7 +10,8 @@ import {
   changeInitialState,
   removeInitialState,
   addAcceptState,
-  removeAcceptState
+  removeAcceptState,
+  setAcceptStates
 } from './sharedAutomataFunctions'
 
 const createInstruction = (fromState, inputSymbol, toState) => ({ fromState, inputSymbol, toState });
@@ -67,6 +68,9 @@ export default function fsm(
     }
     case actionTypes.FSM_ACCEPT_STATE_REMOVED: {
       return removeAcceptState(state, action.payload.state);
+    }
+    case actionTypes.FSM_ACCEPT_STATES_SET: {
+      return setAcceptStates(state, action.payload.states);
     }
     case actionTypes.FSM_TRANSITION_ADDED: {
       const { fromState, inputSymbol, toState } = action.payload;

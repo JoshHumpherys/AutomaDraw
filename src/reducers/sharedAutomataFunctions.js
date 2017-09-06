@@ -1,3 +1,5 @@
+import { Set } from 'immutable'
+
 export function changeName(automaton, name) {
   return { ...automaton, name };
 }
@@ -76,4 +78,8 @@ export function addAcceptState(automaton, state) {
 
 export function removeAcceptState(automaton, state) {
   return { ...automaton, acceptStates: automaton.acceptStates.remove(state)};
+}
+
+export function setAcceptStates(automaton, states) {
+  return { ...automaton, acceptStates: new Set(states) };
 }

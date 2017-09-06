@@ -10,7 +10,8 @@ import {
   changeInitialState,
   removeInitialState,
   addAcceptState,
-  removeAcceptState
+  removeAcceptState,
+  setAcceptStates
 } from './sharedAutomataFunctions'
 
 const createInstruction = (fromState, tapeSymbol, toState, writeSymbol, moveDirection) =>
@@ -67,6 +68,9 @@ export default function tm(
     }
     case actionTypes.TM_ACCEPT_STATE_REMOVED: {
       return removeAcceptState(state, action.payload.state);
+    }
+    case actionTypes.TM_ACCEPT_STATES_SET: {
+      return setAcceptStates(state, action.payload.states);
     }
     case actionTypes.TM_TRANSITION_ADDED: {
       const { fromState, tapeSymbol, toState, writeSymbol, moveDirection } = action.payload;

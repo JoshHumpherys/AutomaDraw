@@ -40,6 +40,10 @@ export function removeAcceptState(state) {
   return { type: actionTypes.FSM_ACCEPT_STATE_REMOVED, payload: { state } };
 }
 
+export function setAcceptStates(states) {
+  return { type: actionTypes.FSM_ACCEPT_STATES_SET, payload: { states } };
+}
+
 export function addTransition(fromState, inputSymbol, toState) {
   return { type: actionTypes.FSM_TRANSITION_ADDED, payload: { fromState, inputSymbol, toState } };
 }

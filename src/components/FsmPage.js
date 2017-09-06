@@ -137,27 +137,11 @@ export class FsmPage extends Component {
     ) : '\u2205';
 
     const formalProperties = [
-      {
-        name: 'Q',
-        value: arrayToString(states.toArray())
-      },
-      {
-        name: '\u03A3',
-        value: arrayToString(alphabet.toArray())
-      },
-      {
-        name: '\u03B4',
-        value: transitionFunctionDiv
-      },
-      {
-        name: 'q\u2080',
-        value: initialState,
-        modalType: modalTypes.INITIAL_STATE_MODAL
-      },
-      {
-        name: 'F',
-        value: arrayToString(acceptStates.toArray())
-      },
+      { name: 'Q', value: arrayToString(states.toArray()) },
+      { name: '\u03A3', value: arrayToString(alphabet.toArray()) },
+      { name: '\u03B4', value: transitionFunctionDiv },
+      { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },
+      { name: 'F', value: arrayToString(acceptStates.toArray()), modalType: modalTypes.ACCEPT_STATES_MODAL },
     ];
 
     return <AutomataPage

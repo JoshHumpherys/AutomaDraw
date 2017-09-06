@@ -40,6 +40,10 @@ export function removeAcceptState(state) {
   return { type: actionTypes.PDA_ACCEPT_STATE_REMOVED, payload: { state } };
 }
 
+export function setAcceptStates(states) {
+  return { type: actionTypes.PDA_ACCEPT_STATES_SET, payload: { states } };
+}
+
 export function addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols) {
   return {
     type: actionTypes.PDA_TRANSITION_ADDED,

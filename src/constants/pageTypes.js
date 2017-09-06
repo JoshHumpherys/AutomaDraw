@@ -1,0 +1,9 @@
+export const HOME_PAGE = '';
+export const FSM_PAGE = 'fsm';
+export const PDA_PAGE = 'pda';
+export const TM_PAGE = 'tm';
+export const REGEX_PAGE = 'regex';
+export const UNRESTRICTED_PAGE = 'unrestricted';
+export const CONTEXT_SENSITIVE_PAGE = 'contextsensitive';
+export const CONTEXT_FREE_PAGE = 'contextfree';
+export const REGULAR_PAGE = 'regular';

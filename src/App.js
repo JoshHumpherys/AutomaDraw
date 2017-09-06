@@ -3,40 +3,93 @@ import { connect } from 'react-redux'
 import logo from './logo.svg'
 import './index.css'
 import { getSettings } from './selectors/settings'
-import { isMobileBrowser } from './utility/utility'
+import { isMobileBrowser, getPageType } from './utility/utility'
 import MobileSite from './components/MobileSite'
 import { browserHistory } from 'react-router'
-import { Icon, Menu, Popup } from 'semantic-ui-react'
+import { Button, Dropdown, Icon, Menu, Modal, Popup } from 'semantic-ui-react'
 import SettingsPopup from './components/SettingsPopup'
+import * as modalTypes from './constants/modalTypes'
+import { removeModal } from './actions/modal'
+import { getModalType } from './selectors/modal'
+import { getAutomaton } from './selectors/automaton'
+import * as fsmActions from './actions/fsm'
+import * as pdaActions from './actions/fsm'
+import * as tmActions from './actions/fsm'
+import * as automatonTypes from './constants/automatonTypes'
+import * as pageTypes from './constants/pageTypes'
 
 export class App extends Component {
   render() {
     if(!isMobileBrowser()) {
+      let modalContents = null;
+      let actions;
+      switch(this.props.automatonType) {
+        case automatonTypes.FSM:
+          actions = fsmActions;
+          break;
+        case automatonTypes.PDA:
+          actions = pdaActions;
+          break;
+        case automatonTypes.TM:
+          actions = tmActions;
+          break;
+      }
+      switch(this.props.modalType) {
+        case modalTypes.INITIAL_STATE_MODAL:
+          modalContents = {
+            header: 'Initial State',
+            body: <Dropdown
+              placeholder={this.props.automaton.initialState}
+              fluid
+              selection
+              options={this.props.automaton.states.toArray().sort().map(state => ({ text: state, value: state }))}
+              ref={dropdown => this.modalDropdown = dropdown} />,
+            actions: [
+              <Button
+                negative
+                icon="trash"
+                labelPosition="right"
+                content="Delete"
+                onClick={() => {
+                  this.props.dispatch(actions.removeInitialState());
+                  this.props.dispatch(removeModal());
+                }} />,
+              <Button positive icon="checkmark" labelPosition="right" content="Submit"
+                onClick={() => {
+                  const value = this.modalDropdown.state.value;
+                  if(this.props.automaton.states.contains(value)) {
+                    this.props.dispatch(actions.changeInitialState(value));
+                  }
+                  this.props.dispatch(removeModal());
+                }} />,
+            ]
+          };
+      }
       return (
         <div className={'main-container' + (this.props.settings.darkTheme ? ' main-container-dark-theme' : '')}>
           <div id="navbar" className="ui fixed inverted menu">
             <div className="ui container">
-              <a onClick={() => browserHistory.push('/')} className="header item">
+              <a onClick={() => browserHistory.push('/' + pageTypes.HOME_PAGE)} className="header item">
                 <img className="logo" src={logo} alt="logo" />
                 AutomaDraw
               </a>
-              <Menu.Item name="FSM" onClick={() => browserHistory.push('/fsm')} />
-              <Menu.Item name="PDA" onClick={() => browserHistory.push('/pda')} />
-              <Menu.Item name="TM" onClick={() => browserHistory.push('/tm')} />
-              <Menu.Item name="Regular Expression" onClick={() => browserHistory.push('/regex')} />
+              <Menu.Item name="FSM" onClick={() => browserHistory.push('/' + pageTypes.FSM_PAGE)} />
+              <Menu.Item name="PDA" onClick={() => browserHistory.push('/' + pageTypes.PDA_PAGE)} />
+              <Menu.Item name="TM" onClick={() => browserHistory.push('/' + pageTypes.TM_PAGE)} />
+              <Menu.Item name="Regular Expression" onClick={() => browserHistory.push('/' + pageTypes.REGEX_PAGE)} />
               <Menu.Item className="ui simple dropdown item">
                 Grammar <i className="dropdown icon"/>
                 <div className="menu">
-                  <a onClick={() => browserHistory.push('/unrestricted')} className="item">
+                  <a onClick={() => browserHistory.push('/' + pageTypes.UNRESTRICTED_PAGE)} className="item">
                     Recursively Enumerable
                   </a>
-                  <a onClick={() => browserHistory.push('/contextsensitive')} className="item">
+                  <a onClick={() => browserHistory.push('/' + pageTypes.CONTEXT_SENSITIVE_PAGE)} className="item">
                     Context-Sensitive
                   </a>
-                  <a onClick={() => browserHistory.push('/contextfree')} className="item">
+                  <a onClick={() => browserHistory.push('/' + pageTypes.CONTEXT_FREE_PAGE)} className="item">
                     Context-Free
                   </a>
-                  <a onClick={() => browserHistory.push('/regular')} className="item">
+                  <a onClick={() => browserHistory.push('/' + pageTypes.REGULAR_PAGE)} className="item">
                     Regular
                   </a>
                 </div>
@@ -62,6 +115,18 @@ export class App extends Component {
 
           {this.props.children}
 
+          <Modal size='small' open={this.props.modalType !== null} onClose={() => this.props.dispatch(removeModal())}>
+            <Modal.Header>
+              {this.props.modalType ? modalContents.header : null}
+            </Modal.Header>
+            <Modal.Content>
+              {this.props.modalType ? modalContents.body : null}
+            </Modal.Content>
+            <Modal.Actions>
+              {this.props.modalType ? modalContents.actions : null}
+            </Modal.Actions>
+          </Modal>
+
         </div>
       );
     } else {
@@ -71,7 +136,13 @@ export class App extends Component {
 }
 
 export default connect(
-  state => ({
-    settings: getSettings(state)
-  })
+  state => {
+    const pageType = getPageType();
+    return {
+      automaton: getAutomaton(state, pageType),
+      automatonType: pageType,
+      modalType: getModalType(state),
+      settings: getSettings(state)
+    };
+  }
 )(App);

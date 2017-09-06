@@ -229,3 +229,7 @@ body {
 .centered-children {
   text-align: center;
 }
+
+.clickable {
+  cursor: pointer;
+}

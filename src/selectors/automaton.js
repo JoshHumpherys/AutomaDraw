@@ -1,0 +1,1 @@
+export const getAutomaton = (state, automatonType) => state[automatonType];

@@ -59,6 +59,10 @@ export const TM_RESET = 'TM_RESET';
 export const REGEX_SET = 'REGEX_SET';
 export const REGEX_CLEARED = 'REGEX_CLEARED';
 
+// modal
+export const MODAL_CREATED = 'MODAL_CREATED';
+export const MODAL_REMOVED = 'MODAL_REMOVED';
+
 // settings
 export const SETTINGS_DARK_THEME_SET = 'SETTINGS_DARK_THEME_SET';
 export const SETTINGS_EMPTY_STRING_SYMBOL_SET = 'SETTINGS_EMPTY_STRING_SYMBOL_SET';

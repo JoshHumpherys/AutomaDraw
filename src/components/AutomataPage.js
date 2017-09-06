@@ -6,6 +6,7 @@ import $ from 'jquery'
 import { Button, Checkbox, Dropdown, Icon } from 'semantic-ui-react'
 import { saveAs } from 'file-saver'
 import { Map, Set } from 'immutable'
+import { createModal } from '../actions/modal'
 
 import EditableTextField from './EditableTextField'
 
@@ -537,7 +538,11 @@ export class AutomataPage extends Component {
           {
             this.props.formalProperties.map(formalProperty =>
               <div className="control-panel-text" key={formalProperty.name}>
-                <div>{formalProperty.name}: {formalProperty.value}</div>
+                <span className={formalProperty.modalType ? 'clickable' : ''} onClick={() => {
+                  if(formalProperty.modalType) {
+                    this.props.dispatch(createModal(formalProperty.modalType));
+                  }
+                }}>{formalProperty.name}: {formalProperty.value}</span>
               </div>
             )
           }

@@ -237,7 +237,7 @@ export class AutomataPage extends Component {
   setStatePosition(element, state, x, y) {
     element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
     const statePosition = { x, y };
-    const transitionsFromState = this.props.simplifiedTransitionFunction.get(state);
+    const transitionsFromState = this.props.simpleNestedTransitionFunction.get(state);
     if(transitionsFromState !== undefined) {
       for(const transitionText of transitionsFromState.keys()) { // Update all transitions FROM the state being moved
         const toState = transitionsFromState.get(transitionText);
@@ -267,10 +267,10 @@ export class AutomataPage extends Component {
         }
       }
     }
-    for(const [ fromState, transitionsFromState ] of this.props.simplifiedTransitionFunction) { // Update all transitions TO the state being moved
+    for(const [ fromState, transitionsFromState ] of this.props.simpleNestedTransitionFunction) { // Update all transitions TO the state being moved
       if(fromState !== state && transitionsFromState) {
         for(const transitionText of transitionsFromState.keys()) {
-          if(this.props.simplifiedTransitionFunction.get(fromState).get(transitionText) === state) {
+          if(this.props.simpleNestedTransitionFunction.get(fromState).get(transitionText) === state) {
             const transitionRef = this[this.getTransitionLineRefName(fromState, state)];
             const textRef = this[this.getTransitionTextRefName(fromState, state)];
             const fromStatePosition = this.props.statePositions.get(fromState);
@@ -453,7 +453,7 @@ export class AutomataPage extends Component {
 
     const svgChildren = [];
     for(const fromState of this.props.states) {
-      const transitions = this.props.simplifiedTransitionFunction.get(fromState);
+      const transitions = this.props.simpleNestedTransitionFunction.get(fromState);
       if(transitions !== undefined) {
         const transitionsToStateMap = new Map({}).withMutations(transitionsToStateMap => {
           for(const [ transitionText, toState ] of transitions.entries()) {

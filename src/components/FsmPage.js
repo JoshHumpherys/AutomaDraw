@@ -16,7 +16,7 @@ import {
   initializeFromJsonString,
   reset
 } from '../actions/fsm'
-import { getFsm } from '../selectors/fsm'
+import { getFsm, getSimpleNestedTransitionFunction } from '../selectors/fsm'
 import { arrayToString } from '../utility/utility'
 import AutomataPage from './AutomataPage'
 
@@ -116,89 +116,29 @@ export class FsmPage extends Component {
   }
 
   render() {
-    const {
-      name,
-      states,
-      alphabet,
-      transitionFunction,
-      initialState,
-      acceptStates,
-      statePositions,
-      selected
-    } = this.props.fsm;
+    const { name, states, alphabet, transitionFunction, initialState, acceptStates, statePositions, selected }
+      = this.props.fsm;
 
-    const transitionFunctionToTable = () => {
-      if(states.size === 0) {
-        return new Array(0);
-      }
+    const simpleNestedTransitionFunction = getSimpleNestedTransitionFunction(transitionFunction);
 
-      let table = new Array(states.length);
-      let i = 0;
-      for(const state of states) {
-        const transitions = transitionFunction.get(state);
-        table[i] = new Array(alphabet.length);
-        let j = 0;
-        for(const letter of alphabet) {
-          table[i][j] = (transitions ? transitions.get(letter) : '') || '';
-          j++;
+    const arrayToTuple = array => '(' + array.join(', ') + ')';
+    const transitionFunctionDiv = transitionFunction.size > 0 ? (
+      <div>
+        {
+          transitionFunction.map(transitionObject => {
+            const instruction = arrayToTuple(
+              [transitionObject.fromState, transitionObject.inputSymbol, transitionObject.toState]
+            );
+            return <div key={instruction}>{instruction}</div>;
+          })
         }
-        i++;
-      }
-      return table;
-    };
-
-    const transitionTable = transitionFunctionToTable();
-
-    const createTransitionTable = () => {
-      if(transitionTable.length === 0) {
-        return '\u2205';
-      }
-
-      const rows = [];
-      for(const fromState of states.keys()) {
-        const cols = [];
-        cols.push(<td key="0">{fromState}</td>);
-        for(const letter of alphabet.keys()) {
-          const toState = transitionTable[rows.length][cols.length - 1];
-          cols.push(
-            transitionTable[rows.length] ? (
-              <td key={cols.length} onClick={() => this.setState({
-                transitionPopup: true,
-                transitionPopupToState: toState,
-                transitionPopupLetter: letter,
-                transitionPopupFromState: fromState
-              })}>{toState}</td>
-            ) : (
-              <td />
-            )
-          );
-        }
-        rows.push(
-          <tr key={rows.length}>
-            {cols}
-          </tr>
-        );
-      }
-
-      return (
-        <table className="transition-table">
-          <thead>
-          <tr>
-            <td>Q x &Sigma;</td>
-            {alphabet.map(letter => <td key={letter}>{letter}</td>)}
-          </tr>
-          </thead>
-          <tbody>
-            {rows}
-          </tbody>
-        </table>
-      );
-    };
+      </div>
+    ) : '\u2205';
 
     const formalProperties = [
       { name: 'Q', value: arrayToString(states.toArray()) },
       { name: '\u03A3', value: arrayToString(alphabet.toArray()) },
-      { name: '\u03B4', value: createTransitionTable() },
+      { name: '\u03B4', value: transitionFunctionDiv },
       { name: 'q\u2080', value: initialState },
       { name: 'F', value: arrayToString(acceptStates.toArray()) },
     ];
@@ -206,7 +146,7 @@ export class FsmPage extends Component {
     return <AutomataPage
       name={name}
       states={states}
-      simplifiedTransitionFunction={transitionFunction}
+      simpleNestedTransitionFunction={simpleNestedTransitionFunction}
       initialState={initialState}
       acceptStates={acceptStates}
       statePositions={statePositions}

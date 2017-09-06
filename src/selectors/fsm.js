@@ -1,3 +1,5 @@
+import { Map } from 'immutable'
+
 export const getFsm = state => {
   return {
     ...state.fsm,
@@ -5,4 +7,13 @@ export const getFsm = state => {
     alphabet: state.fsm.alphabet.sort(),
     acceptStates: state.fsm.acceptStates.sort()
   };
+};
+
+export const getSimpleNestedTransitionFunction = transitionFunction => {
+  return new Map().withMutations(nestedMap => {
+    transitionFunction.forEach(({ fromState, inputSymbol, toState }) => {
+      const mapFromState = nestedMap.get(fromState) || new Map();
+      nestedMap.set(fromState, mapFromState.set(inputSymbol, toState));
+    })
+  });
 };

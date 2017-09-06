@@ -1,3 +1,5 @@
+import { Map } from 'immutable'
+
 export const getTm = state => {
   return {
     ...state.tm,
@@ -6,4 +8,14 @@ export const getTm = state => {
     inputAlphabet: state.tm.inputAlphabet.sort(),
     acceptStates: state.tm.acceptStates.sort()
   };
+};
+
+export const getSimpleNestedTransitionFunction = transitionFunction => {
+  return new Map().withMutations(nestedMap => {
+    transitionFunction.forEach(({ fromState, tapeSymbol, toState, writeSymbol, moveDirection }) => {
+      const transitionText = tapeSymbol + '/' + writeSymbol + ',' + moveDirection;
+      const mapFromState = nestedMap.get(fromState) || new Map();
+      nestedMap.set(fromState, mapFromState.set(transitionText, toState));
+    })
+  });
 };

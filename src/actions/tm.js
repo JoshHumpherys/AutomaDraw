@@ -43,18 +43,15 @@ export function removeAcceptState(state) {
 export function addTransition(fromState, tapeSymbol, toState, writeSymbol, moveDirection) {
   return {
     type: actionTypes.TM_TRANSITION_ADDED,
-    payload: {
-      fromState,
-      tapeSymbol,
-      toState,
-      writeSymbol,
-      moveDirection
-    }
+    payload: { fromState, tapeSymbol, toState, writeSymbol, moveDirection }
   };
 }
 
-export function removeTransition(fromState, inputSymbol, tapeSymbol) {
-  return { type: actionTypes.TM_TRANSITION_REMOVED, payload: { fromState, inputSymbol, tapeSymbol } };
+export function removeTransition(fromState, tapeSymbol, toState, writeSymbol, moveDirection) {
+  return {
+    type: actionTypes.TM_TRANSITION_REMOVED,
+    payload: { fromState, tapeSymbol, toState, writeSymbol, moveDirection }
+  };
 }
 
 export function addTapeSymbol(tapeSymbol) {

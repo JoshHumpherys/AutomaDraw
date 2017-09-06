@@ -1,15 +1,20 @@
 import * as actionTypes from '../constants/actionTypes'
-import { Set, Map, fromJS } from 'immutable';
+import { Set, Map } from 'immutable';
 import {
   changeName,
   moveState,
   addState,
   selectState,
+  renameState,
+  deleteState,
   changeInitialState,
   removeInitialState,
   addAcceptState,
   removeAcceptState
 } from './sharedAutomataFunctions'
+
+const createInstruction = (fromState, tapeSymbol, toState, writeSymbol, moveDirection) =>
+  ({ fromState, tapeSymbol, toState, writeSymbol, moveDirection });
 
 export default function tm(
   state = {
@@ -18,11 +23,9 @@ export default function tm(
     tapeAlphabet: new Set(['a']),
     blankSymbol: '\u0394',
     inputAlphabet: new Set(['a']),
-    transitionFunction: new Map({
-      'A': new Map({
-        a: { toState: 'B', writeSymbol: 'a', moveDirection: 'R' }
-      })
-    }),
+    transitionFunction: new Set([
+      createInstruction('A', 'a', 'B', 'a', 'R')
+    ]),
     initialState: 'A',
     acceptStates: new Set(['A']),
     statePositions: new Map({
@@ -48,50 +51,10 @@ export default function tm(
       return selectState(state, action.payload.state);
     }
     case actionTypes.TM_STATE_NAME_CHANGED: {
-      return {
-        ...state,
-        states: state.states.remove(action.payload.state).add(action.payload.name),
-        transitionFunction: state.transitionFunction
-          .set(action.payload.name, state.transitionFunction.get(action.payload.state))
-          .remove(action.payload.state)
-          .map(tapeSymbolMap => {
-            if(tapeSymbolMap !== undefined) {
-              return tapeSymbolMap.map(transitionObject => {
-                if (transitionObject.toState === action.payload.state) {
-                  return { ...transitionObject, toState: action.payload.name };
-                }
-                return transitionObject;
-              });
-            }
-          }),
-        initialState: state.initialState === action.payload.state ? action.payload.name : state.initialState,
-        acceptStates: state.acceptStates.contains(action.payload.state) ?
-          state.acceptStates.remove(action.payload.state).add(action.payload.name) :
-          state.acceptStates,
-        statePositions: state.statePositions
-          .set(action.payload.name, state.statePositions.get(action.payload.state))
-          .remove(action.payload.state),
-        selected: state.selected === action.payload.state ? action.payload.name : state.selected
-      };
+      return renameState(state, action.payload.state, action.payload.name);
     }
     case actionTypes.TM_STATE_DELETED: {
-      return {
-        ...state,
-        states: state.states.remove(action.payload.state),
-        transitionFunction: state.transitionFunction.size !== 0 ?
-          state.transitionFunction.map(tapeSymbolMap => {
-            if (tapeSymbolMap !== undefined) {
-              return tapeSymbolMap.filter(({ toState }) => {
-                return toState !== action.payload.state;
-              });
-            }
-          }).remove(action.payload.state) :
-          new Map(),
-        initialState: state.initialState === action.payload.state ? null : state.initialState,
-        acceptStates: state.acceptStates.remove(action.payload.state),
-        statePositions: state.statePositions.remove(action.payload.state),
-        selected: state.selected === action.payload.state ? null : state.selected
-      };
+      return deleteState(state, action.payload.state, action.payload.name);
     }
     case actionTypes.TM_INITIAL_STATE_CHANGED: {
       return changeInitialState(state, action.payload.state);
@@ -107,20 +70,24 @@ export default function tm(
     }
     case actionTypes.TM_TRANSITION_ADDED: {
       const { fromState, tapeSymbol, toState, writeSymbol, moveDirection } = action.payload;
-      const { transitionFunction } = state;
-      const tapeSymbolMap = transitionFunction.get(fromState) || new Map();
+      const transition = createInstruction(fromState, tapeSymbol, toState, writeSymbol, moveDirection);
       return {
         ...state,
-        transitionFunction: transitionFunction
-          .set(fromState, tapeSymbolMap.set(tapeSymbol, { toState, writeSymbol, moveDirection }))
+        transitionFunction: state.transitionFunction.add(transition)
       };
     }
-    case actionTypes.TM_TRANSITION_REMOVED: { // TODO fix this
-      const {fromState, letter} = action.payload;
+    case actionTypes.TM_TRANSITION_REMOVED: {
+      const { fromState, tapeSymbol, toState, writeSymbol, moveDirection } = action.payload;
       return {
         ...state,
         transitionFunction: state.transitionFunction
-          .set(fromState, state.transitionFunction.get(fromState).remove(letter))
+          .filter(transitionObject => {
+            return transitionObject.fromState !== fromState ||
+              transitionObject.tapeSymbol !== tapeSymbol ||
+              transitionObject.toState !== toState ||
+              transitionObject.writeSymbol !== writeSymbol ||
+              transitionObject.moveDirection !== moveDirection;
+          })
       };
     }
     case actionTypes.TM_TAPE_SYMBOL_ADDED: {
@@ -142,19 +109,15 @@ export default function tm(
       return { ...state, blankSymbol: null };
     }
     case actionTypes.TM_INITIALIZED_FROM_JSON_STRING: {
-      const TM = JSON.parse(action.payload.jsonString);
+      const tm = JSON.parse(action.payload.jsonString);
       return {
-        ...TM,
-        states: new Set(TM.states),
-        tapeAlphabet: new Set(TM.tapeAlphabet),
-        inputAlphabet: new Set(TM.inputAlphabet),
-        transitionFunction: fromJS(TM.transitionFunction).map(tapeSymbolMap =>
-          tapeSymbolMap.map(transitionObject =>
-            transitionObject.toObject()
-          )
-        ),
-        acceptStates: new Set(TM.acceptStates),
-        statePositions: new Map(TM.statePositions)
+        ...tm,
+        states: new Set(tm.states),
+        tapeAlphabet: new Set(tm.tapeAlphabet),
+        inputAlphabet: new Set(tm.inputAlphabet),
+        transitionFunction: new Set(tm.transitionFunction),
+        acceptStates: new Set(tm.acceptStates),
+        statePositions: new Map(tm.statePositions)
       }
     }
     case actionTypes.TM_RESET: {
@@ -164,7 +127,7 @@ export default function tm(
         tapeAlphabet: new Set(),
         blankSymbol: null,
         inputAlphabet: new Set(),
-        transitionFunction: new Map(),
+        transitionFunction: new Set(),
         initialState: null,
         acceptStates: new Set(),
         statePositions: new Map(),

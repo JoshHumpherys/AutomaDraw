@@ -1,15 +1,20 @@
-import { Set, Map, fromJS } from 'immutable';
+import { Set, Map } from 'immutable';
 import * as actionTypes from '../constants/actionTypes'
 import {
   changeName,
   moveState,
   addState,
   selectState,
+  renameState,
+  deleteState,
   changeInitialState,
   removeInitialState,
   addAcceptState,
   removeAcceptState
 } from './sharedAutomataFunctions'
+
+const createInstruction = (fromState, inputSymbol, stackSymbol, toState, pushSymbols) =>
+  ({ fromState, inputSymbol, stackSymbol, toState, pushSymbols });
 
 export default function pda(
   state = {
@@ -17,13 +22,9 @@ export default function pda(
     states: new Set(['A', 'B']),
     inputAlphabet: new Set(['a']),
     stackAlphabet: new Set(['#']),
-    transitionFunction: new Map({
-      'A': new Map({
-        a: new Map({
-          '#': { toState: 'B', pushSymbols: '#' }
-        })
-      })
-    }),
+    transitionFunction: new Set([
+      createInstruction('A', 'a', '#', 'B', '#')
+    ]),
     initialState: 'A',
     initialStackSymbol: '#',
     acceptStates: new Set(['A']),
@@ -50,56 +51,10 @@ export default function pda(
       return selectState(state, action.payload.state);
     }
     case actionTypes.PDA_STATE_NAME_CHANGED: {
-      return {
-        ...state,
-        states: state.states.remove(action.payload.state).add(action.payload.name),
-        transitionFunction: state.transitionFunction
-          .set(action.payload.name, state.transitionFunction.get(action.payload.state))
-          .remove(action.payload.state)
-          .mapEntries(([ fromState, inputSymbolMap ]) => {
-            if (inputSymbolMap !== undefined) {
-              return [fromState, inputSymbolMap.mapEntries(([ inputSymbol, stackSymbolMap ]) => {
-                return [inputSymbol, stackSymbolMap.mapEntries(([ stackSymbol, transitionObject ]) => {
-                  if(transitionObject.toState === action.payload.state) {
-                    return [stackSymbol, { ...transitionObject, toState: action.payload.name }];
-                  }
-                  return [stackSymbol, transitionObject];
-                })];
-              })];
-            }
-            return [ fromState, inputSymbolMap ];
-          }),
-        initialState: state.initialState === action.payload.state ? action.payload.name : state.initialState,
-        acceptStates: state.acceptStates.contains(action.payload.state) ?
-          state.acceptStates.remove(action.payload.state).add(action.payload.name) :
-          state.acceptStates,
-        statePositions: state.statePositions
-          .set(action.payload.name, state.statePositions.get(action.payload.state))
-          .remove(action.payload.state),
-        selected: state.selected === action.payload.state ? action.payload.name : state.selected
-      };
+      return renameState(state, action.payload.state, action.payload.name);
     }
     case actionTypes.PDA_STATE_DELETED: {
-      return {
-        ...state,
-        states: state.states.remove(action.payload.state),
-        transitionFunction: state.transitionFunction.size !== 0 ?
-          state.transitionFunction.mapEntries(([ fromState, inputSymbolMap ]) => {
-            if(inputSymbolMap !== undefined) {
-              return [fromState, inputSymbolMap.mapEntries(([ inputSymbol, stackSymbolMap ]) => {
-                return [inputSymbol, stackSymbolMap.filter(({ toState }) => {
-                  return toState !== action.payload.state;
-                })];
-              })];
-            }
-            return [ fromState, inputSymbolMap ];
-          }).remove(action.payload.state) :
-          new Map(),
-        initialState: state.initialState === action.payload.state ? null : state.initialState,
-        acceptStates: state.acceptStates.remove(action.payload.state),
-        statePositions: state.statePositions.remove(action.payload.state),
-        selected: state.selected === action.payload.state ? null : state.selected
-      };
+      return deleteState(state, action.payload.state);
     }
     case actionTypes.PDA_INITIAL_STATE_CHANGED: {
       return changeInitialState(state, action.payload.state);
@@ -115,21 +70,24 @@ export default function pda(
     }
     case actionTypes.PDA_TRANSITION_ADDED: {
       const { fromState, inputSymbol, stackSymbol, toState, pushSymbols } = action.payload;
-      const { transitionFunction } = state;
-      const inputSymbolMap = transitionFunction.get(fromState) || new Map();
-      const stackSymbolMap = inputSymbolMap.get(inputSymbol) || new Map();
+      const transition = createInstruction(fromState, inputSymbol, stackSymbol, toState, pushSymbols);
       return {
         ...state,
-        transitionFunction: transitionFunction
-          .set(fromState, inputSymbolMap.set(inputSymbol, stackSymbolMap.set(stackSymbol, { toState, pushSymbols })))
+        transitionFunction: state.transitionFunction.add(transition)
       };
     }
-    case actionTypes.PDA_TRANSITION_REMOVED: { // TODO fix this
-      const { fromState, letter } = action.payload;
+    case actionTypes.PDA_TRANSITION_REMOVED: {
+      const { fromState, inputSymbol, stackSymbol, toState, pushSymbols } = action.payload;
       return {
         ...state,
         transitionFunction: state.transitionFunction
-          .set(fromState, state.transitionFunction.get(fromState).remove(letter))
+          .filter(transitionObject => {
+            return transitionObject.fromState !== fromState ||
+              transitionObject.inputSymbol !== inputSymbol ||
+              transitionObject.stackSymbol !== stackSymbol ||
+              transitionObject.toState !== toState ||
+              transitionObject.pushSymbols !== pushSymbols;
+          })
       };
     }
     case actionTypes.PDA_INPUT_SYMBOL_ADDED: {
@@ -139,10 +97,7 @@ export default function pda(
       }
     }
     case actionTypes.PDA_STACK_SYMBOL_ADDED: {
-      return {
-        ...state,
-        stackAlphabet: state.stackAlphabet.add(action.payload.stackSymbol)
-      }
+      return { ...state, stackAlphabet: state.stackAlphabet.add(action.payload.stackSymbol) };
     }
     case actionTypes.PDA_INITIAL_STACK_SYMBOL_CHANGED: {
       return { ...state, initialStackSymbol: action.payload.stackSymbol };
@@ -157,13 +112,7 @@ export default function pda(
         states: new Set(pda.states),
         inputAlphabet: new Set(pda.inputAlphabet),
         stackAlphabet: new Set(pda.stackAlphabet),
-        transitionFunction: fromJS(pda.transitionFunction).map(inputSymbolMap =>
-          inputSymbolMap.map(stackSymbolMap =>
-            stackSymbolMap.map(transitionObject =>
-              transitionObject.toObject()
-            )
-          )
-        ),
+        transitionFunction: new Set(pda.transitionFunction),
         acceptStates: new Set(pda.acceptStates),
         statePositions: new Map(pda.statePositions)
       }
@@ -174,7 +123,7 @@ export default function pda(
         states: new Set(),
         inputAlphabet: new Set(),
         stackAlphabet: new Set(),
-        transitionFunction: new Map(),
+        transitionFunction: new Set(),
         initialState: null,
         initialStackSymbol: '',
         acceptStates: new Set(),

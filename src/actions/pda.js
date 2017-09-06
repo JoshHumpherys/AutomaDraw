@@ -43,18 +43,15 @@ export function removeAcceptState(state) {
 export function addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols) {
   return {
     type: actionTypes.PDA_TRANSITION_ADDED,
-    payload: {
-      fromState,
-      inputSymbol,
-      stackSymbol,
-      toState,
-      pushSymbols
-    }
+    payload: { fromState, inputSymbol, stackSymbol, toState, pushSymbols }
   };
 }
 
-export function removeTransition(fromState, inputSymbol, stackSymbol) {
-  return { type: actionTypes.PDA_TRANSITION_REMOVED, payload: { fromState, inputSymbol, stackSymbol } };
+export function removeTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols) {
+  return {
+    type: actionTypes.PDA_TRANSITION_REMOVED,
+    payload: { fromState, inputSymbol, stackSymbol, toState, pushSymbols }
+  };
 }
 
 export function addInputSymbol(inputSymbol) {

@@ -16,10 +16,9 @@ import {
   initializeFromJsonString,
   reset
 } from '../actions/tm'
-import { getTm } from '../selectors/tm'
+import { getTm, getSimpleNestedTransitionFunction } from '../selectors/tm'
 import { arrayToString } from '../utility/utility'
 import AutomataPage from './AutomataPage'
-import { Map } from 'immutable'
 
 export class TmPage extends Component {
   constructor(props) {
@@ -142,26 +141,25 @@ export class TmPage extends Component {
       selected
     } = this.props.tm;
 
-    const arrayToTuple = array => '(' + array.join(', ') + ')';
-    const instructions = [];
-    const simplifiedTransitionFunction = transitionFunction.map((fromStateMap, fromState) => {
-      if(fromStateMap !== undefined) {
-        return new Map().withMutations(map => {
-          fromStateMap.forEach((transitionObject, tapeSymbol) => {
-            const { writeSymbol, moveDirection, toState } = transitionObject;
-            const mapFrom = arrayToTuple([fromState, tapeSymbol]);
-            const mapTo = arrayToTuple([toState, writeSymbol, moveDirection]);
-            instructions.push(arrayToTuple([mapFrom, mapTo]));
-            map.set(tapeSymbol + '/' + writeSymbol + ', ' + moveDirection, toState);
-          });
-        });
-      }
-      return fromStateMap;
-    });
+    const simpleNestedTransitionFunction = getSimpleNestedTransitionFunction(transitionFunction);
 
-    const transitionFunctionDiv = instructions.length > 0 ? (
+    const arrayToTuple = array => '(' + array.join(', ') + ')';
+    const transitionFunctionDiv = transitionFunction.size > 0 ? (
       <div>
-        {instructions.map(instruction => <div key={instruction}>{instruction}</div>)}
+        {
+          transitionFunction.map(transitionObject => {
+            const instruction = arrayToTuple(
+              [
+                transitionObject.fromState,
+                transitionObject.tapeSymbol,
+                transitionObject.toState,
+                transitionObject.writeSymbol,
+                transitionObject.moveDirection
+              ]
+            );
+            return <div key={instruction}>{instruction}</div>;
+          })
+        }
       </div>
     ) : '\u2205';
 
@@ -178,7 +176,7 @@ export class TmPage extends Component {
     return <AutomataPage
       name={name}
       states={states}
-      simplifiedTransitionFunction={simplifiedTransitionFunction}
+      simpleNestedTransitionFunction={simpleNestedTransitionFunction}
       initialState={initialState}
       acceptStates={acceptStates}
       statePositions={statePositions}

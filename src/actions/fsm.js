@@ -40,16 +40,16 @@ export function removeAcceptState(state) {
   return { type: actionTypes.FSM_ACCEPT_STATE_REMOVED, payload: { state } };
 }
 
-export function addTransition(fromState, letter, toState) {
-  return { type: actionTypes.FSM_TRANSITION_ADDED, payload: { fromState, letter, toState } };
+export function addTransition(fromState, inputSymbol, toState) {
+  return { type: actionTypes.FSM_TRANSITION_ADDED, payload: { fromState, inputSymbol, toState } };
 }
 
-export function removeTransition(fromState, letter, toState) {
-  return { type: actionTypes.FSM_TRANSITION_REMOVED, payload: { fromState, letter, toState } };
+export function removeTransition(fromState, inputSymbol, toState) {
+  return { type: actionTypes.FSM_TRANSITION_REMOVED, payload: { fromState, inputSymbol, toState } };
 }
 
-export function addSymbol(letter) {
-  return { type: actionTypes.FSM_LETTER_ADDED, payload: { letter } };
+export function addSymbol(symbol) {
+  return { type: actionTypes.FSM_SYMBOL_ADDED, payload: { symbol } };
 }
 
 export function initializeFromJsonString(jsonString) {

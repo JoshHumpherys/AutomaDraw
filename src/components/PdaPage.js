@@ -17,10 +17,9 @@ import {
   initializeFromJsonString,
   reset
 } from '../actions/pda'
-import { getPda } from '../selectors/pda'
+import { getPda, getSimpleNestedTransitionFunction } from '../selectors/pda'
 import { arrayToString } from '../utility/utility'
 import AutomataPage from './AutomataPage'
-import { Map } from 'immutable'
 
 export class PdaPage extends Component {
   constructor(props) {
@@ -154,24 +153,25 @@ export class PdaPage extends Component {
       selected
     } = this.props.pda;
 
-    const instructions = [];
-    const simplifiedTransitionFunction = transitionFunction.map((fromStateMap, fromState) => {
-      if(fromStateMap !== undefined) {
-        return new Map().withMutations(map => {
-          fromStateMap.forEach((onInputSymbolMap, inputSymbol) => {
-            onInputSymbolMap.forEach(({ toState, pushSymbols }, stackSymbol) => {
-              instructions.push('(' + [fromState, inputSymbol, stackSymbol, toState, pushSymbols].join(', ') + ')');
-              map.set(inputSymbol + '; ' + stackSymbol + '/' + pushSymbols, toState);
-            })
-          });
-        });
-      }
-      return fromStateMap;
-    });
+    const simpleNestedTransitionFunction = getSimpleNestedTransitionFunction(transitionFunction);
 
-    const transitionFunctionDiv = instructions.length > 0 ? (
+    const arrayToTuple = array => '(' + array.join(', ') + ')';
+    const transitionFunctionDiv = transitionFunction.size > 0 ? (
       <div>
-        {instructions.map(instruction => <div key={instruction}>{instruction}</div>)}
+        {
+          transitionFunction.map(transitionObject => {
+            const instruction = arrayToTuple(
+              [
+                transitionObject.fromState,
+                transitionObject.inputSymbol,
+                transitionObject.stackSymbol,
+                transitionObject.toState,
+                transitionObject.pushSymbols
+              ]
+            );
+            return <div key={instruction}>{instruction}</div>;
+          })
+        }
       </div>
     ) : '\u2205';
 
@@ -188,7 +188,7 @@ export class PdaPage extends Component {
     return <AutomataPage
       name={name}
       states={states}
-      simplifiedTransitionFunction={simplifiedTransitionFunction}
+      simpleNestedTransitionFunction={simpleNestedTransitionFunction}
       initialState={initialState}
       acceptStates={acceptStates}
       statePositions={statePositions}

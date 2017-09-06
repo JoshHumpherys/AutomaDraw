@@ -20,6 +20,7 @@ import {
 import { getPda, getSimpleNestedTransitionFunction } from '../selectors/pda'
 import { arrayToString } from '../utility/utility'
 import AutomataPage from './AutomataPage'
+import * as modalTypes from '../constants/modalTypes'
 
 export class PdaPage extends Component {
   constructor(props) {
@@ -180,7 +181,7 @@ export class PdaPage extends Component {
       { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()) },
       { name: '\u0393', value: arrayToString(stackAlphabet.toArray()) },
       { name: '\u03B4', value: transitionFunctionDiv },
-      { name: 'q\u2080', value: initialState },
+      { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },
       { name: 'Z', value: initialStackSymbol },
       { name: 'F', value: arrayToString(acceptStates.toArray()) },
     ];

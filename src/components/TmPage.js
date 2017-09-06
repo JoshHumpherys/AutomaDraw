@@ -19,6 +19,7 @@ import {
 import { getTm, getSimpleNestedTransitionFunction } from '../selectors/tm'
 import { arrayToString } from '../utility/utility'
 import AutomataPage from './AutomataPage'
+import * as modalTypes from '../constants/modalTypes'
 
 export class TmPage extends Component {
   constructor(props) {
@@ -169,7 +170,7 @@ export class TmPage extends Component {
       { name: 'b', value: blankSymbol },
       { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()) },
       { name: '\u03B4', value: transitionFunctionDiv },
-      { name: 'q\u2080', value: initialState },
+      { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },
       { name: 'F', value: arrayToString(acceptStates.toArray()) },
     ];
 

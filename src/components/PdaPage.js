@@ -182,7 +182,7 @@ export class PdaPage extends Component {
       { name: '\u0393', value: arrayToString(stackAlphabet.toArray()) },
       { name: '\u03B4', value: transitionFunctionDiv },
       { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },
-      { name: 'Z', value: initialStackSymbol },
+      { name: 'Z', value: initialStackSymbol, modalType: modalTypes.INITIAL_STACK_SYMBOL_MODAL },
       { name: 'F', value: arrayToString(acceptStates.toArray()), modalType: modalTypes.ACCEPT_STATES_MODAL },
     ];
 

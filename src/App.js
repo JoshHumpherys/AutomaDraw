@@ -64,12 +64,50 @@ export class App extends Component {
                 labelPosition="right"
                 content="Submit"
                 onClick={() => {
-                  const value = this.modalDropdown.state.value;
+                  const { value } = this.modalDropdown.state;
                   if(this.props.automaton.states.contains(value)) {
                     this.props.dispatch(actions.changeInitialState(value));
                   }
                   this.props.dispatch(removeModal());
                 }} />,
+            ]
+          };
+          break;
+        }
+        case modalTypes.INITIAL_STACK_SYMBOL_MODAL: {
+          const stackAlphabet = this.props.automaton.stackAlphabet.toArray().sort();
+          const { initialStackSymbol } = this.props.automaton;
+          modalContents = {
+            header: 'Initial Stack Symbol',
+            body: <Dropdown
+              placeholder="Select an initial stack symbol"
+              defaultValue={initialStackSymbol}
+              fluid
+              selection
+              options={stackAlphabet.map(stackSymbol => ({ text: stackSymbol, value: stackSymbol, key: stackSymbol }))}
+              ref={dropdown => this.modalDropdown = dropdown} />,
+            actions: [
+              <Button
+                key="delete"
+                negative
+                icon="trash"
+                labelPosition="right"
+                content="Delete"
+                onClick={() => {
+                  this.props.dispatch(actions.removeInitialStackSymbol());
+                  this.props.dispatch(removeModal());
+                }} />,
+              <Button
+                key="submit"
+                positive
+                icon="checkmark"
+                labelPosition="right"
+                content="Submit"
+                onClick={() => {
+                  const { value } = this.modalDropdown.state;
+                  this.props.dispatch(actions.changeInitialStackSymbol(value));
+                  this.props.dispatch(removeModal());
+                }}/>,
             ]
           };
           break;

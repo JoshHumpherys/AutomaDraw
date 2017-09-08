@@ -21,7 +21,7 @@ export default function tm(
   state = {
     name: 'My TM',
     states: new Set(['A', 'B']),
-    tapeAlphabet: new Set(['a']),
+    tapeAlphabet: new Set(['\u0394', 'a']),
     blankSymbol: '\u0394',
     inputAlphabet: new Set(['a']),
     transitionFunction: new Set([

@@ -167,7 +167,7 @@ export class TmPage extends Component {
     const formalProperties = [
       { name: 'Q', value: arrayToString(states.toArray()) },
       { name: '\u0393', value: arrayToString(tapeAlphabet.toArray()) },
-      { name: 'b', value: blankSymbol },
+      { name: 'b', value: blankSymbol, modalType: modalTypes.BLANK_SYMBOL_MODAL },
       { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()) },
       { name: '\u03B4', value: transitionFunctionDiv },
       { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },

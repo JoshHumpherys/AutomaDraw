@@ -112,6 +112,44 @@ export class App extends Component {
           };
           break;
         }
+        case modalTypes.BLANK_SYMBOL_MODAL: {
+          const tapeAlphabet = this.props.automaton.tapeAlphabet.toArray().sort();
+          const { blankSymbol } = this.props.automaton;
+          modalContents = {
+            header: 'Blank Symbol',
+            body: <Dropdown
+              placeholder="Select a blank symbol"
+              defaultValue={blankSymbol}
+              fluid
+              selection
+              options={tapeAlphabet.map(tapeSymbol => ({ text: tapeSymbol, value: tapeSymbol, key: tapeSymbol }))}
+              ref={dropdown => this.modalDropdown = dropdown} />,
+            actions: [
+              <Button
+                key="delete"
+                negative
+                icon="trash"
+                labelPosition="right"
+                content="Delete"
+                onClick={() => {
+                  this.props.dispatch(actions.removeBlankSymbol());
+                  this.props.dispatch(removeModal());
+                }} />,
+              <Button
+                key="submit"
+                positive
+                icon="checkmark"
+                labelPosition="right"
+                content="Submit"
+                onClick={() => {
+                  const { value } = this.modalDropdown.state;
+                  this.props.dispatch(actions.changeBlankSymbol(value));
+                  this.props.dispatch(removeModal());
+                }}/>,
+            ]
+          };
+          break;
+        }
         case modalTypes.ACCEPT_STATES_MODAL: {
           const states = this.props.automaton.states.toArray().sort();
           const acceptStates = this.props.automaton.acceptStates.toArray().sort();

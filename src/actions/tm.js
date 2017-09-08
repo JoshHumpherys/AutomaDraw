@@ -66,6 +66,10 @@ export function addInputSymbol(inputSymbol) {
   return { type: actionTypes.TM_INPUT_SYMBOL_ADDED, payload: { inputSymbol } };
 }
 
+export function setInputAlphabet(alphabet) {
+  return { type: actionTypes.TM_INPUT_ALPHABET_SET, payload: { alphabet } };
+}
+
 export function changeBlankSymbol(blankSymbol) {
   return { type: actionTypes.TM_BLANK_SYMBOL_CHANGED, payload: { blankSymbol } };
 }

@@ -183,6 +183,43 @@ export class App extends Component {
           };
           break;
         }
+        case modalTypes.INPUT_ALPHABET_MODAL: {
+          const inputAlphabet = this.props.automaton.inputAlphabet.toArray().sort();
+          const inputAlphabetOptions = this.props.automaton.tapeAlphabet
+            .remove(this.props.automaton.blankSymbol)
+            .toArray()
+            .sort();
+          modalContents = {
+            header: 'Input Alphabet',
+            body: <Dropdown
+              placeholder="Select input alphabet symbols"
+              defaultValue={inputAlphabet}
+              fluid
+              multiple
+              selection
+              options={
+                inputAlphabetOptions.map(inputSymbol => ({ text: inputSymbol, value: inputSymbol, key: inputSymbol }))
+              }
+              ref={dropdown => this.modalDropdown = dropdown} />,
+            actions: [
+              <Button
+                key="cancel"
+                content="Cancel"
+                onClick={() => this.props.dispatch(removeModal())}/>,
+              <Button
+                key="submit"
+                positive
+                icon="checkmark"
+                labelPosition="right"
+                content="Submit"
+                onClick={() => {
+                  const value = this.modalDropdown.state.value;
+                  this.props.dispatch(actions.setInputAlphabet(value.sort()));
+                  this.props.dispatch(removeModal());
+                }} />,
+            ]
+          };
+        }
       }
       return (
         <div className={'main-container' + (this.props.settings.darkTheme ? ' main-container-dark-theme' : '')}>

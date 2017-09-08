@@ -106,8 +106,14 @@ export default function tm(
         inputAlphabet: state.inputAlphabet.add(action.payload.inputSymbol)
       }
     }
+    case actionTypes.TM_INPUT_ALPHABET_SET: {
+      const { alphabet } = action.payload;
+      return { ...state, inputAlphabet: new Set(alphabet) };
+    }
     case actionTypes.TM_BLANK_SYMBOL_CHANGED: {
-      return { ...state, blankSymbol: action.payload.blankSymbol };
+      const { blankSymbol } = action.payload;
+      const inputAlphabet = state.inputAlphabet.remove(blankSymbol);
+      return { ...state, blankSymbol, inputAlphabet };
     }
     case actionTypes.TM_BLANK_SYMBOL_REMOVED: {
       return { ...state, blankSymbol: null };

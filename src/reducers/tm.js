@@ -7,6 +7,7 @@ import {
   selectState,
   renameState,
   deleteState,
+  setStates,
   changeInitialState,
   removeInitialState,
   addAcceptState,
@@ -56,6 +57,9 @@ export default function tm(
     }
     case actionTypes.TM_STATE_DELETED: {
       return deleteState(state, action.payload.state, action.payload.name);
+    }
+    case actionTypes.TM_STATES_SET: {
+      return setStates(state, action.payload.states);
     }
     case actionTypes.TM_INITIAL_STATE_CHANGED: {
       return changeInitialState(state, action.payload.state);

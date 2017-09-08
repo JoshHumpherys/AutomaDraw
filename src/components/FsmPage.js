@@ -137,7 +137,7 @@ export class FsmPage extends Component {
     ) : '\u2205';
 
     const formalProperties = [
-      { name: 'Q', value: arrayToString(states.toArray()) },
+      { name: 'Q', value: arrayToString(states.toArray()), modalType: modalTypes.STATES_MODAL },
       { name: '\u03A3', value: arrayToString(alphabet.toArray()) },
       { name: '\u03B4', value: transitionFunctionDiv },
       { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },

@@ -165,7 +165,7 @@ export class TmPage extends Component {
     ) : '\u2205';
 
     const formalProperties = [
-      { name: 'Q', value: arrayToString(states.toArray()) },
+      { name: 'Q', value: arrayToString(states.toArray()), modalType: modalTypes.STATES_MODAL },
       { name: '\u0393', value: arrayToString(tapeAlphabet.toArray()) },
       { name: 'b', value: blankSymbol, modalType: modalTypes.BLANK_SYMBOL_MODAL },
       { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()), modalType: modalTypes.INPUT_ALPHABET_MODAL },

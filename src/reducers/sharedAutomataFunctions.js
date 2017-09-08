@@ -1,4 +1,4 @@
-import { Set } from 'immutable'
+import { Map, Set } from 'immutable'
 
 export function changeName(automaton, name) {
   return { ...automaton, name };
@@ -61,6 +61,30 @@ export function deleteState(automaton, name) {
     acceptStates: acceptStates.remove(name),
     statePositions: statePositions.remove(name),
     selected: selected === name ? null : selected
+  };
+}
+
+export function setStates(automaton, states) {
+  const newStates = states.filter(state => !automaton.states.includes(state));
+  const deletedStates = automaton.states.filter(state => !states.includes(state));
+  const newStatePositionsObject = newStates.reduce((newStatePositions, newState) => {
+    newStatePositions[newState] = { x: 20, y: 20 };
+    return newStatePositions;
+  }, {});
+  const newStatePositions = new Map(newStatePositionsObject);
+  return {
+    ...automaton,
+    states: automaton.states.subtract(deletedStates).union(newStates),
+    transitionFunction: automaton.transitionFunction
+      .filter(transitionObject =>
+        !deletedStates.includes(transitionObject.fromState) && !deletedStates.includes(transitionObject.toState)
+      ),
+    initialState: deletedStates.includes(automaton.initialState) ? null : automaton.initialState,
+    acceptStates: automaton.acceptStates.subtract(deletedStates),
+    statePositions: deletedStates
+      .reduce((statePositions, key) => statePositions.delete(key), automaton.statePositions)
+      .merge(newStatePositions),
+    selected: deletedStates.includes(automaton.selected) ? null : automaton.selected,
   };
 }
 

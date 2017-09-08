@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
-import { Button, Dropdown } from 'semantic-ui-react'
-import { removeModal } from '../actions/modal'
+import { Button, Dropdown, Icon, Label } from 'semantic-ui-react'
+import { removeModal, setModalState } from '../actions/modal'
 import * as modalTypes from '../constants/modalTypes'
 import * as fsmActions from '../actions/fsm'
 import * as pdaActions from '../actions/pda'
@@ -45,7 +45,8 @@ class SubmitButton extends Component {
   }
 }
 
-export default (automaton, automatonType, modalType, dispatch) => {
+export default (automaton, modalState, modalType, automatonType, dispatch) => {
+  const getValue = key => modalState[key] || automaton[key];
   let actions;
   switch(automatonType) {
     case automatonTypes.FSM:
@@ -59,8 +60,33 @@ export default (automaton, automatonType, modalType, dispatch) => {
       break;
   }
   switch(modalType) {
+    case modalTypes.STATES_MODAL: {
+      const states = getValue('states').toArray().sort();
+      return {
+        header: 'States',
+        body: states.map(state =>
+          <Label>
+            {state}
+            <Icon name='delete' onClick={() => {
+              dispatch(setModalState({ states: getValue('states').remove(state) }));
+            }} />
+          </Label>
+        ),
+        actions: [
+          <CancelButton
+            key="cancel"
+            onClick={() => dispatch(removeModal())} />,
+          <SubmitButton
+            key="submit"
+            onClick={() => {
+              dispatch(actions.setStates(states));
+              dispatch(removeModal());
+            }} />
+        ]
+      }
+    }
     case modalTypes.INITIAL_STATE_MODAL: {
-      const states = automaton.states.toArray().sort();
+      const states = getValue('states').toArray().sort();
       return {
         header: 'Initial State',
         body: <Dropdown
@@ -85,13 +111,13 @@ export default (automaton, automatonType, modalType, dispatch) => {
                 dispatch(actions.changeInitialState(value));
               }
               dispatch(removeModal());
-            }} />,
+            }} />
         ]
       };
     }
     case modalTypes.INITIAL_STACK_SYMBOL_MODAL: {
-      const stackAlphabet = automaton.stackAlphabet.toArray().sort();
-      const { initialStackSymbol } = automaton;
+      const stackAlphabet = getValue('stackAlphabet').toArray().sort();
+      const initialStackSymbol = getValue('initialStackSymbol');
       return {
         header: 'Initial Stack Symbol',
         body: <Dropdown
@@ -114,13 +140,13 @@ export default (automaton, automatonType, modalType, dispatch) => {
               const { value } = this.modalDropdown.state;
               dispatch(actions.changeInitialStackSymbol(value));
               dispatch(removeModal());
-            }}/>,
+            }}/>
         ]
       };
     }
     case modalTypes.BLANK_SYMBOL_MODAL: {
-      const tapeAlphabet = automaton.tapeAlphabet.toArray().sort();
-      const { blankSymbol } = automaton;
+      const tapeAlphabet = getValue('tapeAlphabet').toArray().sort();
+      const blankSymbol = getValue('blankSymbol');
       return {
         header: 'Blank Symbol',
         body: <Dropdown
@@ -143,13 +169,13 @@ export default (automaton, automatonType, modalType, dispatch) => {
               const { value } = this.modalDropdown.state;
               dispatch(actions.changeBlankSymbol(value));
               dispatch(removeModal());
-            }}/>,
+            }}/>
         ]
       };
     }
     case modalTypes.ACCEPT_STATES_MODAL: {
-      const states = automaton.states.toArray().sort();
-      const acceptStates = automaton.acceptStates.toArray().sort();
+      const states = getValue('states').toArray().sort();
+      const acceptStates = getValue('acceptStates').toArray().sort();
       return {
         header: 'Accept States',
         body: <Dropdown
@@ -170,14 +196,14 @@ export default (automaton, automatonType, modalType, dispatch) => {
               const value = this.modalDropdown.state.value;
               dispatch(actions.setAcceptStates(value.sort()));
               dispatch(removeModal());
-            }} />,
+            }} />
         ]
       };
     }
     case modalTypes.INPUT_ALPHABET_MODAL: {
-      const inputAlphabet = automaton.inputAlphabet.toArray().sort();
-      const inputAlphabetOptions = automaton.tapeAlphabet
-        .remove(automaton.blankSymbol)
+      const inputAlphabet = getValue('inputAlphabet').toArray().sort();
+      const inputAlphabetOptions = getValue('tapeAlphabet')
+        .remove(modalState.blankSymbol)
         .toArray()
         .sort();
       return {
@@ -202,7 +228,7 @@ export default (automaton, automatonType, modalType, dispatch) => {
               const value = this.modalDropdown.state.value;
               dispatch(actions.setInputAlphabet(value.sort()));
               dispatch(removeModal());
-            }} />,
+            }} />
         ]
       };
     }

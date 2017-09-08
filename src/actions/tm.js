@@ -24,6 +24,10 @@ export function deleteState(state) {
   return { type: actionTypes.TM_STATE_DELETED, payload: { state } };
 }
 
+export function setStates(states) {
+  return { type: actionTypes.TM_STATES_SET, payload: { states } };
+}
+
 export function changeInitialState(state) {
   return { type: actionTypes.TM_INITIAL_STATE_CHANGED, payload: { state } };
 }

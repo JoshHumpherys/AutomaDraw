@@ -7,3 +7,7 @@ export function createModal(modalType) {
 export function removeModal() {
   return { type: actionTypes.MODAL_REMOVED };
 }
+
+export function setModalState(modalState) {
+  return { type: actionTypes.MODAL_STATE_SET, payload: { modalState } };
+}

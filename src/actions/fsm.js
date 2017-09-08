@@ -24,6 +24,10 @@ export function deleteState(state) {
   return { type: actionTypes.FSM_STATE_DELETED, payload: { state } };
 }
 
+export function setStates(states) {
+  return { type: actionTypes.FSM_STATES_SET, payload: { states } };
+}
+
 export function changeInitialState(state) {
   return { type: actionTypes.FSM_INITIAL_STATE_CHANGED, payload: { state } };
 }

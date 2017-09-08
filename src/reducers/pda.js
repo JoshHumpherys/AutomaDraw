@@ -7,6 +7,7 @@ import {
   selectState,
   renameState,
   deleteState,
+  setStates,
   changeInitialState,
   removeInitialState,
   addAcceptState,
@@ -56,6 +57,9 @@ export default function pda(
     }
     case actionTypes.PDA_STATE_DELETED: {
       return deleteState(state, action.payload.state);
+    }
+    case actionTypes.PDA_STATES_SET: {
+      return setStates(state, action.payload.states);
     }
     case actionTypes.PDA_INITIAL_STATE_CHANGED: {
       return changeInitialState(state, action.payload.state);

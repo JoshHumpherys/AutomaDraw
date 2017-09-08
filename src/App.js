@@ -9,7 +9,7 @@ import { browserHistory } from 'react-router'
 import { Icon, Menu, Modal, Popup } from 'semantic-ui-react'
 import SettingsPopup from './components/SettingsPopup'
 import { removeModal } from './actions/modal'
-import { getModalType } from './selectors/modal'
+import { getModalType, getModalState } from './selectors/modal'
 import { getAutomaton } from './selectors/automaton'
 import * as pageTypes from './constants/pageTypes'
 import generateModalContents from './components/generateModalContents'
@@ -19,8 +19,9 @@ export class App extends Component {
     if(!isMobileBrowser()) {
       const modalContents = generateModalContents(
         this.props.automaton,
-        this.props.automatonType,
+        this.props.modalState,
         this.props.modalType,
+        this.props.automatonType,
         this.props.dispatch
       );
       return (
@@ -100,6 +101,7 @@ export default connect(
       automaton: getAutomaton(state, pageType),
       automatonType: pageType,
       modalType: getModalType(state),
+      modalState: getModalState(state),
       settings: getSettings(state)
     };
   }

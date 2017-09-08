@@ -6,221 +6,23 @@ import { getSettings } from './selectors/settings'
 import { isMobileBrowser, getPageType } from './utility/utility'
 import MobileSite from './components/MobileSite'
 import { browserHistory } from 'react-router'
-import { Button, Dropdown, Icon, Menu, Modal, Popup } from 'semantic-ui-react'
+import { Icon, Menu, Modal, Popup } from 'semantic-ui-react'
 import SettingsPopup from './components/SettingsPopup'
-import * as modalTypes from './constants/modalTypes'
 import { removeModal } from './actions/modal'
 import { getModalType } from './selectors/modal'
 import { getAutomaton } from './selectors/automaton'
-import * as fsmActions from './actions/fsm'
-import * as pdaActions from './actions/pda'
-import * as tmActions from './actions/tm'
-import * as automatonTypes from './constants/automatonTypes'
 import * as pageTypes from './constants/pageTypes'
+import generateModalContents from './components/generateModalContents'
 
 export class App extends Component {
   render() {
     if(!isMobileBrowser()) {
-      let modalContents = null;
-      let actions;
-      switch(this.props.automatonType) {
-        case automatonTypes.FSM:
-          actions = fsmActions;
-          break;
-        case automatonTypes.PDA:
-          actions = pdaActions;
-          break;
-        case automatonTypes.TM:
-          actions = tmActions;
-          break;
-      }
-      switch(this.props.modalType) {
-        case modalTypes.INITIAL_STATE_MODAL: {
-          const states = this.props.automaton.states.toArray().sort();
-          modalContents = {
-            header: 'Initial State',
-            body: <Dropdown
-              placeholder="Select an initial state"
-              defaultValue={this.props.automaton.initialState}
-              fluid
-              selection
-              options={states.map(state => ({ text: state, value: state, key: state }))}
-              ref={dropdown => this.modalDropdown = dropdown} />,
-            actions: [
-              <Button
-                key="delete"
-                negative
-                icon="trash"
-                labelPosition="right"
-                content="Delete"
-                onClick={() => {
-                  this.props.dispatch(actions.removeInitialState());
-                  this.props.dispatch(removeModal());
-                }} />,
-              <Button
-                key="submit"
-                positive
-                icon="checkmark"
-                labelPosition="right"
-                content="Submit"
-                onClick={() => {
-                  const { value } = this.modalDropdown.state;
-                  if(this.props.automaton.states.contains(value)) {
-                    this.props.dispatch(actions.changeInitialState(value));
-                  }
-                  this.props.dispatch(removeModal());
-                }} />,
-            ]
-          };
-          break;
-        }
-        case modalTypes.INITIAL_STACK_SYMBOL_MODAL: {
-          const stackAlphabet = this.props.automaton.stackAlphabet.toArray().sort();
-          const { initialStackSymbol } = this.props.automaton;
-          modalContents = {
-            header: 'Initial Stack Symbol',
-            body: <Dropdown
-              placeholder="Select an initial stack symbol"
-              defaultValue={initialStackSymbol}
-              fluid
-              selection
-              options={stackAlphabet.map(stackSymbol => ({ text: stackSymbol, value: stackSymbol, key: stackSymbol }))}
-              ref={dropdown => this.modalDropdown = dropdown} />,
-            actions: [
-              <Button
-                key="delete"
-                negative
-                icon="trash"
-                labelPosition="right"
-                content="Delete"
-                onClick={() => {
-                  this.props.dispatch(actions.removeInitialStackSymbol());
-                  this.props.dispatch(removeModal());
-                }} />,
-              <Button
-                key="submit"
-                positive
-                icon="checkmark"
-                labelPosition="right"
-                content="Submit"
-                onClick={() => {
-                  const { value } = this.modalDropdown.state;
-                  this.props.dispatch(actions.changeInitialStackSymbol(value));
-                  this.props.dispatch(removeModal());
-                }}/>,
-            ]
-          };
-          break;
-        }
-        case modalTypes.BLANK_SYMBOL_MODAL: {
-          const tapeAlphabet = this.props.automaton.tapeAlphabet.toArray().sort();
-          const { blankSymbol } = this.props.automaton;
-          modalContents = {
-            header: 'Blank Symbol',
-            body: <Dropdown
-              placeholder="Select a blank symbol"
-              defaultValue={blankSymbol}
-              fluid
-              selection
-              options={tapeAlphabet.map(tapeSymbol => ({ text: tapeSymbol, value: tapeSymbol, key: tapeSymbol }))}
-              ref={dropdown => this.modalDropdown = dropdown} />,
-            actions: [
-              <Button
-                key="delete"
-                negative
-                icon="trash"
-                labelPosition="right"
-                content="Delete"
-                onClick={() => {
-                  this.props.dispatch(actions.removeBlankSymbol());
-                  this.props.dispatch(removeModal());
-                }} />,
-              <Button
-                key="submit"
-                positive
-                icon="checkmark"
-                labelPosition="right"
-                content="Submit"
-                onClick={() => {
-                  const { value } = this.modalDropdown.state;
-                  this.props.dispatch(actions.changeBlankSymbol(value));
-                  this.props.dispatch(removeModal());
-                }}/>,
-            ]
-          };
-          break;
-        }
-        case modalTypes.ACCEPT_STATES_MODAL: {
-          const states = this.props.automaton.states.toArray().sort();
-          const acceptStates = this.props.automaton.acceptStates.toArray().sort();
-          modalContents = {
-            header: 'Accept States',
-            body: <Dropdown
-              placeholder="Select accept states"
-              defaultValue={acceptStates}
-              fluid
-              multiple
-              selection
-              options={states.map(state => ({ text: state, value: state, key: state }))}
-              ref={dropdown => this.modalDropdown = dropdown} />,
-            actions: [
-              <Button
-                key="cancel"
-                content="Cancel"
-                onClick={() => this.props.dispatch(removeModal())}/>,
-              <Button
-                key="submit"
-                positive
-                icon="checkmark"
-                labelPosition="right"
-                content="Submit"
-                onClick={() => {
-                  const value = this.modalDropdown.state.value;
-                  this.props.dispatch(actions.setAcceptStates(value.sort()));
-                  this.props.dispatch(removeModal());
-                }}/>,
-            ]
-          };
-          break;
-        }
-        case modalTypes.INPUT_ALPHABET_MODAL: {
-          const inputAlphabet = this.props.automaton.inputAlphabet.toArray().sort();
-          const inputAlphabetOptions = this.props.automaton.tapeAlphabet
-            .remove(this.props.automaton.blankSymbol)
-            .toArray()
-            .sort();
-          modalContents = {
-            header: 'Input Alphabet',
-            body: <Dropdown
-              placeholder="Select input alphabet symbols"
-              defaultValue={inputAlphabet}
-              fluid
-              multiple
-              selection
-              options={
-                inputAlphabetOptions.map(inputSymbol => ({ text: inputSymbol, value: inputSymbol, key: inputSymbol }))
-              }
-              ref={dropdown => this.modalDropdown = dropdown} />,
-            actions: [
-              <Button
-                key="cancel"
-                content="Cancel"
-                onClick={() => this.props.dispatch(removeModal())}/>,
-              <Button
-                key="submit"
-                positive
-                icon="checkmark"
-                labelPosition="right"
-                content="Submit"
-                onClick={() => {
-                  const value = this.modalDropdown.state.value;
-                  this.props.dispatch(actions.setInputAlphabet(value.sort()));
-                  this.props.dispatch(removeModal());
-                }} />,
-            ]
-          };
-        }
-      }
+      const modalContents = generateModalContents(
+        this.props.automaton,
+        this.props.automatonType,
+        this.props.modalType,
+        this.props.dispatch
+      );
       return (
         <div className={'main-container' + (this.props.settings.darkTheme ? ' main-container-dark-theme' : '')}>
           <div id="navbar" className="ui fixed inverted menu">

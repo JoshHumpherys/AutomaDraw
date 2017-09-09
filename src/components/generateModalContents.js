@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
-import { Button, Dropdown, Icon, Label } from 'semantic-ui-react'
+import { Button, Divider, Dropdown, Form, Icon, Label } from 'semantic-ui-react'
 import { removeModal, setModalState } from '../actions/modal'
 import * as modalTypes from '../constants/modalTypes'
 import * as fsmActions from '../actions/fsm'
 import * as pdaActions from '../actions/pda'
 import * as tmActions from '../actions/tm'
 import * as automatonTypes from '../constants/automatonTypes'
+import $ from 'jquery'
 
 class CancelButton extends Component {
   render() {
@@ -64,13 +65,31 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
       const states = getValue('states').toArray().sort();
       return {
         header: 'States',
-        body: states.map(state =>
-          <Label>
-            {state}
-            <Icon name='delete' onClick={() => {
-              dispatch(setModalState({ states: getValue('states').remove(state) }));
-            }} />
-          </Label>
+        body: (
+          <div>
+            {
+              states.map(state =>
+                <Label>
+                  {state}
+                  <Icon name='delete' onClick={() => {
+                    dispatch(setModalState({ states: getValue('states').remove(state) }));
+                  }} />
+                </Label>
+              )
+            }
+            <Divider />
+            <Form>
+              <Form.Group>
+                <Form.Input id="statesModalInput" placeholder='Add a new state' /> {/* TODO use refs instead of id attribute */}
+                <Form.Button onClick={() => {
+                  const statesModalInput = $('#statesModalInput');
+                  const value = statesModalInput.val();
+                  dispatch(setModalState({ states: getValue('states').add(value) }));
+                  statesModalInput.val('');
+                }}>Add state</Form.Button>
+              </Form.Group>
+            </Form>
+          </div>
         ),
         actions: [
           <CancelButton

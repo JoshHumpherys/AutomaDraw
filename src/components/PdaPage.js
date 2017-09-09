@@ -130,16 +130,18 @@ export class PdaPage extends Component {
       <div>
         {
           transitionFunction.map(transitionObject => {
-            const instruction = arrayToTuple(
-              [
-                transitionObject.fromState,
-                transitionObject.inputSymbol,
-                transitionObject.stackSymbol,
-                transitionObject.toState,
-                transitionObject.pushSymbols
-              ]
+            const { fromState, inputSymbol, stackSymbol, toState, pushSymbols } = transitionObject;
+            const instruction = arrayToTuple([fromState, inputSymbol, stackSymbol, toState, pushSymbols]);
+            return (
+              <div>
+                <span key={instruction} onClick={() => {
+                  this.props.dispatch(setModalState({ ...transitionObject, instruction }));
+                  this.props.dispatch(createModal(modalTypes.DELETE_TRANSITION_MODAL));
+                }} className="clickable">
+                  {instruction}
+                </span>
+              </div>
             );
-            return <div key={instruction}>{instruction}</div>;
           })
         }
       </div>

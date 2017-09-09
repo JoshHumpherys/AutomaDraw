@@ -499,6 +499,51 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
         ]
       };
     }
+    case modalTypes.DELETE_TRANSITION_MODAL: {
+      return {
+        header: 'Delete Transition',
+        body: 'Are you sure you want to delete transition ' + getValue('instruction') + '?',
+        actions: [
+          <CancelButton
+            key="cancel"
+            onClick={() => {
+              dispatch(removeModal());
+            }} />,
+          <DeleteButton
+            key="delete"
+            onClick={() => {
+              switch(automatonType) {
+                case automatonTypes.FSM: {
+                  const fromState = getValue('fromState');
+                  const inputSymbol = getValue('inputSymbol');
+                  const toState = getValue('toState');
+                  dispatch(actions.removeTransition(fromState, inputSymbol, toState));
+                  break;
+                }
+                case automatonTypes.PDA: {
+                  const fromState = getValue('fromState');
+                  const inputSymbol = getValue('inputSymbol');
+                  const stackSymbol = getValue('stackSymbol');
+                  const toState = getValue('toState');
+                  const pushSymbols = getValue('pushSymbols');
+                  dispatch(actions.removeTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols));
+                  break;
+                }
+                case automatonTypes.TM: {
+                  const fromState = getValue('fromState');
+                  const inputSymbol = getValue('inputSymbol');
+                  const toState = getValue('toState');
+                  const writeSymbol = getValue('writeSymbol');
+                  const moveDirection = getValue('moveDirection');
+                  dispatch(actions.removeTransition(fromState, inputSymbol, toState, writeSymbol, moveDirection));
+                  break;
+                }
+              }
+              dispatch(removeModal());
+            }} />
+        ]
+      };
+    }
     case modalTypes.INITIAL_STACK_SYMBOL_MODAL: {
       const stackAlphabet = getValue('stackAlphabet').toArray().sort();
       const initialStackSymbol = getValue('initialStackSymbol');

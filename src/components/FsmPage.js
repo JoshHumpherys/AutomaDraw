@@ -111,13 +111,21 @@ export class FsmPage extends Component {
 
     const arrayToTuple = array => '(' + array.join(', ') + ')';
     const transitionFunctionDiv = transitionFunction.size > 0 ? (
-      <div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
         {
           transitionFunction.map(transitionObject => {
-            const instruction = arrayToTuple(
-              [transitionObject.fromState, transitionObject.inputSymbol, transitionObject.toState]
+            const { fromState, inputSymbol, toState } = transitionObject;
+            const instruction = arrayToTuple([fromState, inputSymbol, toState]);
+            return (
+              <div>
+                <span key={instruction} onClick={() => {
+                  this.props.dispatch(setModalState({ ...transitionObject, instruction }));
+                  this.props.dispatch(createModal(modalTypes.DELETE_TRANSITION_MODAL));
+                }} className="clickable">
+                  {instruction}
+                </span>
+              </div>
             );
-            return <div key={instruction}>{instruction}</div>;
           })
         }
       </div>

@@ -49,7 +49,8 @@ class SubmitButton extends Component {
 export default (automaton, modalState, modalType, automatonType, dispatch) => {
   const getValue = key => modalState[key] || automaton[key];
 
-  const createMultiSelectWithAdditionModalBody = (valuesPropertyName, placeholder, buttonText) => {
+  const createMultiSelectWithAdditionModalBody =
+    (valuesPropertyName, placeholder, buttonText, additionalValueButtons = []) => {
     return (
       <div>
         {
@@ -84,6 +85,14 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
               }
               multiSelectModalInput.val('');
             }}>{buttonText}</Form.Button>
+            {
+              additionalValueButtons.map(additionalValueButton =>
+                <Form.Button onClick={() => {
+                  const newValues = getValue(valuesPropertyName).add(additionalValueButton);
+                  dispatch(setModalState({ [valuesPropertyName]: newValues }));
+                }}>{additionalValueButton}</Form.Button>
+              )
+            }
           </Form.Group>
         </Form>
       </div>
@@ -125,7 +134,9 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
       const tapeAlphabet = getValue('tapeAlphabet').toArray().sort();
       return {
         header: 'Tape Alphabet',
-        body: createMultiSelectWithAdditionModalBody('tapeAlphabet', 'Add a new tape symbol', 'Add tape symbol'),
+        body: (
+          createMultiSelectWithAdditionModalBody('tapeAlphabet', 'Add a new tape symbol', 'Add tape symbol', ['\u0394'])
+        ),
         actions: [
           <CancelButton
             key="cancel"
@@ -202,11 +213,11 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
               options={
                 inputAlphabetOptions.map(inputSymbol => ({text: inputSymbol, value: inputSymbol, key: inputSymbol}))
               }
-              ref={dropdown => this.modalDropdown = dropdown}/>,
+              ref={dropdown => this.modalDropdown = dropdown} />,
           actions: [
             <CancelButton
               key="cancel"
-              onClick={() => dispatch(removeModal())}/>,
+              onClick={() => dispatch(removeModal())} />,
             <SubmitButton
               key="submit"
               onClick={() => {

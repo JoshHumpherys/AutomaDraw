@@ -56,8 +56,12 @@ export function removeTransition(fromState, inputSymbol, toState) {
   return { type: actionTypes.FSM_TRANSITION_REMOVED, payload: { fromState, inputSymbol, toState } };
 }
 
-export function addSymbol(symbol) {
-  return { type: actionTypes.FSM_SYMBOL_ADDED, payload: { symbol } };
+export function addInputSymbol(symbol) {
+  return { type: actionTypes.FSM_INPUT_SYMBOL_ADDED, payload: { symbol } };
+}
+
+export function setInputAlphabet(inputAlphabet) {
+  return { type: actionTypes.FSM_INPUT_ALPHABET_SET, payload: { inputAlphabet } };
 }
 
 export function initializeFromJsonString(jsonString) {

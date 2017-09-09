@@ -21,7 +21,7 @@ export default function fsm(
   state = {
     name: 'My FSM',
     states: new Set(['A', 'B', 'C']),
-    alphabet: new Set(['a', 'b', 'c']),
+    inputAlphabet: new Set(['a', 'b', 'c']),
     transitionFunction: new Set([
       createInstruction('A', 'a', 'B'),
       createInstruction('B', 'b', 'C'),
@@ -80,6 +80,8 @@ export default function fsm(
       const { fromState, inputSymbol, toState } = action.payload;
       return {
         ...state,
+        states: state.states.add(fromState).add(toState),
+        inputAlphabet: state.inputAlphabet.add(inputSymbol),
         transitionFunction: state.transitionFunction.add(createInstruction(fromState, inputSymbol, toState))
       };
     }
@@ -95,15 +97,25 @@ export default function fsm(
           })
       };
     }
-    case actionTypes.FSM_SYMBOL_ADDED: {
-      return { ...state, alphabet: state.alphabet.add(action.payload.symbol) };
+    case actionTypes.FSM_INPUT_SYMBOL_ADDED: {
+      return { ...state, inputAlphabet: state.inputAlphabet.add(action.payload.symbol) };
+    }
+    case actionTypes.FSM_INPUT_ALPHABET_SET: {
+      const { inputAlphabet } = action.payload;
+      return {
+        ...state,
+        inputAlphabet: new Set(inputAlphabet),
+        transitionFunction: state.transitionFunction.filter(transitionObject =>
+          inputAlphabet.includes(transitionObject.inputSymbol)
+        )
+      };
     }
     case actionTypes.FSM_INITIALIZED_FROM_JSON_STRING: {
       const fsm = JSON.parse(action.payload.jsonString);
       return {
         ...fsm,
         states: new Set(fsm.states),
-        alphabet: new Set(fsm.alphabet),
+        inputAlphabet: new Set(fsm.inputAlphabet),
         transitionFunction: new Set(fsm.transitionFunction),
         acceptStates: new Set(fsm.acceptStates),
         statePositions: new Map(fsm.statePositions)
@@ -113,7 +125,7 @@ export default function fsm(
       return {
         name: 'My FSM',
         states: new Set(),
-        alphabet: new Set(),
+        inputAlphabet: new Set(),
         transitionFunction: new Set(),
         initialState: null,
         acceptStates: new Set(),

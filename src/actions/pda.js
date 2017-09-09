@@ -66,8 +66,16 @@ export function addInputSymbol(inputSymbol) {
   return { type: actionTypes.PDA_INPUT_SYMBOL_ADDED, payload: { inputSymbol } };
 }
 
+export function setInputAlphabet(inputAlphabet) {
+  return { type: actionTypes.PDA_INPUT_ALPHABET_SET, payload: { inputAlphabet } };
+}
+
 export function addStackSymbol(stackSymbol) {
   return { type: actionTypes.PDA_STACK_SYMBOL_ADDED, payload: { stackSymbol } };
+}
+
+export function setStackAlphabet(stackAlphabet) {
+  return { type: actionTypes.PDA_STACK_ALPHABET_SET, payload: { stackAlphabet } };
 }
 
 export function changeInitialStackSymbol(stackSymbol) {

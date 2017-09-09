@@ -106,17 +106,6 @@ export class PdaPage extends Component {
     if(pushSymbols === null) {
       return;
     }
-    if(!this.props.pda.inputAlphabet.contains(inputSymbol)) {
-      this.addInputSymbol(inputSymbol);
-    }
-    if(!this.props.pda.stackAlphabet.contains(stackSymbol)) {
-      this.addStackSymbol(stackSymbol);
-    }
-    for(const pushSymbol of pushSymbols.split('')) {
-      if(pushSymbol !== stackSymbol && !this.props.pda.stackAlphabet.contains(pushSymbol)) {
-        this.addStackSymbol(pushSymbol);
-      }
-    }
     this.props.dispatch(addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols));
   }
 
@@ -178,8 +167,8 @@ export class PdaPage extends Component {
 
     const formalProperties = [
       { name: 'Q', value: arrayToString(states.toArray()), modalType: modalTypes.STATES_MODAL },
-      { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()) },
-      { name: '\u0393', value: arrayToString(stackAlphabet.toArray()) },
+      { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()), modalType: modalTypes.INPUT_ALPHABET_MODAL },
+      { name: '\u0393', value: arrayToString(stackAlphabet.toArray()), modalType: modalTypes.STACK_ALPHABET_MODAL },
       { name: '\u03B4', value: transitionFunctionDiv },
       { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },
       { name: 'Z', value: initialStackSymbol, modalType: modalTypes.INITIAL_STACK_SYMBOL_MODAL },

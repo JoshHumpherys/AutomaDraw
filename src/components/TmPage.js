@@ -91,23 +91,17 @@ export class TmPage extends Component {
       }
       return response;
     };
-    const tapeSymbol = transitionPrompt('What tape symbol should be used for this transition?');
+    const tapeSymbol = transitionPrompt('What input symbol should be used for this transition?');
     if(tapeSymbol === null) {
       return;
     }
-    const writeSymbol = transitionPrompt('What tape symbol should be written as a result of this transition?');
+    const writeSymbol = transitionPrompt('What input symbol should be written as a result of this transition?');
     if(writeSymbol === null) {
       return;
     }
     const moveDirection = transitionPrompt('Which direction should the head move as a result of this transition?');
     if(moveDirection === null) {
       return;
-    }
-    if(!this.props.tm.tapeAlphabet.contains(tapeSymbol)) {
-      this.addTapeSymbol(tapeSymbol);
-    }
-    if(tapeSymbol !== writeSymbol && !this.props.tm.tapeAlphabet.contains(writeSymbol)) {
-      this.addTapeSymbol(writeSymbol);
     }
     this.props.dispatch(addTransition(fromState, tapeSymbol, toState, writeSymbol, moveDirection));
   }
@@ -166,7 +160,7 @@ export class TmPage extends Component {
 
     const formalProperties = [
       { name: 'Q', value: arrayToString(states.toArray()), modalType: modalTypes.STATES_MODAL },
-      { name: '\u0393', value: arrayToString(tapeAlphabet.toArray()) },
+      { name: '\u0393', value: arrayToString(tapeAlphabet.toArray()), modalType: modalTypes.TAPE_ALPHABET_MODAL },
       { name: 'b', value: blankSymbol, modalType: modalTypes.BLANK_SYMBOL_MODAL },
       { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()), modalType: modalTypes.INPUT_ALPHABET_MODAL },
       { name: '\u03B4', value: transitionFunctionDiv },

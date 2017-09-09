@@ -48,6 +48,48 @@ class SubmitButton extends Component {
 
 export default (automaton, modalState, modalType, automatonType, dispatch) => {
   const getValue = key => modalState[key] || automaton[key];
+
+  const createMultiSelectWithAdditionModalBody = (valuesPropertyName, placeholder, buttonText) => {
+    return (
+      <div>
+        {
+          getValue(valuesPropertyName).map(value =>
+            <Label>
+              {value}
+              <Icon name='delete' onClick={() => {
+                dispatch(setModalState({ [valuesPropertyName]: getValue(valuesPropertyName).remove(value) }));
+              }} />
+            </Label>
+          )
+        }
+        <Divider />
+        <Form>
+          <Form.Group>
+            {/* Form.Input does not have autocomplete property */}
+            <div className="field">
+              <div className="ui input">
+                <input
+                  type="text"
+                  id="multiSelectModalInput"
+                  placeholder={placeholder}
+                  autoComplete="off"
+                  autoFocus /> {/* TODO use refs instead of id attribute */}
+              </div>
+            </div>
+            <Form.Button onClick={() => {
+              const multiSelectModalInput = $('#multiSelectModalInput');
+              const value = multiSelectModalInput.val();
+              if(value.length > 0) {
+                dispatch(setModalState({ [valuesPropertyName]: getValue(valuesPropertyName).add(value) }));
+              }
+              multiSelectModalInput.val('');
+            }}>{buttonText}</Form.Button>
+          </Form.Group>
+        </Form>
+      </div>
+    );
+  };
+
   let actions;
   switch(automatonType) {
     case automatonTypes.FSM:
@@ -65,32 +107,7 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
       const states = getValue('states').toArray().sort();
       return {
         header: 'States',
-        body: (
-          <div>
-            {
-              states.map(state =>
-                <Label>
-                  {state}
-                  <Icon name='delete' onClick={() => {
-                    dispatch(setModalState({ states: getValue('states').remove(state) }));
-                  }} />
-                </Label>
-              )
-            }
-            <Divider />
-            <Form>
-              <Form.Group>
-                <Form.Input id="statesModalInput" placeholder='Add a new state' /> {/* TODO use refs instead of id attribute */}
-                <Form.Button onClick={() => {
-                  const statesModalInput = $('#statesModalInput');
-                  const value = statesModalInput.val();
-                  dispatch(setModalState({ states: getValue('states').add(value) }));
-                  statesModalInput.val('');
-                }}>Add state</Form.Button>
-              </Form.Group>
-            </Form>
-          </div>
-        ),
+        body: createMultiSelectWithAdditionModalBody('states', 'Add a new state', 'Add state'),
         actions: [
           <CancelButton
             key="cancel"
@@ -103,6 +120,149 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
             }} />
         ]
       }
+    }
+    case modalTypes.TAPE_ALPHABET_MODAL: {
+      const tapeAlphabet = getValue('tapeAlphabet').toArray().sort();
+      return {
+        header: 'Tape Alphabet',
+        body: createMultiSelectWithAdditionModalBody('tapeAlphabet', 'Add a new tape symbol', 'Add tape symbol'),
+        actions: [
+          <CancelButton
+            key="cancel"
+            onClick={() => dispatch(removeModal())} />,
+          <SubmitButton
+            key="submit"
+            onClick={() => {
+              dispatch(actions.setTapeAlphabet(tapeAlphabet));
+              dispatch(removeModal());
+            }} />
+        ]
+      }
+    }
+    case modalTypes.BLANK_SYMBOL_MODAL: {
+      const tapeAlphabet = getValue('tapeAlphabet').toArray().sort();
+      const blankSymbol = getValue('blankSymbol');
+      return {
+        header: 'Blank Symbol',
+        body: <Dropdown
+          placeholder="Select a blank symbol"
+          defaultValue={blankSymbol}
+          fluid
+          selection
+          options={tapeAlphabet.map(tapeSymbol => ({ text: tapeSymbol, value: tapeSymbol, key: tapeSymbol }))}
+          ref={dropdown => this.modalDropdown = dropdown} />,
+        actions: [
+          <DeleteButton
+            key="delete"
+            onClick={() => {
+              dispatch(actions.removeBlankSymbol());
+              dispatch(removeModal());
+            }} />,
+          <SubmitButton
+            key="submit"
+            onClick={() => {
+              const { value } = this.modalDropdown.state;
+              dispatch(actions.changeBlankSymbol(value));
+              dispatch(removeModal());
+            }} />
+        ]
+      };
+    }
+    case modalTypes.INPUT_ALPHABET_MODAL: {
+      if (automatonType !== automatonTypes.TM) {
+        return {
+          header: 'Input Alphabet',
+          body: createMultiSelectWithAdditionModalBody('inputAlphabet', 'Add a new input symbol', 'Add input symbol'),
+          actions: [
+            <CancelButton
+              key="cancel"
+              onClick={() => dispatch(removeModal())}/>,
+            <SubmitButton
+              key="submit"
+              onClick={() => {
+                dispatch(actions.setInputAlphabet(getValue('inputAlphabet').toArray().sort()));
+                dispatch(removeModal());
+              }}/>
+          ]
+        };
+      } else {
+        const inputAlphabet = getValue('inputAlphabet').toArray().sort();
+        const inputAlphabetOptions = getValue('tapeAlphabet')
+          .remove(getValue('blankSymbol'))
+          .toArray()
+          .sort();
+        return {
+          header: 'Input Alphabet',
+          body: <Dropdown
+              placeholder="Select input alphabet symbols"
+              defaultValue={inputAlphabet}
+              fluid
+              multiple
+              selection
+              options={
+                inputAlphabetOptions.map(inputSymbol => ({text: inputSymbol, value: inputSymbol, key: inputSymbol}))
+              }
+              ref={dropdown => this.modalDropdown = dropdown}/>,
+          actions: [
+            <CancelButton
+              key="cancel"
+              onClick={() => dispatch(removeModal())}/>,
+            <SubmitButton
+              key="submit"
+              onClick={() => {
+                const value = this.modalDropdown.state.value;
+                dispatch(actions.setInputAlphabet(value.sort()));
+                dispatch(removeModal());
+              }}/>
+          ]
+        };
+      }
+    }
+    case modalTypes.STACK_ALPHABET_MODAL: {
+      return {
+        header: 'Stack Alphabet',
+        body: createMultiSelectWithAdditionModalBody('stackAlphabet', 'Add a new stack symbol', 'Add stack symbol'),
+        actions: [
+          <CancelButton
+            key="cancel"
+            onClick={() => dispatch(removeModal())} />,
+          <SubmitButton
+            key="submit"
+            onClick={() => {
+              dispatch(actions.setStackAlphabet(getValue('stackAlphabet').toArray().sort()));
+              dispatch(removeModal());
+            }} />
+        ]
+      };
+    }
+    case modalTypes.INITIAL_STACK_SYMBOL_MODAL: {
+      const stackAlphabet = getValue('stackAlphabet').toArray().sort();
+      const initialStackSymbol = getValue('initialStackSymbol');
+      return {
+        header: 'Initial Stack Symbol',
+        body: <Dropdown
+          placeholder="Select an initial stack symbol"
+          defaultValue={initialStackSymbol}
+          fluid
+          selection
+          options={stackAlphabet.map(stackSymbol => ({ text: stackSymbol, value: stackSymbol, key: stackSymbol }))}
+          ref={dropdown => this.modalDropdown = dropdown} />,
+        actions: [
+          <DeleteButton
+            key="delete"
+            onClick={() => {
+              dispatch(actions.removeInitialStackSymbol());
+              dispatch(removeModal());
+            }} />,
+          <SubmitButton
+            key="submit"
+            onClick={() => {
+              const { value } = this.modalDropdown.state;
+              dispatch(actions.changeInitialStackSymbol(value));
+              dispatch(removeModal());
+            }} />
+        ]
+      };
     }
     case modalTypes.INITIAL_STATE_MODAL: {
       const states = getValue('states').toArray().sort();
@@ -134,64 +294,6 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
         ]
       };
     }
-    case modalTypes.INITIAL_STACK_SYMBOL_MODAL: {
-      const stackAlphabet = getValue('stackAlphabet').toArray().sort();
-      const initialStackSymbol = getValue('initialStackSymbol');
-      return {
-        header: 'Initial Stack Symbol',
-        body: <Dropdown
-          placeholder="Select an initial stack symbol"
-          defaultValue={initialStackSymbol}
-          fluid
-          selection
-          options={stackAlphabet.map(stackSymbol => ({ text: stackSymbol, value: stackSymbol, key: stackSymbol }))}
-          ref={dropdown => this.modalDropdown = dropdown} />,
-        actions: [
-          <DeleteButton
-            key="delete"
-            onClick={() => {
-              dispatch(actions.removeInitialStackSymbol());
-              dispatch(removeModal());
-            }} />,
-          <SubmitButton
-            key="submit"
-            onClick={() => {
-              const { value } = this.modalDropdown.state;
-              dispatch(actions.changeInitialStackSymbol(value));
-              dispatch(removeModal());
-            }}/>
-        ]
-      };
-    }
-    case modalTypes.BLANK_SYMBOL_MODAL: {
-      const tapeAlphabet = getValue('tapeAlphabet').toArray().sort();
-      const blankSymbol = getValue('blankSymbol');
-      return {
-        header: 'Blank Symbol',
-        body: <Dropdown
-          placeholder="Select a blank symbol"
-          defaultValue={blankSymbol}
-          fluid
-          selection
-          options={tapeAlphabet.map(tapeSymbol => ({ text: tapeSymbol, value: tapeSymbol, key: tapeSymbol }))}
-          ref={dropdown => this.modalDropdown = dropdown} />,
-        actions: [
-          <DeleteButton
-            key="delete"
-            onClick={() => {
-              dispatch(actions.removeBlankSymbol());
-              dispatch(removeModal());
-            }} />,
-          <SubmitButton
-            key="submit"
-            onClick={() => {
-              const { value } = this.modalDropdown.state;
-              dispatch(actions.changeBlankSymbol(value));
-              dispatch(removeModal());
-            }}/>
-        ]
-      };
-    }
     case modalTypes.ACCEPT_STATES_MODAL: {
       const states = getValue('states').toArray().sort();
       const acceptStates = getValue('acceptStates').toArray().sort();
@@ -214,38 +316,6 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
             onClick={() => {
               const value = this.modalDropdown.state.value;
               dispatch(actions.setAcceptStates(value.sort()));
-              dispatch(removeModal());
-            }} />
-        ]
-      };
-    }
-    case modalTypes.INPUT_ALPHABET_MODAL: {
-      const inputAlphabet = getValue('inputAlphabet').toArray().sort();
-      const inputAlphabetOptions = getValue('tapeAlphabet')
-        .remove(modalState.blankSymbol)
-        .toArray()
-        .sort();
-      return {
-        header: 'Input Alphabet',
-        body: <Dropdown
-          placeholder="Select input alphabet symbols"
-          defaultValue={inputAlphabet}
-          fluid
-          multiple
-          selection
-          options={
-            inputAlphabetOptions.map(inputSymbol => ({ text: inputSymbol, value: inputSymbol, key: inputSymbol }))
-          }
-          ref={dropdown => this.modalDropdown = dropdown} />,
-        actions: [
-          <CancelButton
-            key="cancel"
-            onClick={() => dispatch(removeModal())} />,
-          <SubmitButton
-            key="submit"
-            onClick={() => {
-              const value = this.modalDropdown.state.value;
-              dispatch(actions.setInputAlphabet(value.sort()));
               dispatch(removeModal());
             }} />
         ]

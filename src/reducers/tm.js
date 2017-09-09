@@ -77,10 +77,13 @@ export default function tm(
       return setAcceptStates(state, action.payload.states);
     }
     case actionTypes.TM_TRANSITION_ADDED: {
-      const { fromState, tapeSymbol, toState, writeSymbol, moveDirection } = action.payload;
-      const transition = createInstruction(fromState, tapeSymbol, toState, writeSymbol, moveDirection);
+      const { fromState, inputSymbol, toState, writeSymbol, moveDirection } = action.payload;
+      const transition = createInstruction(fromState, inputSymbol, toState, writeSymbol, moveDirection);
       return {
         ...state,
+        states: state.states.add(toState).add(fromState),
+        tapeAlphabet: state.tapeAlphabet.add(inputSymbol).add(writeSymbol),
+        inputAlphabet: state.inputAlphabet.add(inputSymbol).add(writeSymbol),
         transitionFunction: state.transitionFunction.add(transition)
       };
     }
@@ -104,6 +107,19 @@ export default function tm(
         tapeAlphabet: state.tapeAlphabet.add(action.payload.tapeSymbol)
       }
     }
+    case actionTypes.TM_TAPE_ALPHABET_SET: {
+      const { tapeAlphabet } = action.payload;
+      const inputAlphabet = state.inputAlphabet.filter(inputSymbol => tapeAlphabet.includes(inputSymbol));
+      return {
+        ...state,
+        tapeAlphabet: new Set(tapeAlphabet),
+        blankSymbol: tapeAlphabet.includes(state.blankSymbol) ? state.blankSymbol : null,
+        inputAlphabet,
+        transitionFunction: state.transitionFunction.filter(transitionObject => {
+          inputAlphabet.includes(transitionObject.tapeSymbol) && inputAlphabet.includes(transitionObject.writeSymbol)
+        })
+      };
+    }
     case actionTypes.TM_INPUT_SYMBOL_ADDED: {
       return {
         ...state,
@@ -111,8 +127,8 @@ export default function tm(
       }
     }
     case actionTypes.TM_INPUT_ALPHABET_SET: {
-      const { alphabet } = action.payload;
-      return { ...state, inputAlphabet: new Set(alphabet) };
+      const { inputAlphabet } = action.payload;
+      return { ...state, inputAlphabet: new Set(inputAlphabet) };
     }
     case actionTypes.TM_BLANK_SYMBOL_CHANGED: {
       const { blankSymbol } = action.payload;

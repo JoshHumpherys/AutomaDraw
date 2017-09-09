@@ -4,7 +4,7 @@ export const getFsm = state => {
   return {
     ...state.fsm,
     states: state.fsm.states.sort(),
-    alphabet: state.fsm.alphabet.sort(),
+    inputAlphabet: state.fsm.inputAlphabet.sort(),
     acceptStates: state.fsm.acceptStates.sort()
   };
 };

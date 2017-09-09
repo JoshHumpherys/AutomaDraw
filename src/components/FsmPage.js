@@ -12,7 +12,7 @@ import {
   addAcceptState,
   removeAcceptState,
   addTransition,
-  addSymbol,
+  addInputSymbol,
   initializeFromJsonString,
   reset
 } from '../actions/fsm'
@@ -93,15 +93,12 @@ export class FsmPage extends Component {
     };
     const symbol = getSymbol();
     if(symbol !== null) { // user didn't click cancel
-      if(!this.props.fsm.alphabet.contains(symbol)) {
-        this.addSymbol(symbol);
-      }
       this.props.dispatch(addTransition(fromState, symbol, toState));
     }
   }
 
   addSymbol(symbol) {
-    this.props.dispatch(addSymbol(symbol));
+    this.props.dispatch(addInputSymbol(symbol));
   }
 
   initializeFromJsonString(jsonString) {
@@ -117,7 +114,7 @@ export class FsmPage extends Component {
   }
 
   render() {
-    const { name, states, alphabet, transitionFunction, initialState, acceptStates, statePositions, selected }
+    const { name, states, inputAlphabet, transitionFunction, initialState, acceptStates, statePositions, selected }
       = this.props.fsm;
 
     const simpleNestedTransitionFunction = getSimpleNestedTransitionFunction(transitionFunction);
@@ -138,7 +135,7 @@ export class FsmPage extends Component {
 
     const formalProperties = [
       { name: 'Q', value: arrayToString(states.toArray()), modalType: modalTypes.STATES_MODAL },
-      { name: '\u03A3', value: arrayToString(alphabet.toArray()) },
+      { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()), modalType: modalTypes.INPUT_ALPHABET_MODAL },
       { name: '\u03B4', value: transitionFunctionDiv },
       { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },
       { name: 'F', value: arrayToString(acceptStates.toArray()), modalType: modalTypes.ACCEPT_STATES_MODAL },

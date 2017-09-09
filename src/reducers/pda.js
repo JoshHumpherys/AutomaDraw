@@ -81,6 +81,9 @@ export default function pda(
       const transition = createInstruction(fromState, inputSymbol, stackSymbol, toState, pushSymbols);
       return {
         ...state,
+        states: state.states.add(fromState).add(toState),
+        inputAlphabet: state.inputAlphabet.add(inputSymbol),
+        stackAlphabet: state.stackAlphabet.add(stackSymbol).union(pushSymbols),
         transitionFunction: state.transitionFunction.add(transition)
       };
     }
@@ -104,8 +107,34 @@ export default function pda(
         inputAlphabet: state.inputAlphabet.add(action.payload.inputSymbol)
       }
     }
+    case actionTypes.PDA_INPUT_ALPHABET_SET: {
+      const { inputAlphabet } = action.payload;
+      return {
+        ...state,
+        inputAlphabet: new Set(inputAlphabet),
+        transitionFunction: state.transitionFunction.filter(transitionObject =>
+          inputAlphabet.includes(transitionObject.inputSymbol)
+        )
+      };
+    }
     case actionTypes.PDA_STACK_SYMBOL_ADDED: {
       return { ...state, stackAlphabet: state.stackAlphabet.add(action.payload.stackSymbol) };
+    }
+    case actionTypes.PDA_STACK_ALPHABET_SET: {
+      const { stackAlphabet } = action.payload;
+      return {
+        ...state,
+        stackAlphabet: new Set(stackAlphabet),
+        transitionFunction: state.transitionFunction.filter(transitionObject => {
+          transitionObject.pushSymbols.split('').forEach(pushSymbol => {
+            if(!stackAlphabet.includes(pushSymbol)) {
+              return false;
+            }
+          });
+          return stackAlphabet.includes(transitionObject.stackSymbol);
+        }),
+        initialStackSymbol: stackAlphabet.includes(state.initialStackSymbol) ? state.initialStackSymbol : null
+      };
     }
     case actionTypes.PDA_INITIAL_STACK_SYMBOL_CHANGED: {
       return { ...state, initialStackSymbol: action.payload.stackSymbol };

@@ -48,17 +48,17 @@ export function setAcceptStates(states) {
   return { type: actionTypes.TM_ACCEPT_STATES_SET, payload: { states } };
 }
 
-export function addTransition(fromState, tapeSymbol, toState, writeSymbol, moveDirection) {
+export function addTransition(fromState, inputSymbol, toState, writeSymbol, moveDirection) {
   return {
     type: actionTypes.TM_TRANSITION_ADDED,
-    payload: { fromState, tapeSymbol, toState, writeSymbol, moveDirection }
+    payload: { fromState, inputSymbol, toState, writeSymbol, moveDirection }
   };
 }
 
-export function removeTransition(fromState, tapeSymbol, toState, writeSymbol, moveDirection) {
+export function removeTransition(fromState, inputSymbol, toState, writeSymbol, moveDirection) {
   return {
     type: actionTypes.TM_TRANSITION_REMOVED,
-    payload: { fromState, tapeSymbol, toState, writeSymbol, moveDirection }
+    payload: { fromState, inputSymbol, toState, writeSymbol, moveDirection }
   };
 }
 
@@ -66,12 +66,16 @@ export function addTapeSymbol(tapeSymbol) {
   return { type: actionTypes.TM_TAPE_SYMBOL_ADDED, payload: { tapeSymbol } };
 }
 
+export function setTapeAlphabet(tapeAlphabet) {
+  return { type: actionTypes.TM_TAPE_ALPHABET_SET, payload: { tapeAlphabet } };
+}
+
 export function addInputSymbol(inputSymbol) {
   return { type: actionTypes.TM_INPUT_SYMBOL_ADDED, payload: { inputSymbol } };
 }
 
-export function setInputAlphabet(alphabet) {
-  return { type: actionTypes.TM_INPUT_ALPHABET_SET, payload: { alphabet } };
+export function setInputAlphabet(inputAlphabet) {
+  return { type: actionTypes.TM_INPUT_ALPHABET_SET, payload: { inputAlphabet } };
 }
 
 export function changeBlankSymbol(blankSymbol) {

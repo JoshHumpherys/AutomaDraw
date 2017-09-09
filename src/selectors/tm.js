@@ -12,8 +12,8 @@ export const getTm = state => {
 
 export const getSimpleNestedTransitionFunction = transitionFunction => {
   return new Map().withMutations(nestedMap => {
-    transitionFunction.forEach(({ fromState, tapeSymbol, toState, writeSymbol, moveDirection }) => {
-      const transitionText = tapeSymbol + '/' + writeSymbol + ',' + moveDirection;
+    transitionFunction.forEach(({ fromState, inputSymbol, toState, writeSymbol, moveDirection }) => {
+      const transitionText = inputSymbol + '/' + writeSymbol + ',' + moveDirection;
       const mapFromState = nestedMap.get(fromState) || new Map();
       nestedMap.set(fromState, mapFromState.set(transitionText, toState));
     })

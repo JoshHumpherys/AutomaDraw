@@ -536,15 +536,21 @@ export class AutomataPage extends Component {
               onChange={name => this.props.changeName(name)} />
           </h2>
           {
-            this.props.formalProperties.map(formalProperty =>
-              <div className="control-panel-text" key={formalProperty.name}>
-                <span className={formalProperty.modalType ? 'clickable' : ''} onClick={() => {
-                  if(formalProperty.modalType) {
-                    this.props.dispatch(createModal(formalProperty.modalType));
-                  }
-                }}>{formalProperty.name}: {formalProperty.value}</span>
-              </div>
-            )
+            this.props.formalProperties.map(formalProperty => {
+              const isString = (typeof formalProperty.value) === 'string';
+              const inlineValue = isString ? formalProperty.value : '';
+              const blockValue = isString ? null : formalProperty.value;
+              return (
+                <div className="control-panel-text" key={formalProperty.name}>
+                  <span className={formalProperty.modalType ? 'clickable' : ''} onClick={() => {
+                    if (formalProperty.modalType) {
+                      this.props.dispatch(createModal(formalProperty.modalType));
+                    }
+                  }}>{formalProperty.name}: {inlineValue}</span>
+                  {blockValue}
+                </div>
+              );
+            })
           }
           <div className="control-panel-text">
             <Button onClick={() => $('#upload').click()}>

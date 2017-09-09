@@ -15,7 +15,7 @@ import {
   initializeFromJsonString,
   reset
 } from '../actions/fsm'
-import { createModal, setModalState } from '../actions/modal';
+import { createModal, setModalState } from '../actions/modal'
 import { getFsm, getSimpleNestedTransitionFunction } from '../selectors/fsm'
 import { arrayToString } from '../utility/utility'
 import AutomataPage from './AutomataPage'

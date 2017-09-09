@@ -11,12 +11,12 @@ import {
   removeInitialState,
   addAcceptState,
   removeAcceptState,
-  addTransition,
   addInputSymbol,
   addStackSymbol,
   initializeFromJsonString,
   reset
 } from '../actions/pda'
+import { createModal, setModalState } from '../actions/modal'
 import { getPda, getSimpleNestedTransitionFunction } from '../selectors/pda'
 import { arrayToString } from '../utility/utility'
 import AutomataPage from './AutomataPage'
@@ -85,28 +85,8 @@ export class PdaPage extends Component {
   }
 
   addTransition(fromState, toState) {
-    const transitionPrompt = (message, numCharactersMin, numCharactersMax) => {
-      // TODO make something better than a prompt
-      const response = prompt(message);
-      if(response !== null && (response.length < numCharactersMin || response.length > numCharactersMax)) {
-        return transitionPrompt(message, numCharactersMin, numCharactersMax);
-      }
-      return response;
-    };
-    const inputSymbol = transitionPrompt('What input symbol should be used for this transition?', 1, 1);
-    if(inputSymbol === null) {
-      return;
-    }
-    const stackSymbol = transitionPrompt('What stack symbol should be used for this transition?', 1, 1);
-    if(stackSymbol === null) {
-      return;
-    }
-    const pushSymbolsMessage = 'What symbol(s) should be pushed to the stack as a result of this transition?';
-    const pushSymbols = transitionPrompt(pushSymbolsMessage, 1, 2);
-    if(pushSymbols === null) {
-      return;
-    }
-    this.props.dispatch(addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols));
+    this.props.dispatch(createModal(modalTypes.PDA_TRANSITION_MODAL));
+    this.props.dispatch(setModalState({ fromState, toState }));
   }
 
   addInputSymbol(inputSymbol) {
@@ -169,7 +149,7 @@ export class PdaPage extends Component {
       { name: 'Q', value: arrayToString(states.toArray()), modalType: modalTypes.STATES_MODAL },
       { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()), modalType: modalTypes.INPUT_ALPHABET_MODAL },
       { name: '\u0393', value: arrayToString(stackAlphabet.toArray()), modalType: modalTypes.STACK_ALPHABET_MODAL },
-      { name: '\u03B4', value: transitionFunctionDiv },
+      { name: '\u03B4', value: transitionFunctionDiv, modalType: modalTypes.PDA_TRANSITION_MODAL },
       { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },
       { name: 'Z', value: initialStackSymbol, modalType: modalTypes.INITIAL_STACK_SYMBOL_MODAL },
       { name: 'F', value: arrayToString(acceptStates.toArray()), modalType: modalTypes.ACCEPT_STATES_MODAL },

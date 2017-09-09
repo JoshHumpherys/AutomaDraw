@@ -11,11 +11,11 @@ import {
   removeInitialState,
   addAcceptState,
   removeAcceptState,
-  addTransition,
   addTapeSymbol,
   initializeFromJsonString,
   reset
 } from '../actions/tm'
+import { createModal, setModalState } from '../actions/modal'
 import { getTm, getSimpleNestedTransitionFunction } from '../selectors/tm'
 import { arrayToString } from '../utility/utility'
 import AutomataPage from './AutomataPage'
@@ -83,27 +83,8 @@ export class TmPage extends Component {
   }
 
   addTransition(fromState, toState) {
-    const transitionPrompt = message => {
-      // TODO make something better than a prompt
-      const response = prompt(message);
-      if(response !== null && response.length !== 1) {
-        return transitionPrompt(message);
-      }
-      return response;
-    };
-    const tapeSymbol = transitionPrompt('What input symbol should be used for this transition?');
-    if(tapeSymbol === null) {
-      return;
-    }
-    const writeSymbol = transitionPrompt('What input symbol should be written as a result of this transition?');
-    if(writeSymbol === null) {
-      return;
-    }
-    const moveDirection = transitionPrompt('Which direction should the head move as a result of this transition?');
-    if(moveDirection === null) {
-      return;
-    }
-    this.props.dispatch(addTransition(fromState, tapeSymbol, toState, writeSymbol, moveDirection));
+    this.props.dispatch(createModal(modalTypes.TM_TRANSITION_MODAL));
+    this.props.dispatch(setModalState({ fromState, toState }));
   }
 
   addTapeSymbol(symbol) {
@@ -146,7 +127,7 @@ export class TmPage extends Component {
             const instruction = arrayToTuple(
               [
                 transitionObject.fromState,
-                transitionObject.tapeSymbol,
+                transitionObject.inputSymbol,
                 transitionObject.toState,
                 transitionObject.writeSymbol,
                 transitionObject.moveDirection
@@ -163,7 +144,7 @@ export class TmPage extends Component {
       { name: '\u0393', value: arrayToString(tapeAlphabet.toArray()), modalType: modalTypes.TAPE_ALPHABET_MODAL },
       { name: 'b', value: blankSymbol, modalType: modalTypes.BLANK_SYMBOL_MODAL },
       { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()), modalType: modalTypes.INPUT_ALPHABET_MODAL },
-      { name: '\u03B4', value: transitionFunctionDiv },
+      { name: '\u03B4', value: transitionFunctionDiv, modalType: modalTypes.TM_TRANSITION_MODAL },
       { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },
       { name: 'F', value: arrayToString(acceptStates.toArray()), modalType: modalTypes.ACCEPT_STATES_MODAL },
     ];

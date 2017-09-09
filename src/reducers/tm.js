@@ -15,8 +15,8 @@ import {
   setAcceptStates
 } from './sharedAutomataFunctions'
 
-const createInstruction = (fromState, tapeSymbol, toState, writeSymbol, moveDirection) =>
-  ({ fromState, tapeSymbol, toState, writeSymbol, moveDirection });
+const createInstruction = (fromState, inputSymbol, toState, writeSymbol, moveDirection) =>
+  ({ fromState, inputSymbol, toState, writeSymbol, moveDirection });
 
 export default function tm(
   state = {
@@ -88,13 +88,13 @@ export default function tm(
       };
     }
     case actionTypes.TM_TRANSITION_REMOVED: {
-      const { fromState, tapeSymbol, toState, writeSymbol, moveDirection } = action.payload;
+      const { fromState, inputSymbol, toState, writeSymbol, moveDirection } = action.payload;
       return {
         ...state,
         transitionFunction: state.transitionFunction
           .filter(transitionObject => {
             return transitionObject.fromState !== fromState ||
-              transitionObject.tapeSymbol !== tapeSymbol ||
+              transitionObject.inputSymbol !== inputSymbol ||
               transitionObject.toState !== toState ||
               transitionObject.writeSymbol !== writeSymbol ||
               transitionObject.moveDirection !== moveDirection;
@@ -116,7 +116,8 @@ export default function tm(
         blankSymbol: tapeAlphabet.includes(state.blankSymbol) ? state.blankSymbol : null,
         inputAlphabet,
         transitionFunction: state.transitionFunction.filter(transitionObject => {
-          inputAlphabet.includes(transitionObject.tapeSymbol) && inputAlphabet.includes(transitionObject.writeSymbol)
+          return inputAlphabet.includes(transitionObject.inputSymbol) &&
+            inputAlphabet.includes(transitionObject.writeSymbol);
         })
       };
     }
@@ -128,7 +129,14 @@ export default function tm(
     }
     case actionTypes.TM_INPUT_ALPHABET_SET: {
       const { inputAlphabet } = action.payload;
-      return { ...state, inputAlphabet: new Set(inputAlphabet) };
+      return {
+        ...state,
+        inputAlphabet: new Set(inputAlphabet),
+        transitionFunction: state.transitionFunction.filter(transitionObject => {
+          return inputAlphabet.includes(transitionObject.inputSymbol) &&
+            inputAlphabet.includes(transitionObject.writeSymbol);
+        })
+      };
     }
     case actionTypes.TM_BLANK_SYMBOL_CHANGED: {
       const { blankSymbol } = action.payload;

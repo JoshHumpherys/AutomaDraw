@@ -7,6 +7,7 @@ import * as pdaActions from '../actions/pda'
 import * as tmActions from '../actions/tm'
 import * as automatonTypes from '../constants/automatonTypes'
 import $ from 'jquery'
+import { Set } from 'immutable'
 
 class CancelButton extends Component {
   render() {
@@ -308,7 +309,191 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
           <SubmitButton
             key="submit"
             onClick={() => {
-              dispatch(actions.addTransition(fromState, inputSymbol, toState));
+              if(fromState && inputSymbol && toState) {
+                dispatch(actions.addTransition(fromState, inputSymbol, toState));
+              }
+              dispatch(removeModal());
+            }} />
+        ]
+      };
+    }
+    case modalTypes.PDA_TRANSITION_MODAL: {
+      const states = getValue('states').toArray().sort();
+      const inputAlphabet = getValue('inputAlphabet').toArray().sort();
+      const stackAlphabet = getValue('stackAlphabet').toArray().sort();
+      const fromState = getValue('fromState') || states[0];
+      const inputSymbol = getValue('inputSymbol') || inputAlphabet[0];
+      const stackSymbol = getValue('stackSymbol') || stackAlphabet[0];
+      const toState = getValue('toState') || states[0];
+      const pushSymbols = getValue('pushSymbols') || stackAlphabet[0];
+
+      // TODO add empty string symbol
+      const pushSymbolsOptions = new Set([].concat(...stackAlphabet.map(a => stackAlphabet.map(b => a + b))))
+        .union(stackAlphabet)
+        .toArray()
+        .sort()
+        .map(pushSymbol => ({ text: pushSymbol, value: pushSymbol, key: pushSymbol }));
+
+      return {
+        header: 'Add Transition',
+        body: (
+          <Form>
+            <Form.Group widths="equal">
+              <Form.Field>
+                <label>From State</label>
+                <Dropdown
+                  placeholder="Select a from state"
+                  defaultValue={fromState}
+                  fluid
+                  selection
+                  options={states.map(state => ({ text: state, value: state, key: state }))}
+                  onChange={(e, data) => dispatch(setModalState({ fromState: data.value }))} />
+              </Form.Field>
+              <Form.Field>
+                <label>Input Symbol</label>
+                <Dropdown
+                  placeholder="Select an input symbol"
+                  defaultValue={inputSymbol}
+                  fluid
+                  selection
+                  options={
+                    inputAlphabet.map(inputSymbol => ({ text: inputSymbol, value: inputSymbol, key: inputSymbol }))
+                  }
+                  onChange={(e, data) => dispatch(setModalState({ inputSymbol: data.value }))} />
+              </Form.Field>
+              <Form.Field>
+                <label>Stack Symbol</label>
+                <Dropdown
+                  placeholder="Select a stack symbol"
+                  defaultValue={stackSymbol}
+                  fluid
+                  selection
+                  options={
+                    stackAlphabet.map(inputSymbol => ({ text: inputSymbol, value: inputSymbol, key: inputSymbol }))
+                  }
+                  onChange={(e, data) => dispatch(setModalState({ stackSymbol: data.value }))} />
+              </Form.Field>
+              <Form.Field>
+                <label>To State</label>
+                <Dropdown
+                  placeholder="Select a to state"
+                  defaultValue={toState}
+                  fluid
+                  selection
+                  options={states.map(state => ({ text: state, value: state, key: state }))}
+                  onChange={(e, data) => dispatch(setModalState({ toState: data.value }))} />
+              </Form.Field>
+              <Form.Field>
+                <label>Push Symbols</label>
+                <Dropdown
+                  placeholder="Select push symbols"
+                  defaultValue={pushSymbols}
+                  fluid
+                  selection
+                  options={pushSymbolsOptions}
+                  onChange={(e, data) => dispatch(setModalState({ pushSymbols: data.value }))} />
+              </Form.Field>
+            </Form.Group>
+          </Form>
+        ),
+        actions: [
+          <CancelButton
+            key="cancel"
+            onClick={() => dispatch(removeModal())} />,
+          <SubmitButton
+            key="submit"
+            onClick={() => {
+              if(fromState && inputSymbol && stackSymbol && toState && pushSymbols) {
+                dispatch(actions.addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols));
+              }
+              dispatch(removeModal());
+            }} />
+        ]
+      };
+    }
+    case modalTypes.TM_TRANSITION_MODAL: {
+      const states = getValue('states').toArray().sort();
+      const inputAlphabet = getValue('inputAlphabet').toArray().sort();
+      const fromState = getValue('fromState') || states[0];
+      const inputSymbol = getValue('inputSymbol') || inputAlphabet[0];
+      const toState = getValue('toState') || states[0];
+      const writeSymbol = getValue('writeSymbol') || inputAlphabet[0];
+      const moveDirection = getValue('moveDirection') || 'L';
+
+      const moveDirections = ['L', 'R'];
+
+      return {
+        header: 'Add Transition',
+        body: (
+          <Form>
+            <Form.Group widths="equal">
+              <Form.Field>
+                <label>From State</label>
+                <Dropdown
+                  placeholder="Select a from state"
+                  defaultValue={fromState}
+                  fluid
+                  selection
+                  options={states.map(state => ({ text: state, value: state, key: state }))}
+                  onChange={(e, data) => dispatch(setModalState({ fromState: data.value }))} />
+              </Form.Field>
+              <Form.Field>
+                <label>Input Symbol</label>
+                <Dropdown
+                  placeholder="Select an input symbol"
+                  defaultValue={inputSymbol}
+                  fluid
+                  selection
+                  options={
+                    inputAlphabet.map(inputSymbol => ({ text: inputSymbol, value: inputSymbol, key: inputSymbol }))
+                  }
+                  onChange={(e, data) => dispatch(setModalState({ inputSymbol: data.value }))} />
+              </Form.Field>
+              <Form.Field>
+                <label>To State</label>
+                <Dropdown
+                  placeholder="Select a to state"
+                  defaultValue={toState}
+                  fluid
+                  selection
+                  options={states.map(state => ({ text: state, value: state, key: state }))}
+                  onChange={(e, data) => dispatch(setModalState({ toState: data.value }))} />
+              </Form.Field>
+              <Form.Field>
+                <label>Write Symbol</label>
+                <Dropdown
+                  placeholder="Select a write symbol"
+                  defaultValue={writeSymbol}
+                  fluid
+                  selection
+                  options={
+                    inputAlphabet.map(writeSymbol => ({ text: writeSymbol, value: writeSymbol, key: writeSymbol }))
+                  }
+                  onChange={(e, data) => dispatch(setModalState({ writeSymbol: data.value }))} />
+              </Form.Field>
+              <Form.Field>
+                <label>Move Direction</label>
+                <Dropdown
+                  placeholder="Select move direction"
+                  defaultValue={moveDirection}
+                  fluid
+                  selection
+                  options={moveDirections.map(direction => ({ text: direction, value: direction, key: direction }))}
+                  onChange={(e, data) => dispatch(setModalState({ moveDirection: data.value }))} />
+              </Form.Field>
+            </Form.Group>
+          </Form>
+        ),
+        actions: [
+          <CancelButton
+            key="cancel"
+            onClick={() => dispatch(removeModal())} />,
+          <SubmitButton
+            key="submit"
+            onClick={() => {
+              if(fromState && inputSymbol && toState && writeSymbol && moveDirection) {
+                dispatch(actions.addTransition(fromState, inputSymbol, toState, writeSymbol, moveDirection));
+              }
               dispatch(removeModal());
             }} />
         ]

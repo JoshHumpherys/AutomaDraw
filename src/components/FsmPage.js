@@ -11,11 +11,11 @@ import {
   removeInitialState,
   addAcceptState,
   removeAcceptState,
-  addTransition,
   addInputSymbol,
   initializeFromJsonString,
   reset
 } from '../actions/fsm'
+import { createModal, setModalState } from '../actions/modal';
 import { getFsm, getSimpleNestedTransitionFunction } from '../selectors/fsm'
 import { arrayToString } from '../utility/utility'
 import AutomataPage from './AutomataPage'
@@ -83,18 +83,8 @@ export class FsmPage extends Component {
   }
 
   addTransition(fromState, toState) {
-    const getSymbol = () => {
-      // TODO make something better than a prompt
-      const symbol = prompt('What symbol should be used for this transition?');
-      if(symbol !== null && symbol.length !== 1) {
-        return getSymbol();
-      }
-      return symbol;
-    };
-    const symbol = getSymbol();
-    if(symbol !== null) { // user didn't click cancel
-      this.props.dispatch(addTransition(fromState, symbol, toState));
-    }
+    this.props.dispatch(createModal(modalTypes.FSM_TRANSITION_MODAL));
+    this.props.dispatch(setModalState({ fromState, toState }));
   }
 
   addSymbol(symbol) {
@@ -136,7 +126,7 @@ export class FsmPage extends Component {
     const formalProperties = [
       { name: 'Q', value: arrayToString(states.toArray()), modalType: modalTypes.STATES_MODAL },
       { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()), modalType: modalTypes.INPUT_ALPHABET_MODAL },
-      { name: '\u03B4', value: transitionFunctionDiv },
+      { name: '\u03B4', value: transitionFunctionDiv, modalType: modalTypes.FSM_TRANSITION_MODAL },
       { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },
       { name: 'F', value: arrayToString(acceptStates.toArray()), modalType: modalTypes.ACCEPT_STATES_MODAL },
     ];

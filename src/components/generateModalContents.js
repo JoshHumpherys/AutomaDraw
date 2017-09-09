@@ -246,6 +246,74 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
         ]
       };
     }
+    case modalTypes.FSM_TRANSITION_MODAL: {
+      const states = getValue('states').toArray().sort();
+      const inputAlphabet = getValue('inputAlphabet').toArray().sort();
+      const fromState = getValue('fromState') || states[0];
+      const inputSymbol = getValue('inputSymbol') || inputAlphabet[0];
+      const toState = getValue('toState') || states[0];
+      return {
+        header: 'Add Transition',
+        body: (
+          <Form>
+            {/*
+            <Form.Field>
+              <label>
+                Transition
+              </label>
+              {'(' + fromState + ', ' + inputSymbol + ', ' + toState + ')'}
+            </Form.Field>
+            <Divider />
+            */}
+            <Form.Group widths="equal">
+              <Form.Field>
+                <label>From State</label>
+                <Dropdown
+                  placeholder="Select a from state"
+                  defaultValue={fromState}
+                  fluid
+                  selection
+                  options={states.map(state => ({ text: state, value: state, key: state }))}
+                  onChange={(e, data) => dispatch(setModalState({ fromState: data.value }))} />
+              </Form.Field>
+              <Form.Field>
+                <label>Input Symbol</label>
+                <Dropdown
+                  placeholder="Select an input symbol"
+                  defaultValue={inputSymbol}
+                  fluid
+                  selection
+                  options={
+                    inputAlphabet.map(inputSymbol => ({ text: inputSymbol, value: inputSymbol, key: inputSymbol }))
+                  }
+                  onChange={(e, data) => dispatch(setModalState({ inputSymbol: data.value }))} />
+              </Form.Field>
+              <Form.Field>
+                <label>To State</label>
+                <Dropdown
+                  placeholder="Select a to state"
+                  defaultValue={toState}
+                  fluid
+                  selection
+                  options={states.map(state => ({ text: state, value: state, key: state }))}
+                  onChange={(e, data) => dispatch(setModalState({ toState: data.value }))} />
+              </Form.Field>
+            </Form.Group>
+          </Form>
+        ),
+        actions: [
+          <CancelButton
+            key="cancel"
+            onClick={() => dispatch(removeModal())} />,
+          <SubmitButton
+            key="submit"
+            onClick={() => {
+              dispatch(actions.addTransition(fromState, inputSymbol, toState));
+              dispatch(removeModal());
+            }} />
+        ]
+      };
+    }
     case modalTypes.INITIAL_STACK_SYMBOL_MODAL: {
       const stackAlphabet = getValue('stackAlphabet').toArray().sort();
       const initialStackSymbol = getValue('initialStackSymbol');

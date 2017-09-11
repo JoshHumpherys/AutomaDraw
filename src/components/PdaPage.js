@@ -126,19 +126,27 @@ export class PdaPage extends Component {
     const simpleNestedTransitionFunction = getSimpleNestedTransitionFunction(transitionFunction);
 
     const arrayToTuple = array => '(' + array.join(', ') + ')';
+    const transitionFunctionSorted = transitionFunction.map(transitionObject => {
+      const { fromState, inputSymbol, stackSymbol, toState, pushSymbols } = transitionObject;
+      return {
+        stringValue: arrayToTuple([fromState, inputSymbol, stackSymbol, toState, pushSymbols]),
+        transitionObject
+      };
+    }).toArray().sort((a, b) => {
+      return a.stringValue > b.stringValue ? 1 : -1;
+    });
+
     const transitionFunctionDiv = transitionFunction.size > 0 ? (
       <div>
         {
-          transitionFunction.map(transitionObject => {
-            const { fromState, inputSymbol, stackSymbol, toState, pushSymbols } = transitionObject;
-            const instruction = arrayToTuple([fromState, inputSymbol, stackSymbol, toState, pushSymbols]);
+          transitionFunctionSorted.map(({ stringValue, transitionObject }) => {
             return (
               <div>
-                <span key={instruction} onClick={() => {
-                  this.props.dispatch(setModalState({ ...transitionObject, instruction }));
+                <span key={stringValue} onClick={() => {
+                  this.props.dispatch(setModalState({ ...transitionObject, stringValue }));
                   this.props.dispatch(createModal(modalTypes.DELETE_TRANSITION_MODAL));
                 }} className="clickable">
-                  {instruction}
+                  {stringValue}
                 </span>
               </div>
             );

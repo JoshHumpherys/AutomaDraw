@@ -14,6 +14,6 @@ export const getSimpleNestedTransitionFunction = transitionFunction => {
     transitionFunction.forEach(({ fromState, inputSymbol, toState }) => {
       const mapFromState = nestedMap.get(fromState) || new Map();
       nestedMap.set(fromState, mapFromState.set(inputSymbol, toState));
-    })
+    });
   });
 };

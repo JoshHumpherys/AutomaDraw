@@ -5,8 +5,9 @@ import interact from 'interactjs'
 import $ from 'jquery'
 import { Button, Checkbox, Dropdown, Icon } from 'semantic-ui-react'
 import { saveAs } from 'file-saver'
-import { Map, Set } from 'immutable'
-import { createModal } from '../actions/modal'
+import { Set } from 'immutable'
+import { createModal, setModalState } from '../actions/modal'
+import * as modalTypes from '../constants/modalTypes'
 
 import EditableTextField from './EditableTextField'
 
@@ -314,20 +315,8 @@ export class AutomataPage extends Component {
   }
 
   renameStateWithPopup(state) {
-    const getStateName = (nameAlreadyExists = false) => {
-      // TODO make something better than a prompt
-      const nameAlreadyExistsString = (nameAlreadyExists ? 'Name already exists.\n' : '');
-      const promptString = nameAlreadyExistsString + `What should state "${state}" be renamed?`;
-      const name = prompt(promptString);
-      if(this.props.states.contains(name)) {
-        return getStateName(true);
-      }
-      return name;
-    };
-    const name = getStateName();
-    if(name !== null) { // user didn't click cancel
-      this.props.changeStateName(state, name);
-    }
+    this.props.dispatch(createModal(modalTypes.RENAME_STATE_MODAL));
+    this.props.dispatch(setModalState({ state }));
   }
 
   uploadFile(file, callback) {

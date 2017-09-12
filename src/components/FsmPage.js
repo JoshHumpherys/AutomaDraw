@@ -16,7 +16,7 @@ import {
   reset
 } from '../actions/fsm'
 import { createModal, setModalState } from '../actions/modal'
-import { getFsm, getSimpleNestedTransitionFunction } from '../selectors/fsm'
+import { getFsm, getSimplifiedTransitionFunction } from '../selectors/fsm'
 import { arrayToString } from '../utility/utility'
 import AutomataPage from './AutomataPage'
 import * as modalTypes from '../constants/modalTypes'
@@ -107,7 +107,7 @@ export class FsmPage extends Component {
     const { name, states, inputAlphabet, transitionFunction, initialState, acceptStates, statePositions, selected }
       = this.props.fsm;
 
-    const simpleNestedTransitionFunction = getSimpleNestedTransitionFunction(transitionFunction);
+    const simplifiedTransitionFunction = getSimplifiedTransitionFunction(transitionFunction);
 
     const arrayToTuple = array => '(' + array.join(', ') + ')';
     const transitionFunctionSorted = transitionFunction.map(transitionObject => {
@@ -147,7 +147,7 @@ export class FsmPage extends Component {
     return <AutomataPage
       name={name}
       states={states}
-      simpleNestedTransitionFunction={simpleNestedTransitionFunction}
+      simplifiedTransitionFunction={simplifiedTransitionFunction}
       initialState={initialState}
       acceptStates={acceptStates}
       statePositions={statePositions}

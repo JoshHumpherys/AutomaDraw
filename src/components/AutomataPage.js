@@ -59,12 +59,12 @@ export class AutomataPage extends Component {
     return 'state_' + state;
   }
 
-  getTransitionLineRefName(state1, state2) {
-    return 'transition_line_svg_' + state1 + '_' + state2;
+  getTransitionLineRefName(state1, transitionText, state2) {
+    return 'transition_line_svg_' + state1 + '_' + transitionText + '_' + state2;
   }
 
-  getTransitionTextRefName(state1, state2) {
-    return 'transition_text_svg_' + state1 + state2;
+  getTransitionTextRefName(state1, transitionText, state2) {
+    return 'transition_text_svg_' + state1 + '_' + transitionText + '_' + state2;
   }
 
   getStateCenterPosition(coords) {
@@ -234,16 +234,14 @@ export class AutomataPage extends Component {
     return { x, y };
   }
 
-  // TODO make this work for PDA/TM
   setStatePosition(element, state, x, y) {
     element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
     const statePosition = { x, y };
-    const transitionsFromState = this.props.simpleNestedTransitionFunction.get(state);
-    if(transitionsFromState !== undefined) {
-      for(const transitionText of transitionsFromState.keys()) { // Update all transitions FROM the state being moved
-        const toState = transitionsFromState.get(transitionText);
-        const transitionRef = this[this.getTransitionLineRefName(state, toState)];
-        const textRef = this[this.getTransitionTextRefName(state, toState)];
+
+    this.props.simplifiedTransitionFunction.forEach(({ fromState, transitionText, toState }) => {
+      if(state === fromState) { // Update all transitions FROM the state being moved
+        const transitionRef = this[this.getTransitionLineRefName(fromState, transitionText, toState)];
+        const textRef = this[this.getTransitionTextRefName(fromState, transitionText, toState)];
         if(state === toState) { // Transition to self
           const transitionStartPosition = this.getTransitionLoopStartCoords(statePosition);
           const textPosition = this.getTransitionLoopTextPosition(statePosition);
@@ -254,43 +252,25 @@ export class AutomataPage extends Component {
           const toStatePosition = this.props.statePositions.get(toState);
           const transitionStartPosition = this.getStateCenterPosition(statePosition);
           const transitionEndPosition = this.getTransitionLineEndPosition({
-            x1: statePosition.x,
-            y1: statePosition.y,
-            x2: toStatePosition.x,
-            y2: toStatePosition.y
+            x1: statePosition.x, y1: statePosition.y, x2: toStatePosition.x, y2: toStatePosition.y
           });
-          const textPositionAndAngle = this.getTransitionLineTextPositionAndAngle(
-            statePosition,
-            toStatePosition
-          );
+          const textPositionAndAngle = this.getTransitionLineTextPositionAndAngle(statePosition, toStatePosition);
           this.setSvgTransitionLinePosition(transitionRef, transitionStartPosition, transitionEndPosition);
           this.setSvgTextPositionAndAngle(textRef, textPositionAndAngle);
         }
+      } else if(state === toState) { // Update all transitions TO the state being moved
+        const transitionRef = this[this.getTransitionLineRefName(fromState, transitionText, state)];
+        const textRef = this[this.getTransitionTextRefName(fromState, transitionText, state)];
+        const fromStatePosition = this.props.statePositions.get(fromState);
+        const transitionEndPosition = this.getTransitionLineEndPosition({
+          x1: fromStatePosition.x, y1: fromStatePosition.y, x2: x, y2: y
+        });
+        const textPositionAndAngle = this.getTransitionLineTextPositionAndAngle(fromStatePosition, statePosition);
+        this.setSvgTransitionLineEndCoords(transitionRef, transitionEndPosition);
+        this.setSvgTextPositionAndAngle(textRef, textPositionAndAngle);
       }
-    }
-    for(const [ fromState, transitionsFromState ] of this.props.simpleNestedTransitionFunction) { // Update all transitions TO the state being moved
-      if(fromState !== state && transitionsFromState) {
-        for(const transitionText of transitionsFromState.keys()) {
-          if(this.props.simpleNestedTransitionFunction.get(fromState).get(transitionText) === state) {
-            const transitionRef = this[this.getTransitionLineRefName(fromState, state)];
-            const textRef = this[this.getTransitionTextRefName(fromState, state)];
-            const fromStatePosition = this.props.statePositions.get(fromState);
-            const transitionEndPosition = this.getTransitionLineEndPosition({
-              x1: fromStatePosition.x,
-              y1: fromStatePosition.y,
-              x2: x,
-              y2: y
-            });
-            const textPositionAndAngle = this.getTransitionLineTextPositionAndAngle(
-              fromStatePosition,
-              statePosition
-            );
-            this.setSvgTransitionLineEndCoords(transitionRef, transitionEndPosition);
-            this.setSvgTextPositionAndAngle(textRef, textPositionAndAngle);
-          }
-        }
-      }
-    }
+    });
+
     if(this.props.initialState === state) { // The state being moved is the initial state
       const initialTransitionRef = this[this.initialTransitionLineRef];
       const stateCenterPosition = this.getStateCenterPosition(statePosition);
@@ -404,7 +384,6 @@ export class AutomataPage extends Component {
     this.updateStatePositions();
   }
 
-  // TODO make this work for PDA/TM
   render() {
     const defaultPosition = { x1: 0, y1: 0, x2: 0, y2: 0 };
     const createTransitionLine = (transitionTexts, lineRefString, textRefString, linePosition = defaultPosition) => {
@@ -453,43 +432,21 @@ export class AutomataPage extends Component {
     };
 
     const svgChildren = [];
-    for(const fromState of this.props.states) {
-      const transitions = this.props.simpleNestedTransitionFunction.get(fromState);
-      if(transitions !== undefined) {
-        const transitionsToStateMap = new Map({}).withMutations(transitionsToStateMap => {
-          for(const [ transitionText, toState ] of transitions.entries()) {
-            const transitionsToState = transitionsToStateMap.get(toState);
-            if(transitionsToState !== undefined) {
-              transitionsToStateMap.set(toState, transitionsToState.add(transitionText));
-            } else {
-              transitionsToStateMap.set(toState, new Set([transitionText]));
-            }
-          }
-        });
-        transitionsToStateMap.mapEntries(([ toState, transitionTexts ]) => {
-          const loopRefString = this.getTransitionLineRefName(fromState, toState);
-          const textRefString = this.getTransitionTextRefName(fromState, toState);
-          if(fromState === toState) {
-            const transitionLoop = createTransitionLoop(
-              transitionTexts.sort(),
-              loopRefString,
-              textRefString
-            );
-            svgChildren.push(transitionLoop.loop);
-            svgChildren.push(transitionLoop.text);
-          }
-          else {
-            const transitionLine = createTransitionLine(
-              transitionTexts.sort(),
-              loopRefString,
-              textRefString
-            );
-            svgChildren.push(transitionLine.line);
-            svgChildren.push(transitionLine.text);
-          }
-        });
+    this.props.simplifiedTransitionFunction.forEach(({ fromState, transitionText, toState }) => {
+      const loopRefString = this.getTransitionLineRefName(fromState, transitionText, toState);
+      const textRefString = this.getTransitionTextRefName(fromState, transitionText, toState);
+      if(fromState === toState) {
+        const transitionLoop = createTransitionLoop([transitionText], loopRefString, textRefString);
+        svgChildren.push(transitionLoop.loop);
+        svgChildren.push(transitionLoop.text);
       }
-    }
+      else {
+        const transitionLine = createTransitionLine([transitionText], loopRefString, textRefString);
+        svgChildren.push(transitionLine.line);
+        svgChildren.push(transitionLine.text);
+      }
+    });
+
     if(this.state.creatingTransitionFromState !== null) {
       const fromStatePosition = this.props.statePositions.get(this.state.creatingTransitionFromState);
       const transitionStartPosition = this.getStateCenterPosition(fromStatePosition);
@@ -638,7 +595,9 @@ export class AutomataPage extends Component {
                       key={this.props.selected}
                       defaultChecked={this.props.initialState === this.props.selected}
                       onChange={(e, value) => {
-                        value.checked ? this.props.changeInitialState(this.props.selected) : this.props.removeInitialState()
+                        value.checked ?
+                          this.props.changeInitialState(this.props.selected) :
+                          this.props.removeInitialState()
                       }} />
                   </Dropdown.Item>
                   <Dropdown.Item>

@@ -10,12 +10,8 @@ export const getTm = state => {
   };
 };
 
-export const getSimpleNestedTransitionFunction = transitionFunction => {
-  return new Map().withMutations(nestedMap => {
-    transitionFunction.forEach(({ fromState, inputSymbol, toState, writeSymbol, moveDirection }) => {
-      const transitionText = inputSymbol + '/' + writeSymbol + ',' + moveDirection;
-      const mapFromState = nestedMap.get(fromState) || new Map();
-      nestedMap.set(fromState, mapFromState.set(transitionText, toState));
-    })
+export const getSimplifiedTransitionFunction = transitionFunction => {
+  return transitionFunction.map(({ fromState, inputSymbol, toState, writeSymbol, moveDirection }) => {
+    return { fromState, transitionText: inputSymbol + '/' + writeSymbol + ',' + moveDirection, toState };
   });
 };

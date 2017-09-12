@@ -16,7 +16,7 @@ import {
   reset
 } from '../actions/tm'
 import { createModal, setModalState } from '../actions/modal'
-import { getTm, getSimpleNestedTransitionFunction } from '../selectors/tm'
+import { getTm, getSimplifiedTransitionFunction } from '../selectors/tm'
 import { arrayToString } from '../utility/utility'
 import AutomataPage from './AutomataPage'
 import * as modalTypes from '../constants/modalTypes'
@@ -117,7 +117,7 @@ export class TmPage extends Component {
       selected
     } = this.props.tm;
 
-    const simpleNestedTransitionFunction = getSimpleNestedTransitionFunction(transitionFunction);
+    const simplifiedTransitionFunction = getSimplifiedTransitionFunction(transitionFunction);
 
     const arrayToTuple = array => '(' + array.join(', ') + ')';
     const transitionFunctionSorted = transitionFunction.map(transitionObject => {
@@ -162,7 +162,7 @@ export class TmPage extends Component {
     return <AutomataPage
       name={name}
       states={states}
-      simpleNestedTransitionFunction={simpleNestedTransitionFunction}
+      simplifiedTransitionFunction={simplifiedTransitionFunction}
       initialState={initialState}
       acceptStates={acceptStates}
       statePositions={statePositions}

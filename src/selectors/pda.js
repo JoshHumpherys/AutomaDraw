@@ -1,5 +1,3 @@
-import { Map } from 'immutable'
-
 export const getPda = state => {
   return {
     ...state.pda,
@@ -10,12 +8,8 @@ export const getPda = state => {
   };
 };
 
-export const getSimpleNestedTransitionFunction = transitionFunction => {
-  return new Map().withMutations(nestedMap => {
-    transitionFunction.forEach(({ fromState, inputSymbol, stackSymbol, toState, pushSymbols }) => {
-      const transitionText = inputSymbol + '; ' + stackSymbol + '/' + pushSymbols;
-      const mapFromState = nestedMap.get(fromState) || new Map();
-      nestedMap.set(fromState, mapFromState.set(transitionText, toState));
-    })
-  });
+export const getSimplifiedTransitionFunction = transitionFunction => {
+  return transitionFunction.map(({ fromState, inputSymbol, stackSymbol, toState, pushSymbols }) => {
+    return { fromState, transitionText: inputSymbol + '; ' + stackSymbol + '/' + pushSymbols, toState };
+  })
 };

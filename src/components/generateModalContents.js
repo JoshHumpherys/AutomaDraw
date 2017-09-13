@@ -309,7 +309,12 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
           <SubmitButton
             key="submit"
             onClick={() => {
-              if(fromState && inputSymbol && toState) {
+              if(fromState && inputSymbol && toState &&
+                !automaton.transitionFunction.some(transitionObject =>
+                  transitionObject.fromState === fromState &&
+                  transitionObject.inputSymbol === inputSymbol &&
+                  transitionObject.toState === toState
+                )) {
                 dispatch(actions.addTransition(fromState, inputSymbol, toState));
               }
               dispatch(removeModal());
@@ -403,7 +408,14 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
           <SubmitButton
             key="submit"
             onClick={() => {
-              if(fromState && inputSymbol && stackSymbol && toState && pushSymbols) {
+              if(fromState && inputSymbol && stackSymbol && toState && pushSymbols &&
+                !automaton.transitionFunction.some(transitionObject =>
+                  transitionObject.fromState === fromState &&
+                  transitionObject.inputSymbol === inputSymbol &&
+                  transitionObject.stackSymbol === stackSymbol &&
+                  transitionObject.toState === toState &&
+                  transitionObject.pushSymbols === pushSymbols
+                )) {
                 dispatch(actions.addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols));
               }
               dispatch(removeModal());
@@ -491,7 +503,14 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
           <SubmitButton
             key="submit"
             onClick={() => {
-              if(fromState && inputSymbol && toState && writeSymbol && moveDirection) {
+              if(fromState && inputSymbol && toState && writeSymbol && moveDirection &&
+                !automaton.transitionFunction.some(transitionObject =>
+                  transitionObject.fromState === fromState &&
+                  transitionObject.inputSymbol === inputSymbol &&
+                  transitionObject.toState === toState &&
+                  transitionObject.writeSymbol === writeSymbol &&
+                  transitionObject.moveDirection === moveDirection
+                )) {
                 dispatch(actions.addTransition(fromState, inputSymbol, toState, writeSymbol, moveDirection));
               }
               dispatch(removeModal());

@@ -34,12 +34,14 @@ export class AutomataPage extends Component {
     this.getTransitionLoopStartCoords = this.getTransitionLoopStartCoords.bind(this);
     this.getTransitionLineEndPosition = this.getTransitionLineEndPosition.bind(this);
     this.getTransitionLineTextPositionAndAngle = this.getTransitionLineTextPositionAndAngle.bind(this);
+    this.getTransitionCurvedLineTextPositionAndAngle = this.getTransitionCurvedLineTextPositionAndAngle.bind(this);
     this.getTransitionLoopTextPosition = this.getTransitionLoopTextPosition.bind(this);
     this.getInitialTransitionStartPosition = this.getInitialTransitionStartPosition.bind(this);
     this.setSvgTransitionLinePosition = this.setSvgTransitionLinePosition.bind(this);
     this.setSvgTransitionLineStartCoords = this.setSvgTransitionLineStartCoords.bind(this);
     this.setSvgTransitionLineEndCoords = this.setSvgTransitionLineEndCoords.bind(this);
     this.setSvgTransitionLoopPosition = this.setSvgTransitionLoopPosition.bind(this);
+    this.setSvgTransitionCurvedLinePath = this.setSvgTransitionCurvedLinePath.bind(this);
     this.setSvgTextPosition = this.setSvgTextPosition.bind(this);
     this.setSvgTextPositionAndAngle = this.setSvgTextPositionAndAngle.bind(this);
     this.centerContainerMouseDown = this.centerContainerMouseDown.bind(this);
@@ -101,6 +103,20 @@ export class AutomataPage extends Component {
     return { x: textX, y: textY, angle: Math.atan(dy / dx) * 180 / Math.PI };
   }
 
+  getTransitionCurvedLineTextPositionAndAngle(fromStatePosition, toStatePosition) {
+    const fromStateCenterPosition = this.getStateCenterPosition(fromStatePosition);
+    const toStateCenterPosition = this.getStateCenterPosition(toStatePosition);
+    const dx = toStateCenterPosition.x - fromStateCenterPosition.x;
+    const dy = toStateCenterPosition.y - fromStateCenterPosition.y;
+    const sx = fromStateCenterPosition.x + toStateCenterPosition.x;
+    const sy = fromStateCenterPosition.y + toStateCenterPosition.y;
+    const r = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+    const d = dx >= 0 ? 33 : 46;
+    const textX = sx / 2 + d * dy / r;
+    const textY = sy / 2 - d * (dx >= 0 ? 1 : -1) * Math.abs(dx) / r;
+    return { x: textX, y: textY, angle: Math.atan(dy / dx) * 180 / Math.PI };
+  }
+
   getTransitionLoopTextPosition(fromStatePosition) {
     // TODO don't hardcode radius values
     return { x: fromStatePosition.x + 20, y: fromStatePosition.y - 30 - 8 };
@@ -128,6 +144,17 @@ export class AutomataPage extends Component {
   setSvgTransitionLoopPosition(transitionRef, coords) {
     transitionRef.setAttribute('cx', coords.x);
     transitionRef.setAttribute('cy', coords.y);
+  }
+
+  setSvgTransitionCurvedLinePath(transitionRef, startCoords, endCoords) {
+    const coordsToString = coords => coords.x + ' ' + coords.y;
+    const dx = endCoords.x - startCoords.x;
+    const dy = endCoords.y - startCoords.y;
+    const r = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+    const cx = (startCoords.x + endCoords.x) / 2 + 50 * dy / r;
+    const cy = (startCoords.y + endCoords.y) / 2 - 50 * (dx >= 0 ? 1 : -1) * Math.abs(dx) / r;
+    const path = 'M ' + coordsToString(startCoords) + ' Q ' + cx + ' ' + cy + ' ' + coordsToString(endCoords);
+    transitionRef.setAttribute('d', path);
   }
 
   setSvgTextPosition(textRef, position) {
@@ -252,22 +279,37 @@ export class AutomataPage extends Component {
         else { // Transition to another state
           const toStatePosition = this.props.statePositions.get(toState);
           const transitionStartPosition = this.getStateCenterPosition(statePosition);
-          const transitionEndPosition = this.getTransitionLineEndPosition({
-            x1: statePosition.x, y1: statePosition.y, x2: toStatePosition.x, y2: toStatePosition.y
-          });
-          const textPositionAndAngle = this.getTransitionLineTextPositionAndAngle(statePosition, toStatePosition);
-          this.setSvgTransitionLinePosition(transitionRef, transitionStartPosition, transitionEndPosition);
+          let textPositionAndAngle;
+          if(transitionRef.tagName === 'path') {
+            const toStateCenterPosition = this.getStateCenterPosition(toStatePosition);
+            this.setSvgTransitionCurvedLinePath(transitionRef, transitionStartPosition, toStateCenterPosition);
+            textPositionAndAngle = this.getTransitionCurvedLineTextPositionAndAngle(statePosition, toStatePosition);
+          } else {
+            const transitionEndPosition = this.getTransitionLineEndPosition({
+              x1: statePosition.x, y1: statePosition.y, x2: toStatePosition.x, y2: toStatePosition.y
+            });
+            this.setSvgTransitionLinePosition(transitionRef, transitionStartPosition, transitionEndPosition);
+            textPositionAndAngle = this.getTransitionLineTextPositionAndAngle(statePosition, toStatePosition);
+          }
           this.setSvgTextPositionAndAngle(textRef, textPositionAndAngle);
         }
       } else if(state === toState) { // Update all transitions TO the state being moved
         const transitionRef = this[this.getTransitionLineRefName(fromState, transitionText, state)];
         const textRef = this[this.getTransitionTextRefName(fromState, transitionText, state)];
         const fromStatePosition = this.props.statePositions.get(fromState);
-        const transitionEndPosition = this.getTransitionLineEndPosition({
-          x1: fromStatePosition.x, y1: fromStatePosition.y, x2: x, y2: y
-        });
-        const textPositionAndAngle = this.getTransitionLineTextPositionAndAngle(fromStatePosition, statePosition);
-        this.setSvgTransitionLineEndCoords(transitionRef, transitionEndPosition);
+        let textPositionAndAngle;
+        if(transitionRef.tagName === 'path') {
+          const fromStateCenterPosition = this.getStateCenterPosition(fromStatePosition);
+          const toStateCenterPosition = this.getStateCenterPosition(statePosition);
+          this.setSvgTransitionCurvedLinePath(transitionRef, fromStateCenterPosition, toStateCenterPosition);
+          textPositionAndAngle = this.getTransitionCurvedLineTextPositionAndAngle(fromStatePosition, statePosition);
+        } else {
+          const transitionEndPosition = this.getTransitionLineEndPosition({
+            x1: fromStatePosition.x, y1: fromStatePosition.y, x2: x, y2: y
+          });
+          this.setSvgTransitionLineEndCoords(transitionRef, transitionEndPosition);
+          textPositionAndAngle = this.getTransitionLineTextPositionAndAngle(fromStatePosition, statePosition);
+        }
         this.setSvgTextPositionAndAngle(textRef, textPositionAndAngle);
       }
     });
@@ -393,9 +435,27 @@ export class AutomataPage extends Component {
           textAnchor="middle"
           stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
           fill={this.props.settings.darkTheme ? '#fff' : '#000'}
-          ref={text => {
-            this[textRefString] = text
-          }}>{transitionTexts.join(', ')}</text>
+          ref={text => this[textRefString] = text}>{transitionTexts.join(', ')}</text>
+      };
+    };
+
+    const createTransitionCurvedLine = (transitionTexts, lineRefString, textRefString, linePosition = defaultPosition) => {
+      return {
+        line: <path
+          key={lineRefString}
+          d=""
+          fill="none"
+          stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
+          strokeWidth="2"
+          markerEnd="url(#arrowhead)"
+          ref={line => this[lineRefString] = line} />,
+        text: <text
+          key={textRefString}
+          fontSize="20"
+          textAnchor="middle"
+          stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
+          fill={this.props.settings.darkTheme ? '#fff' : '#000'}
+          ref={text => this[textRefString] = text}>{transitionTexts.join(', ')}</text>
       };
     };
 
@@ -425,12 +485,20 @@ export class AutomataPage extends Component {
       const loopRefString = this.getTransitionLineRefName(fromState, transitionText, toState);
       const textRefString = this.getTransitionTextRefName(fromState, transitionText, toState);
       if(fromState === toState) {
-        const transitionLoop = createTransitionLoop([transitionText], loopRefString, textRefString);
+        const transitionLoop = createTransitionLoop([transitionText], loopRefString, textRefString); // TODO refactor this function
         svgChildren.push(transitionLoop.loop);
         svgChildren.push(transitionLoop.text);
       }
       else {
-        const transitionLine = createTransitionLine([transitionText], loopRefString, textRefString);
+        let transitionLine;
+        if(this.props.simplifiedTransitionFunction.some(transitionObject =>
+            transitionObject.fromState === toState &&
+            transitionObject.toState === fromState
+          )) {
+          transitionLine = createTransitionCurvedLine([transitionText], loopRefString, textRefString);
+        } else {
+          transitionLine = createTransitionLine([transitionText], loopRefString, textRefString);
+        }
         svgChildren.push(transitionLine.line);
         svgChildren.push(transitionLine.text);
       }

@@ -113,6 +113,59 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
       break;
   }
   switch(modalType) {
+    case modalTypes.RENAME_AUTOMATON_MODAL: {
+      const name = getValue('name');
+      let automatonTypeName;
+      switch(automatonType) {
+        case automatonTypes.FSM:
+          automatonTypeName = 'FSM';
+          break;
+        case automatonTypes.PDA:
+          automatonTypeName = 'PDA';
+          break;
+        case automatonTypes.TM:
+          automatonTypeName = 'TM';
+          break;
+      }
+      const submit = () => {
+        const value = $('#renameAutomatonInput').val();
+        dispatch(actions.changeName(value));
+        dispatch(removeModal());
+      };
+      return {
+        header: 'Rename ' + automatonTypeName,
+        body: (
+          <Form>
+            <Form.Group>
+              {/* Form.Input does not have autocomplete property */}
+              <div className="field">
+                <div className="ui input">
+                  <input
+                    type="text"
+                    id="renameAutomatonInput"
+                    placeholder="Enter a new name"
+                    autoComplete="off"
+                    autoFocus
+                    onKeyDown={e => {
+                      if(e.which === 13 || e.keyCode === 13) {
+                        submit();
+                      }
+                    }} /> {/* TODO use refs instead of id attribute */}
+                </div>
+              </div>
+            </Form.Group>
+          </Form>
+        ),
+        actions: [
+          <CancelButton
+            key="cancel"
+            onClick={() => dispatch(removeModal())} />,
+          <SubmitButton
+            key="submit"
+            onClick={submit} />
+        ]
+      };
+    }
     case modalTypes.STATES_MODAL: {
       const states = getValue('states').toArray().sort();
       return {

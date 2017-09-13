@@ -477,9 +477,12 @@ export class AutomataPage extends Component {
       <div className="content-container">
         <div className="control-panel-left">
           <h2 className="control-panel-text">
-            <EditableTextField
-              value={this.props.name}
-              onChange={name => this.props.changeName(name)} />
+            <span className="clickable" onClick={() => {
+              this.props.dispatch(createModal(modalTypes.RENAME_AUTOMATON_MODAL));
+              this.props.dispatch(setModalState({ name: this.props.name }));
+            }}>
+              {this.props.name}
+            </span>
           </h2>
           {
             this.props.formalProperties.map(formalProperty => {

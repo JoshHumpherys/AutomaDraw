@@ -129,7 +129,9 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
       }
       const submit = () => {
         const value = $('#renameAutomatonInput').val();
-        dispatch(actions.changeName(value));
+        if(value.length > 0) {
+          dispatch(actions.changeName(value));
+        }
         dispatch(removeModal());
       };
       return {

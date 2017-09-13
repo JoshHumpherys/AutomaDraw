@@ -388,10 +388,10 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
       const pushSymbols = getValue('pushSymbols') || stackAlphabet[0];
 
       // TODO add empty string symbol
-      const pushSymbolsOptions = new Set([].concat(...stackAlphabet.map(a => stackAlphabet.map(b => a + b))))
+      const pushSymbolsOptions = new Set(stackAlphabet.map(s => s + stackSymbol))
         .union(stackAlphabet)
         .toArray()
-        .sort()
+        .sort((a, b) => (a.length === b.length) ? a - b : a.length - b.length)
         .map(pushSymbol => ({ text: pushSymbol, value: pushSymbol, key: pushSymbol }));
 
       return {
@@ -431,7 +431,13 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
                   options={
                     stackAlphabet.map(inputSymbol => ({ text: inputSymbol, value: inputSymbol, key: inputSymbol }))
                   }
-                  onChange={(e, data) => dispatch(setModalState({ stackSymbol: data.value }))} />
+                  onChange={(e, data) => {
+                    let newPushSymbols = pushSymbols;
+                    if(pushSymbols.length === 2 && pushSymbols.charAt(1) !== data.value) {
+                      newPushSymbols = null;
+                    }
+                    dispatch(setModalState({ stackSymbol: data.value, pushSymbols: newPushSymbols }));
+                  }} />
               </Form.Field>
               <Form.Field>
                 <label>To State</label>
@@ -445,7 +451,9 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
               </Form.Field>
               <Form.Field>
                 <label>Push Symbols</label>
+                {/* TODO figure out if a key is the correct fix for getting the correct default value */}
                 <Dropdown
+                  key={pushSymbols}
                   placeholder="Select push symbols"
                   defaultValue={pushSymbols}
                   fluid

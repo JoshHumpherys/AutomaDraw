@@ -1,4 +1,4 @@
-import { Map } from 'immutable'
+import { Set } from 'immutable'
 
 export const getTm = state => {
   return {
@@ -11,7 +11,25 @@ export const getTm = state => {
 };
 
 export const getSimplifiedTransitionFunction = transitionFunction => {
-  return transitionFunction.map(({ fromState, inputSymbol, toState, writeSymbol, moveDirection }) => {
-    return { fromState, transitionText: inputSymbol + '/' + writeSymbol + ',' + moveDirection, toState };
+  let newTransitionFunction;
+
+  new Set().withMutations(keys => {
+    const find = key => {
+      for(const k of keys.toArray()) {
+        if(k.fromState === key.fromState && k.toState === key.toState) {
+          return k;
+        }
+      }
+      keys = keys.add(key);
+      return key;
+    };
+
+    newTransitionFunction = transitionFunction
+      .map(({ fromState, inputSymbol, toState, writeSymbol, moveDirection }) =>
+        ({ fromState, transitionText: inputSymbol + '/' + writeSymbol + ',' + moveDirection, toState }))
+      .groupBy(x => find({ fromState: x.fromState, toState: x.toState }))
+      .map(x => ({ ...x.first(), transitionText: x.map(y => y.transitionText).join(', ') }));
   });
+
+  return newTransitionFunction;
 };

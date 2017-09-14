@@ -123,7 +123,7 @@ export class TmPage extends Component {
     const transitionFunctionSorted = transitionFunction.map(transitionObject => {
       const { fromState, inputSymbol, toState, writeSymbol, moveDirection } = transitionObject;
       return {
-        stringValue: arrayToTuple([fromState, inputSymbol, toState, writeSymbol, moveDirection]),
+        transitionString: arrayToTuple([fromState, inputSymbol, toState, writeSymbol, moveDirection]),
         transitionObject
       };
     }).toArray().sort((a, b) => {
@@ -133,14 +133,14 @@ export class TmPage extends Component {
     const transitionFunctionDiv = transitionFunction.size > 0 ? (
       <div>
         {
-          transitionFunctionSorted.map(({ stringValue, transitionObject }) => {
+          transitionFunctionSorted.map(({ transitionString, transitionObject }) => {
             return (
               <div>
-                <span key={stringValue} onClick={() => {
-                  this.props.dispatch(setModalState({ ...transitionObject, stringValue }));
+                <span key={transitionString} onClick={() => {
+                  this.props.dispatch(setModalState({ ...transitionObject, transitionString }));
                   this.props.dispatch(createModal(modalTypes.DELETE_TRANSITION_MODAL));
                 }} className="clickable">
-                  {stringValue}
+                  {transitionString}
                 </span>
               </div>
             );

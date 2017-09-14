@@ -129,7 +129,7 @@ export class PdaPage extends Component {
     const transitionFunctionSorted = transitionFunction.map(transitionObject => {
       const { fromState, inputSymbol, stackSymbol, toState, pushSymbols } = transitionObject;
       return {
-        stringValue: arrayToTuple([fromState, inputSymbol, stackSymbol, toState, pushSymbols]),
+        transitionString: arrayToTuple([fromState, inputSymbol, stackSymbol, toState, pushSymbols]),
         transitionObject
       };
     }).toArray().sort((a, b) => {
@@ -139,14 +139,14 @@ export class PdaPage extends Component {
     const transitionFunctionDiv = transitionFunction.size > 0 ? (
       <div>
         {
-          transitionFunctionSorted.map(({ stringValue, transitionObject }) => {
+          transitionFunctionSorted.map(({ transitionString, transitionObject }) => {
             return (
               <div>
-                <span key={stringValue} onClick={() => {
-                  this.props.dispatch(setModalState({ ...transitionObject, stringValue }));
+                <span key={transitionString} onClick={() => {
+                  this.props.dispatch(setModalState({ ...transitionObject, transitionString }));
                   this.props.dispatch(createModal(modalTypes.DELETE_TRANSITION_MODAL));
                 }} className="clickable">
-                  {stringValue}
+                  {transitionString}
                 </span>
               </div>
             );

@@ -112,22 +112,22 @@ export class FsmPage extends Component {
     const arrayToTuple = array => '(' + array.join(', ') + ')';
     const transitionFunctionSorted = transitionFunction.map(transitionObject => {
       const { fromState, inputSymbol, toState } = transitionObject;
-      return { stringValue: arrayToTuple([fromState, inputSymbol, toState]), transitionObject };
+      return { transitionString: arrayToTuple([fromState, inputSymbol, toState]), transitionObject };
     }).toArray().sort((a, b) => {
-      return a.stringValue > b.stringValue ? 1 : -1;
+      return a.transitionString > b.transitionString ? 1 : -1;
     });
 
     const transitionFunctionDiv = transitionFunction.size > 0 ? (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {
-          transitionFunctionSorted.map(({ stringValue, transitionObject }) => {
+          transitionFunctionSorted.map(({ transitionString, transitionObject }) => {
             return (
-              <div key={stringValue}>
+              <div key={transitionString}>
                 <span onClick={() => {
-                  this.props.dispatch(setModalState({ ...transitionObject, stringValue }));
+                  this.props.dispatch(setModalState({ ...transitionObject, transitionString }));
                   this.props.dispatch(createModal(modalTypes.DELETE_TRANSITION_MODAL));
                 }} className="clickable">
-                  {stringValue}
+                  {transitionString}
                 </span>
               </div>
             );

@@ -584,7 +584,7 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
     case modalTypes.DELETE_TRANSITION_MODAL: {
       return {
         header: 'Delete Transition',
-        body: 'Are you sure you want to delete transition ' + getValue('instruction') + '?',
+        body: 'Are you sure you want to delete transition ' + getValue('transitionString') + '?',
         actions: [
           <CancelButton
             key="cancel"

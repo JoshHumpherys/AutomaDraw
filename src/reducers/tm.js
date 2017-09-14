@@ -140,8 +140,14 @@ export default function tm(
     }
     case actionTypes.TM_BLANK_SYMBOL_CHANGED: {
       const { blankSymbol } = action.payload;
-      const inputAlphabet = state.inputAlphabet.remove(blankSymbol);
-      return { ...state, blankSymbol, inputAlphabet };
+      return {
+        ...state,
+        blankSymbol,
+        inputAlphabet: state.inputAlphabet.remove(blankSymbol),
+        transitionFunction: state.transitionFunction.filter(transitionObject => {
+          return blankSymbol !== transitionObject.inputSymbol && blankSymbol !== transitionObject.writeSymbol;
+        })
+      };
     }
     case actionTypes.TM_BLANK_SYMBOL_REMOVED: {
       return { ...state, blankSymbol: null };

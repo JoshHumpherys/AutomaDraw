@@ -314,6 +314,12 @@ export class AutomataPage extends Component {
       }
     });
 
+    if(this.state.creatingTransitionFromState === state) {
+      const transitionRef = this[this.creatingTransitionLineRef];
+      const transitionStartCoords = this.getStateCenterPosition({ x, y });
+      this.setSvgTransitionLineStartCoords(transitionRef, transitionStartCoords);
+    }
+
     if(this.props.initialState === state) { // The state being moved is the initial state
       const initialTransitionRef = this[this.initialTransitionLineRef];
       const stateCenterPosition = this.getStateCenterPosition(statePosition);

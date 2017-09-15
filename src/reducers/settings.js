@@ -14,10 +14,10 @@ export default function fsm(
       return { ...state, darkTheme: action.payload.darkTheme };
     }
     case actionTypes.SETTINGS_EMPTY_STRING_SYMBOL_SET: {
-      return { ...state, emptyStringSymbol: action.payload.emptyStringSymbol };
+      return { ...state, emptyStringSymbol: action.payload.newEmptyStringSymbol };
     }
     case actionTypes.SETTINGS_ALTERNATION_SYMBOL_SET: {
-      return { ...state, alternationSymbol: action.payload.alternationSymbol };
+      return { ...state, alternationSymbol: action.payload.newAlternationSymbol };
     }
     default: {
       return state;

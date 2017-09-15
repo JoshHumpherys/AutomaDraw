@@ -9,8 +9,6 @@ import { Set } from 'immutable'
 import { createModal, setModalState } from '../actions/modal'
 import * as modalTypes from '../constants/modalTypes'
 
-import EditableTextField from './EditableTextField'
-
 export class AutomataPage extends Component {
   constructor(props) {
     super(props);

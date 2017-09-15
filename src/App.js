@@ -22,7 +22,8 @@ export class App extends Component {
         this.props.modalState,
         this.props.modalType,
         this.props.automatonType,
-        this.props.dispatch
+        this.props.dispatch,
+        this.props.settings.emptyStringSymbol
       );
       return (
         <div className={'main-container' + (this.props.settings.darkTheme ? ' main-container-dark-theme' : '')}>

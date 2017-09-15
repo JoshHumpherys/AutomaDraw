@@ -32,7 +32,9 @@ export class SettingsPopup extends Component {
                 { text: 'Epsilon', value: emptyStringSymbols.EPSILON }
               ]
             }
-            onChange={(e, data) => this.props.dispatch(setEmptyStringSymbol(data.value))}
+            onChange={(e, data) => {
+              this.props.dispatch(setEmptyStringSymbol(this.props.settings.emptyStringSymbol, data.value));
+            }}
           />
         </div>
         <br />
@@ -50,7 +52,9 @@ export class SettingsPopup extends Component {
                 { text: 'Logical Or', value: alternationSymbols.LOGICAL_OR }
               ]
             }
-            onChange={(e, data) => this.props.dispatch(setAlternationSymbol(data.value))}
+            onChange={(e, data) => {
+              this.props.dispatch(setAlternationSymbol(this.props.settings.alternationSymbol, data.value));
+            }}
           />
         </div>
       </div>

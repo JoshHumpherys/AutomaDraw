@@ -47,7 +47,7 @@ class SubmitButton extends Component {
   }
 }
 
-export default (automaton, modalState, modalType, automatonType, dispatch) => {
+export default (automaton, modalState, modalType, automatonType, dispatch, emptyStringSymbol) => {
   const getValue = key => modalState[key] || automaton[key];
 
   const createMultiSelectWithAdditionModalBody =
@@ -243,11 +243,11 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
           actions: [
             <CancelButton
               key="cancel"
-              onClick={() => dispatch(removeModal())}/>,
+              onClick={() => dispatch(removeModal())} />,
             <SubmitButton
               key="submit"
               onClick={() => {
-                dispatch(actions.setInputAlphabet(getValue('inputAlphabet').toArray().sort()));
+                dispatch(actions.setInputAlphabet(getValue('inputAlphabet').toArray().sort(), emptyStringSymbol));
                 dispatch(removeModal());
               }}/>
           ]
@@ -280,7 +280,7 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
                 const value = this.modalDropdown.state.value;
                 dispatch(actions.setInputAlphabet(value.sort()));
                 dispatch(removeModal());
-              }}/>
+              }} />
           ]
         };
       }
@@ -305,6 +305,7 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
     case modalTypes.FSM_TRANSITION_MODAL: {
       const states = getValue('states').toArray().sort();
       const inputAlphabet = getValue('inputAlphabet').toArray().sort();
+      inputAlphabet.unshift(emptyStringSymbol);
       const fromState = getValue('fromState') || states[0];
       const inputSymbol = getValue('inputSymbol') || inputAlphabet[0];
       const toState = getValue('toState') || states[0];
@@ -370,7 +371,7 @@ export default (automaton, modalState, modalType, automatonType, dispatch) => {
                   transitionObject.inputSymbol === inputSymbol &&
                   transitionObject.toState === toState
                 )) {
-                dispatch(actions.addTransition(fromState, inputSymbol, toState));
+                dispatch(actions.addTransition(fromState, inputSymbol, toState, emptyStringSymbol));
               }
               dispatch(removeModal());
             }} />

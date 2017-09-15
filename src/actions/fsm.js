@@ -48,8 +48,8 @@ export function setAcceptStates(states) {
   return { type: actionTypes.FSM_ACCEPT_STATES_SET, payload: { states } };
 }
 
-export function addTransition(fromState, inputSymbol, toState) {
-  return { type: actionTypes.FSM_TRANSITION_ADDED, payload: { fromState, inputSymbol, toState } };
+export function addTransition(fromState, inputSymbol, toState, emptyStringSymbol) {
+  return { type: actionTypes.FSM_TRANSITION_ADDED, payload: { fromState, inputSymbol, toState, emptyStringSymbol } };
 }
 
 export function removeTransition(fromState, inputSymbol, toState) {
@@ -60,8 +60,8 @@ export function addInputSymbol(symbol) {
   return { type: actionTypes.FSM_INPUT_SYMBOL_ADDED, payload: { symbol } };
 }
 
-export function setInputAlphabet(inputAlphabet) {
-  return { type: actionTypes.FSM_INPUT_ALPHABET_SET, payload: { inputAlphabet } };
+export function setInputAlphabet(inputAlphabet, emptyStringSymbol) {
+  return { type: actionTypes.FSM_INPUT_ALPHABET_SET, payload: { inputAlphabet, emptyStringSymbol } };
 }
 
 export function initializeFromJsonString(jsonString) {

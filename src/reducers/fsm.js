@@ -1,5 +1,5 @@
 import * as actionTypes from '../constants/actionTypes'
-import { Set, Map } from 'immutable';
+import { Set, Map } from 'immutable'
 import {
   changeName,
   moveState,
@@ -76,12 +76,12 @@ export default function fsm(
     case actionTypes.FSM_ACCEPT_STATES_SET: {
       return setAcceptStates(state, action.payload.states);
     }
-    case actionTypes.FSM_TRANSITION_ADDED: {
-      const { fromState, inputSymbol, toState } = action.payload;
+    case actionTypes.FSM_TRANSITION_ADDED: { // TODO this case doesn't need to modify states or inputAlphabet
+      const { fromState, inputSymbol, toState, emptyStringSymbol } = action.payload;
       return {
         ...state,
         states: state.states.add(fromState).add(toState),
-        inputAlphabet: state.inputAlphabet.add(inputSymbol),
+        inputAlphabet: inputSymbol !== emptyStringSymbol ? state.inputAlphabet.add(inputSymbol) : state.inputAlphabet,
         transitionFunction: state.transitionFunction.add(createInstruction(fromState, inputSymbol, toState))
       };
     }
@@ -97,21 +97,39 @@ export default function fsm(
           })
       };
     }
-    case actionTypes.FSM_INPUT_SYMBOL_ADDED: {
+    case actionTypes.FSM_INPUT_SYMBOL_ADDED: { // TODO don't allow user to add empty string symbol
       return { ...state, inputAlphabet: state.inputAlphabet.add(action.payload.symbol) };
     }
-    case actionTypes.FSM_INPUT_ALPHABET_SET: {
-      const { inputAlphabet } = action.payload;
+    case actionTypes.FSM_INPUT_ALPHABET_SET: { // TODO don't allow user to add empty string symbol
+      const { inputAlphabet, emptyStringSymbol } = action.payload;
       return {
         ...state,
         inputAlphabet: new Set(inputAlphabet),
         transitionFunction: state.transitionFunction.filter(transitionObject =>
-          inputAlphabet.includes(transitionObject.inputSymbol)
+          inputAlphabet.includes(transitionObject.inputSymbol) || transitionObject.inputSymbol === emptyStringSymbol
         )
       };
     }
-    case actionTypes.FSM_INITIALIZED_FROM_JSON_STRING: {
-      const fsm = JSON.parse(action.payload.jsonString);
+    case actionTypes.SETTINGS_EMPTY_STRING_SYMBOL_SET: {
+      return {
+        ...state,
+        inputAlphabet: state.inputAlphabet.map(inputSymbol => {
+          if(inputSymbol === action.payload.oldEmptyStringSymbol) {
+            return action.payload.newEmptyStringSymbol;
+          }
+          return inputSymbol;
+        }),
+        transitionFunction: state.transitionFunction.map(transitionObject => {
+          if(transitionObject.inputSymbol === action.payload.oldEmptyStringSymbol) {
+            return { ...transitionObject, inputSymbol: action.payload.newEmptyStringSymbol };
+          }
+          return transitionObject;
+        })
+      };
+    }
+    case actionTypes.FSM_INITIALIZED_FROM_JSON_STRING: { // TODO load fsm with correct empty string symbol
+      const { jsonString } = action.payload;
+      const fsm = JSON.parse(jsonString);
       return {
         ...fsm,
         states: new Set(fsm.states),

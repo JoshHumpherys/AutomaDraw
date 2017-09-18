@@ -48,10 +48,10 @@ export function setAcceptStates(states) {
   return { type: actionTypes.PDA_ACCEPT_STATES_SET, payload: { states } };
 }
 
-export function addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols) {
+export function addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols, emptyStringSymbol) {
   return {
     type: actionTypes.PDA_TRANSITION_ADDED,
-    payload: { fromState, inputSymbol, stackSymbol, toState, pushSymbols }
+    payload: { fromState, inputSymbol, stackSymbol, toState, pushSymbols, emptyStringSymbol }
   };
 }
 
@@ -66,8 +66,8 @@ export function addInputSymbol(inputSymbol) {
   return { type: actionTypes.PDA_INPUT_SYMBOL_ADDED, payload: { inputSymbol } };
 }
 
-export function setInputAlphabet(inputAlphabet) {
-  return { type: actionTypes.PDA_INPUT_ALPHABET_SET, payload: { inputAlphabet } };
+export function setInputAlphabet(inputAlphabet, emptyStringSymbol) {
+  return { type: actionTypes.PDA_INPUT_ALPHABET_SET, payload: { inputAlphabet, emptyStringSymbol } };
 }
 
 export function addStackSymbol(stackSymbol) {

@@ -278,7 +278,7 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
               key="submit"
               onClick={() => {
                 const value = this.modalDropdown.state.value;
-                dispatch(actions.setInputAlphabet(value.sort()));
+                dispatch(actions.setInputAlphabet(value.sort(), emptyStringSymbol));
                 dispatch(removeModal());
               }} />
           ]
@@ -381,19 +381,24 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
     case modalTypes.PDA_TRANSITION_MODAL: {
       const states = getValue('states').toArray().sort();
       const inputAlphabet = getValue('inputAlphabet').toArray().sort();
-      const stackAlphabet = getValue('stackAlphabet').toArray().sort();
+      inputAlphabet.unshift(emptyStringSymbol);
+      const stackAlphabet = getValue('stackAlphabet').toArray().sort(); // Don't add empty string symbol until below
       const fromState = getValue('fromState') || states[0];
-      const inputSymbol = getValue('inputSymbol') || inputAlphabet[0];
-      const stackSymbol = getValue('stackSymbol') || stackAlphabet[0];
+      const inputSymbol = getValue('inputSymbol') || emptyStringSymbol;
+      const stackSymbol = getValue('stackSymbol') || emptyStringSymbol;
       const toState = getValue('toState') || states[0];
-      const pushSymbols = getValue('pushSymbols') || stackAlphabet[0];
+      const pushSymbols = getValue('pushSymbols') || emptyStringSymbol;
 
-      // TODO add empty string symbol
-      const pushSymbolsOptions = new Set(stackAlphabet.map(s => s + stackSymbol))
-        .union(stackAlphabet)
-        .toArray()
-        .sort((a, b) => (a.length === b.length) ? a - b : a.length - b.length)
+      let pushSymbolsOptions =
+        (stackSymbol === emptyStringSymbol ? new Set() : new Set(stackAlphabet.map(s => s + stackSymbol)))
+          .union(stackAlphabet)
+          .toArray()
+          .sort((a, b) => (a.length === b.length) ? a - b : a.length - b.length);
+      pushSymbolsOptions.unshift(emptyStringSymbol);
+      pushSymbolsOptions = pushSymbolsOptions
         .map(pushSymbol => ({ text: pushSymbol, value: pushSymbol, key: pushSymbol }));
+
+      stackAlphabet.unshift(emptyStringSymbol);
 
       return {
         header: 'Add Transition',
@@ -480,7 +485,9 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
                   transitionObject.toState === toState &&
                   transitionObject.pushSymbols === pushSymbols
                 )) {
-                dispatch(actions.addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols));
+                dispatch(
+                  actions.addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols, emptyStringSymbol)
+                );
               }
               dispatch(removeModal());
             }} />

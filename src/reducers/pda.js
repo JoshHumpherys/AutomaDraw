@@ -76,14 +76,21 @@ export default function pda(
     case actionTypes.PDA_ACCEPT_STATES_SET: {
       return setAcceptStates(state, action.payload.states);
     }
-    case actionTypes.PDA_TRANSITION_ADDED: {
-      const { fromState, inputSymbol, stackSymbol, toState, pushSymbols } = action.payload;
+    case actionTypes.PDA_TRANSITION_ADDED: { // TODO this case doesn't need to modify states or inputAlphabet
+      const { fromState, inputSymbol, stackSymbol, toState, pushSymbols, emptyStringSymbol } = action.payload;
       const transition = createInstruction(fromState, inputSymbol, stackSymbol, toState, pushSymbols);
+      let { stackAlphabet } = state;
+      if(stackSymbol !== emptyStringSymbol) {
+        stackAlphabet = stackAlphabet.add(stackSymbol);
+      }
+      if(pushSymbols !== emptyStringSymbol) {
+        stackAlphabet = stackAlphabet.union(pushSymbols);
+      }
       return {
         ...state,
         states: state.states.add(fromState).add(toState),
-        inputAlphabet: state.inputAlphabet.add(inputSymbol),
-        stackAlphabet: state.stackAlphabet.add(stackSymbol).union(pushSymbols),
+        inputAlphabet: inputSymbol !== emptyStringSymbol ? state.inputAlphabet.add(inputSymbol) : state.inputAlphabet,
+        stackAlphabet,
         transitionFunction: state.transitionFunction.add(transition)
       };
     }
@@ -101,13 +108,13 @@ export default function pda(
           })
       };
     }
-    case actionTypes.PDA_INPUT_SYMBOL_ADDED: {
+    case actionTypes.PDA_INPUT_SYMBOL_ADDED: { // TODO don't allow user to add empty string symbol
       return {
         ...state,
         inputAlphabet: state.inputAlphabet.add(action.payload.inputSymbol)
       }
     }
-    case actionTypes.PDA_INPUT_ALPHABET_SET: {
+    case actionTypes.PDA_INPUT_ALPHABET_SET: { // TODO don't allow user to add empty string symbol
       const { inputAlphabet } = action.payload;
       return {
         ...state,
@@ -117,10 +124,10 @@ export default function pda(
         )
       };
     }
-    case actionTypes.PDA_STACK_SYMBOL_ADDED: {
+    case actionTypes.PDA_STACK_SYMBOL_ADDED: { // TODO don't allow user to add empty string symbol
       return { ...state, stackAlphabet: state.stackAlphabet.add(action.payload.stackSymbol) };
     }
-    case actionTypes.PDA_STACK_ALPHABET_SET: {
+    case actionTypes.PDA_STACK_ALPHABET_SET: { // TODO don't allow user to add empty string symbol
       const { stackAlphabet } = action.payload;
       return {
         ...state,
@@ -141,6 +148,35 @@ export default function pda(
     }
     case actionTypes.PDA_INITIAL_STACK_SYMBOL_REMOVED: {
       return { ...state, initialStackSymbol: null };
+    }
+    case actionTypes.SETTINGS_EMPTY_STRING_SYMBOL_SET: {
+      const { oldEmptyStringSymbol, newEmptyStringSymbol } = action.payload;
+      return {
+        ...state,
+        inputAlphabet: state.inputAlphabet.map(inputSymbol => {
+          if(inputSymbol === oldEmptyStringSymbol) {
+            return newEmptyStringSymbol;
+          }
+          return inputSymbol;
+        }),
+        stackAlphabet: state.stackAlphabet.map(stackAlphabet => {
+          if(stackAlphabet === oldEmptyStringSymbol) {
+            return newEmptyStringSymbol;
+          }
+          return stackAlphabet;
+        }),
+        transitionFunction: state.transitionFunction.map(transitionObject => {
+          return {
+            ...transitionObject,
+            inputSymbol: transitionObject.inputSymbol === oldEmptyStringSymbol ?
+              newEmptyStringSymbol : transitionObject.inputSymbol,
+            stackSymbol: transitionObject.stackSymbol === oldEmptyStringSymbol ?
+              newEmptyStringSymbol : transitionObject.stackSymbol,
+            pushSymbols: transitionObject.pushSymbols === oldEmptyStringSymbol ?
+              newEmptyStringSymbol : transitionObject.pushSymbols
+          };
+        })
+      };
     }
     case actionTypes.PDA_INITIALIZED_FROM_JSON_STRING: {
       const pda = JSON.parse(action.payload.jsonString);

@@ -116,8 +116,8 @@ export default function tm(
         blankSymbol: tapeAlphabet.includes(state.blankSymbol) ? state.blankSymbol : null,
         inputAlphabet,
         transitionFunction: state.transitionFunction.filter(transitionObject => {
-          return inputAlphabet.includes(transitionObject.inputSymbol) &&
-            inputAlphabet.includes(transitionObject.writeSymbol);
+          return tapeAlphabet.includes(transitionObject.inputSymbol) &&
+            tapeAlphabet.includes(transitionObject.writeSymbol);
         })
       };
     }
@@ -131,11 +131,7 @@ export default function tm(
       const { inputAlphabet } = action.payload;
       return {
         ...state,
-        inputAlphabet: new Set(inputAlphabet),
-        transitionFunction: state.transitionFunction.filter(transitionObject => {
-          return inputAlphabet.includes(transitionObject.inputSymbol) &&
-            inputAlphabet.includes(transitionObject.writeSymbol);
-        })
+        inputAlphabet: new Set(inputAlphabet)
       };
     }
     case actionTypes.TM_BLANK_SYMBOL_CHANGED: {
@@ -143,10 +139,7 @@ export default function tm(
       return {
         ...state,
         blankSymbol,
-        inputAlphabet: state.inputAlphabet.remove(blankSymbol),
-        transitionFunction: state.transitionFunction.filter(transitionObject => {
-          return blankSymbol !== transitionObject.inputSymbol && blankSymbol !== transitionObject.writeSymbol;
-        })
+        inputAlphabet: state.inputAlphabet.remove(blankSymbol)
       };
     }
     case actionTypes.TM_BLANK_SYMBOL_REMOVED: {

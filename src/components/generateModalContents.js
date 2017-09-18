@@ -496,11 +496,13 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
     }
     case modalTypes.TM_TRANSITION_MODAL: {
       const states = getValue('states').toArray().sort();
-      const inputAlphabet = getValue('inputAlphabet').toArray().sort();
+      const blankSymbol = getValue('blankSymbol');
+      let tapeAlphabet = getValue('tapeAlphabet').remove(blankSymbol).toArray().sort();
+      tapeAlphabet.unshift(blankSymbol);
       const fromState = getValue('fromState') || states[0];
-      const inputSymbol = getValue('inputSymbol') || inputAlphabet[0];
+      const inputSymbol = getValue('inputSymbol') || tapeAlphabet[0];
       const toState = getValue('toState') || states[0];
-      const writeSymbol = getValue('writeSymbol') || inputAlphabet[0];
+      const writeSymbol = getValue('writeSymbol') || tapeAlphabet[0];
       const moveDirection = getValue('moveDirection') || 'L';
 
       const moveDirections = ['L', 'R'];
@@ -528,7 +530,7 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
                   fluid
                   selection
                   options={
-                    inputAlphabet.map(inputSymbol => ({ text: inputSymbol, value: inputSymbol, key: inputSymbol }))
+                    tapeAlphabet.map(inputSymbol => ({ text: inputSymbol, value: inputSymbol, key: inputSymbol }))
                   }
                   onChange={(e, data) => dispatch(setModalState({ inputSymbol: data.value }))} />
               </Form.Field>
@@ -550,7 +552,7 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
                   fluid
                   selection
                   options={
-                    inputAlphabet.map(writeSymbol => ({ text: writeSymbol, value: writeSymbol, key: writeSymbol }))
+                    tapeAlphabet.map(writeSymbol => ({ text: writeSymbol, value: writeSymbol, key: writeSymbol }))
                   }
                   onChange={(e, data) => dispatch(setModalState({ writeSymbol: data.value }))} />
               </Form.Field>

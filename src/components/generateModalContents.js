@@ -498,7 +498,9 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
       const states = getValue('states').toArray().sort();
       const blankSymbol = getValue('blankSymbol');
       let tapeAlphabet = getValue('tapeAlphabet').remove(blankSymbol).toArray().sort();
-      tapeAlphabet.unshift(blankSymbol);
+      if(blankSymbol !== null) {
+        tapeAlphabet.unshift(blankSymbol);
+      }
       const fromState = getValue('fromState') || states[0];
       const inputSymbol = getValue('inputSymbol') || tapeAlphabet[0];
       const toState = getValue('toState') || states[0];

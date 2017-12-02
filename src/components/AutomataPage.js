@@ -163,8 +163,16 @@ export class AutomataPage extends Component {
     const dy = endCoords.y - startCoords.y;
     const r = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
     const cx = (startCoords.x + endCoords.x) / 2 + 50 * dy / r;
-    const cy = (startCoords.y + endCoords.y) / 2 - 50 * (dx >= 0 ? 1 : -1) * Math.abs(dx) / r;
-    const path = 'M ' + coordsToString(startCoords) + ' Q ' + cx + ' ' + cy + ' ' + coordsToString(endCoords);
+    const cy = (startCoords.y + endCoords.y) / 2 - 50 * dx / r;
+    const newStartCoords = {
+      x: startCoords.x + 20 * dx / r,
+      y: startCoords.y + 20 * dy / r
+    };
+    const newEndCoords = {
+      x: endCoords.x - 20 * dx / r,
+      y: endCoords.y - 20 * dy / r
+    };
+    const path = 'M ' + coordsToString(newStartCoords) + ' Q ' + cx + ' ' + cy + ' ' + coordsToString(newEndCoords);
     transitionRef.setAttribute('d', path);
   }
 
@@ -293,7 +301,7 @@ export class AutomataPage extends Component {
           const toStatePosition = this.props.statePositions.get(toState);
           const transitionStartPosition = this.getStateCenterPosition(statePosition);
           let textPositionAndAngle;
-          if(transitionRef.tagName === 'path') {
+          if(transitionRef.tagName === 'path') { // TODO this probably isn't the best way to check if curved transition
             const toStateCenterPosition = this.getStateCenterPosition(toStatePosition);
             this.setSvgTransitionCurvedLinePath(transitionRef, transitionStartPosition, toStateCenterPosition);
             textPositionAndAngle = this.getTransitionCurvedLineTextPositionAndAngle(statePosition, toStatePosition);
@@ -311,7 +319,7 @@ export class AutomataPage extends Component {
         const textRef = this[this.getTransitionTextRefName(fromState, transitionText, state)];
         const fromStatePosition = this.props.statePositions.get(fromState);
         let textPositionAndAngle;
-        if(transitionRef.tagName === 'path') {
+        if(transitionRef.tagName === 'path') { // TODO this probably isn't the best way to check if curved transition
           const fromStateCenterPosition = this.getStateCenterPosition(fromStatePosition);
           const toStateCenterPosition = this.getStateCenterPosition(statePosition);
           this.setSvgTransitionCurvedLinePath(transitionRef, fromStateCenterPosition, toStateCenterPosition);

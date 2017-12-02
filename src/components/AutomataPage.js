@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import { getSettings } from '../selectors/settings'
 import interact from 'interactjs'
 import $ from 'jquery'
-import { Button, Checkbox, Dropdown, Icon } from 'semantic-ui-react'
+import { Button, Checkbox, Dropdown, Icon, Input } from 'semantic-ui-react'
 import { saveAs } from 'file-saver'
 import { Set } from 'immutable'
 import { createModal, setModalState } from '../actions/modal'
@@ -43,11 +43,11 @@ export class AutomataPage extends Component {
     this.setSvgTransitionCurvedLinePath = this.setSvgTransitionCurvedLinePath.bind(this);
     this.setSvgTextPosition = this.setSvgTextPosition.bind(this);
     this.setSvgTextPositionAndAngle = this.setSvgTextPositionAndAngle.bind(this);
-    this.centerContainerMouseDown = this.centerContainerMouseDown.bind(this);
-    this.centerContainerMouseUp = this.centerContainerMouseUp.bind(this);
-    this.centerContainerMouseMove = this.centerContainerMouseMove.bind(this);
-    this.centerContainerKeyDown = this.centerContainerKeyDown.bind(this);
-    this.centerContainerKeyUp = this.centerContainerKeyUp.bind(this);
+    this.automataContainerMouseDown = this.automataContainerMouseDown.bind(this);
+    this.automataContainerMouseUp = this.automataContainerMouseUp.bind(this);
+    this.automataContainerMouseMove = this.automataContainerMouseMove.bind(this);
+    this.automataContainerKeyDown = this.automataContainerKeyDown.bind(this);
+    this.automataContainerKeyUp = this.automataContainerKeyUp.bind(this);
     this.stateMouseDown = this.stateMouseDown.bind(this);
     this.stateMouseUp = this.stateMouseUp.bind(this);
     this.getMousePositionRelativeToContainer = this.getMousePositionRelativeToContainer.bind(this);
@@ -55,6 +55,7 @@ export class AutomataPage extends Component {
     this.updateStatePositions = this.updateStatePositions.bind(this);
     this.stateRightClick = this.stateRightClick.bind(this);
     this.renameStateWithPopup = this.renameStateWithPopup.bind(this);
+    this.inputChanged = this.inputChanged.bind(this);
   }
 
   getStateRefName(state) {
@@ -190,9 +191,9 @@ export class AutomataPage extends Component {
     this.setState({ creatingTransitionFromState: state });
   }
 
-  centerContainerMouseDown(e) {
+  automataContainerMouseDown(e) {
     if(
-      e.target === this.centerContainer &&
+      e.target === this.automataContainer &&
       this.state.draggedElement === null &&
       this.state.creatingTransitionFromState === null &&
       this.state.contextMenuState === null
@@ -201,7 +202,7 @@ export class AutomataPage extends Component {
     }
   }
 
-  centerContainerMouseUp(e) {
+  automataContainerMouseUp(e) {
     if(this.state.placingNewState && this.state.creatingTransitionFromState === null) {
       const mousePosition = this.getMousePositionRelativeToContainer(e);
 
@@ -248,7 +249,7 @@ export class AutomataPage extends Component {
     this.setState({ creatingTransitionFromState: null });
   }
 
-  centerContainerMouseMove(e) {
+  automataContainerMouseMove(e) {
     e.target.focus();
     if(this.state.creatingTransitionFromState !== null) {
       const line = this[this.creatingTransitionLineRef];
@@ -258,9 +259,9 @@ export class AutomataPage extends Component {
     }
   }
 
-  centerContainerKeyDown(e) {}
+  automataContainerKeyDown(e) {}
 
-  centerContainerKeyUp(e) {}
+  automataContainerKeyUp(e) {}
 
   stateMouseDown(e, state) {
     this.props.selectState(state);
@@ -276,8 +277,8 @@ export class AutomataPage extends Component {
   }
 
   getMousePositionRelativeToContainer(event) {
-    const x = event.pageX - $(this.centerContainer).offset().left;
-    const y = event.pageY - $(this.centerContainer).offset().top;
+    const x = event.pageX - $(this.automataContainer).offset().left;
+    const y = event.pageY - $(this.automataContainer).offset().top;
     return { x, y };
   }
 
@@ -397,6 +398,12 @@ export class AutomataPage extends Component {
     };
 
     fileReader.readAsText(file, 'UTF-8');
+  }
+
+  inputChanged(e) {
+    const input = e.target.value;
+    this.setState({ inputString: input }); // TODO store in redux insteda
+    //this.props.dispatch(setRegex(input, this.props.emptyStringSymbol, this.props.alternationSymbol));
   }
 
   componentDidUpdate() {
@@ -628,92 +635,113 @@ export class AutomataPage extends Component {
             </Button>
           </div>
         </div>
-        <div className={'center-container' + (this.props.settings.darkTheme ? ' center-container-dark-theme' : '')}
-          onMouseDown={this.centerContainerMouseDown}
-          onMouseUp={this.centerContainerMouseUp}
-          ref={element => this.centerContainer = element}
-          onKeyDown={this.centerContainerKeyDown}
-          onKeyUp={this.centerContainerKeyUp}
-          onMouseMove={this.centerContainerMouseMove}
-          onContextMenu={e => e.preventDefault()}
-          tabIndex="0"> {/* TODO figure out why tabIndex attribute is required for onKeyDown to fire */}
-          {this.props.states.map(state => (
-            <div
-              key={state}
-              className={'state' + (state === this.props.selected ? ' selected-state' : '')}
-              ref={element => this[this.getStateRefName(state)] = element}
-              onMouseDown={e => this.stateMouseDown(e, state)}
-              onMouseUp={e => this.stateMouseUp(e, state)}
-              onDoubleClick={() => this.startCreatingTransition(state)}
-              onContextMenu={e => this.stateRightClick(e, state)}>
+        <div className="center-container">
+          <div className={'automata-container' + (this.props.settings.darkTheme ? ' automata-container-dark-theme' : '')}
+            onMouseDown={this.automataContainerMouseDown}
+            onMouseUp={this.automataContainerMouseUp}
+            ref={element => this.automataContainer = element}
+            onKeyDown={this.automataContainerKeyDown}
+            onKeyUp={this.automataContainerKeyUp}
+            onMouseMove={this.automataContainerMouseMove}
+            onContextMenu={e => e.preventDefault()}
+            tabIndex="0"> {/* TODO figure out why tabIndex attribute is required for onKeyDown to fire */}
+            {this.props.states.map(state => (
               <div
-                className={'state-child' + (this.props.acceptStates.contains(state) ? ' state-child-accept' : '')}>
-                {state}
+                key={state}
+                className={'state' + (state === this.props.selected ? ' selected-state' : '')}
+                ref={element => this[this.getStateRefName(state)] = element}
+                onMouseDown={e => this.stateMouseDown(e, state)}
+                onMouseUp={e => this.stateMouseUp(e, state)}
+                onDoubleClick={() => this.startCreatingTransition(state)}
+                onContextMenu={e => this.stateRightClick(e, state)}>
+                <div
+                  className={'state-child' + (this.props.acceptStates.contains(state) ? ' state-child-accept' : '')}>
+                  {state}
+                </div>
               </div>
+            ))}
+            <svg xmlns="http://www.w3.org/2000/svg" id="arrows-svg">
+              <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7"
+                    refX="8" refY="3.5" orient="auto"
+                    stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
+                    fill={this.props.settings.darkTheme ? '#fff' : '#000'}>
+                  <polygon points="0 0, 10 3.5, 0 7" />
+                </marker>
+              </defs>
+              {svgChildren}
+            </svg>
+            {
+              this.state.contextMenuState !== null ? (
+                <div
+                  className="ui dropdown context-menu"
+                  style={{ top: dropdownY, left: dropdownX }}
+                  ref={dropdown => this.contextMenuRef = dropdown}
+                  onClick={() => this.setState({ contextMenuState: null })}>
+                  <Dropdown.Menu className="visible">
+                    <Dropdown.Item
+                      text="Add transition"
+                      icon="add"
+                      onClick={() => this.startCreatingTransition(this.state.contextMenuState)} />
+                    <Dropdown.Item
+                      text="Rename"
+                      icon="write"
+                      onClick={() => this.renameStateWithPopup(this.state.contextMenuState)} />
+                    <Dropdown.Item>
+                      <Checkbox
+                        id="initial-state-checkbox"
+                        label="Initial state"
+                        key={this.props.selected}
+                        defaultChecked={this.props.initialState === this.props.selected}
+                        onChange={(e, value) => {
+                          value.checked ?
+                            this.props.changeInitialState(this.props.selected) :
+                            this.props.removeInitialState()
+                        }} />
+                    </Dropdown.Item>
+                    <Dropdown.Item>
+                      <Checkbox
+                        id="accept-state-checkbox"
+                        label="Accept state"
+                        key={this.props.selected}
+                        defaultChecked={this.props.acceptStates.includes(this.props.selected)}
+                        onChange={(e, value) => {
+                          const { selected } = this.props;
+                          value.checked ? this.props.addAcceptState(selected) : this.props.removeAcceptState(selected)
+                        }} />
+                    </Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Item
+                      text="Delete"
+                      icon="trash"
+                      onClick={() => this.props.deleteState(this.state.contextMenuState)}
+                    />
+                  </Dropdown.Menu>
+                </div>
+              ) : (
+                null
+              )
+            }
+          </div>
+          <div className="input-container">
+            <h3 className="input-string">
+              {this.state.inputString || this.props.settings.emptyStringSymbol}
+            </h3>
+            <div className="input-controls">
+              <Input
+                ref={input => this.inputRef = input}
+                onChange={e => this.inputChanged(e)}
+                defaultValue={this.props.regex}
+                onBlur={this.onInputBlur}
+                spellCheck="false" />
+              <Button onClick={() => alert('TODO step')}>
+                <Icon name="step forward" className="clickable-icon" /> Step
+              </Button>
+              <Button onClick={() => alert('TODO run')}>
+                <Icon name="play" className="clickable-icon" /> Run
+              </Button>
             </div>
-          ))}
-          <svg xmlns="http://www.w3.org/2000/svg" id="arrows-svg">
-            <defs>
-              <marker id="arrowhead" markerWidth="10" markerHeight="7"
-                  refX="8" refY="3.5" orient="auto"
-                  stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
-                  fill={this.props.settings.darkTheme ? '#fff' : '#000'}>
-                <polygon points="0 0, 10 3.5, 0 7" />
-              </marker>
-            </defs>
-            {svgChildren}
-          </svg>
-          {
-            this.state.contextMenuState !== null ? (
-              <div
-                className="ui dropdown context-menu"
-                style={{ top: dropdownY, left: dropdownX }}
-                ref={dropdown => this.contextMenuRef = dropdown}
-                onClick={() => this.setState({ contextMenuState: null })}>
-                <Dropdown.Menu className="visible">
-                  <Dropdown.Item
-                    text="Add transition"
-                    icon="add"
-                    onClick={() => this.startCreatingTransition(this.state.contextMenuState)} />
-                  <Dropdown.Item
-                    text="Rename"
-                    icon="write"
-                    onClick={() => this.renameStateWithPopup(this.state.contextMenuState)} />
-                  <Dropdown.Item>
-                    <Checkbox
-                      id="initial-state-checkbox"
-                      label="Initial state"
-                      key={this.props.selected}
-                      defaultChecked={this.props.initialState === this.props.selected}
-                      onChange={(e, value) => {
-                        value.checked ?
-                          this.props.changeInitialState(this.props.selected) :
-                          this.props.removeInitialState()
-                      }} />
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <Checkbox
-                      id="accept-state-checkbox"
-                      label="Accept state"
-                      key={this.props.selected}
-                      defaultChecked={this.props.acceptStates.includes(this.props.selected)}
-                      onChange={(e, value) => {
-                        const { selected } = this.props;
-                        value.checked ? this.props.addAcceptState(selected) : this.props.removeAcceptState(selected)
-                      }} />
-                  </Dropdown.Item>
-                  <Dropdown.Divider />
-                  <Dropdown.Item
-                    text="Delete"
-                    icon="trash"
-                    onClick={() => this.props.deleteState(this.state.contextMenuState)}
-                  />
-                </Dropdown.Menu>
-              </div>
-            ) : (
-              null
-            )
-          }
+          </div>
         </div>
       </div>
     );

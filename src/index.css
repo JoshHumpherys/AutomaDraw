@@ -60,16 +60,37 @@ body {
 
 .center-container {
   flex: 3;
+  position: relative;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* TODO move context menu to appear fully on screen */
+}
+
+.automata-container {
+  flex: 1;
   -webkit-box-shadow: inset 0 0 12px black;
   -moz-box-shadow: inset 0 0 12px black;
   box-shadow: inset 0 0 12px black;
-  position: relative;
   overflow: hidden; /* TODO move context menu to appear fully on screen */
-  outline: none;
 }
 
-.center-container-dark-theme {
+.automata-container-dark-theme {
   background-color: #333;
+}
+
+.input-container {
+  background-color: #0288D1;
+  text-align: center;
+  padding: 15px;
+}
+
+.input-container > *:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+.input-controls > *:not(:last-child) {
+  margin-right: 10px;
 }
 
 .page-container {

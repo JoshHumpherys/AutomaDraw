@@ -16,6 +16,7 @@ import {
   setInputString,
   restartInput
 } from './sharedAutomataFunctions'
+import * as inputMessageTypes from '../constants/inputMessageTypes'
 
 const createInstruction = (fromState, inputSymbol, toState) => ({ fromState, inputSymbol, toState });
 
@@ -136,7 +137,8 @@ export default function fsm(
       return setInputString(state, action.payload.inputString);
     }
     case actionTypes.FSM_STEP_INPUT: {
-      const determineInputMessage = selected => state.acceptStates.contains(selected) ? 'Accept!' : 'Reject!';
+      const determineInputMessage = selected =>
+        state.acceptStates.contains(selected) ? inputMessageTypes.ACCEPT : inputMessageTypes.REJECT;
       if(state.inputIndex >= state.inputString.length) {
         return {
           ...state,
@@ -148,7 +150,7 @@ export default function fsm(
       );
       let inputMessage;
       if(transition === undefined) {
-        return { ...state, inputMessage: 'Reject!' };
+        return { ...state, inputMessage: inputMessageTypes.REJECT };
       } else if(state.inputIndex + 1 >= state.inputString.length) {
         inputMessage = determineInputMessage(transition.toState);
       } else {
@@ -162,7 +164,31 @@ export default function fsm(
       };
     }
     case actionTypes.FSM_RUN_INPUT: {
-      return { ...state, inputIndex: state.inputString.length }; // TODO
+      const determineInputMessage = selected =>
+        state.acceptStates.contains(selected) ? inputMessageTypes.ACCEPT : inputMessageTypes.REJECT;
+      if(state.inputString.length === 0) {
+        return { ...state, inputMessage: determineInputMessage(state.initialState) };
+      }
+      const getNextTransition = (selected, inputSymbol) => state.transitionFunction.find(instruction => // TODO nondeterminism
+        instruction.fromState === selected && instruction.inputSymbol === inputSymbol
+      );
+      let { selected, inputIndex } = state;
+      let inputMessage = null;
+      while(inputIndex < state.inputString.length) {
+        const transition = getNextTransition(selected, state.inputString[inputIndex]);
+        if(transition === undefined) {
+          inputMessage = inputMessageTypes.REJECT;
+          break;
+        }
+        selected = transition.toState;
+        inputIndex++;
+      }
+      return {
+        ...state,
+        selected,
+        inputIndex,
+        inputMessage: inputMessage || determineInputMessage(selected)
+      };
     }
     case actionTypes.FSM_RESTART_INPUT: {
       return restartInput(state);

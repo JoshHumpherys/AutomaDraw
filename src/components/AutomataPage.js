@@ -8,6 +8,7 @@ import { saveAs } from 'file-saver'
 import { Set } from 'immutable'
 import { createModal, setModalState } from '../actions/modal'
 import * as modalTypes from '../constants/modalTypes'
+import * as inputMessageTypes from '../constants/inputMessageTypes'
 
 export class AutomataPage extends Component {
   constructor(props) {
@@ -401,6 +402,8 @@ export class AutomataPage extends Component {
     };
 
     fileReader.readAsText(file, 'UTF-8');
+
+    this.inputRef.inputRef.value = '';
   }
 
   inputChanged(e) {
@@ -592,6 +595,11 @@ export class AutomataPage extends Component {
       }
     }
 
+    const getInputMessage = inputMessage =>
+      ({ [inputMessageTypes.ACCEPT]: 'Accept!', [inputMessageTypes.REJECT]: 'Reject!' }[this.props.inputMessage]);
+
+    const inputMessage = getInputMessage(this.props.inputMessage) || '';
+
     return (
       <div className="content-container">
         <div className="control-panel-left">
@@ -743,10 +751,11 @@ export class AutomataPage extends Component {
                   {this.props.inputString.substring(0, this.props.inputIndex)}
                   <span className="selected-char">{this.props.inputString.charAt(this.props.inputIndex)}</span>
                   {this.props.inputString.substring(this.props.inputIndex + 1)}
+                  {inputMessage ? ': ' + inputMessage : ''}
                 </h3>
               ) : (
                 <h3 className="input-string">
-                  {this.props.settings.emptyStringSymbol}
+                  {this.props.settings.emptyStringSymbol + (inputMessage ? ': ' + inputMessage : '')}
                 </h3>
               )
             }
@@ -765,7 +774,6 @@ export class AutomataPage extends Component {
               <Button onClick={this.restartInput}>
                 <Icon name="refresh" className="clickable-icon" /> Restart
               </Button>
-              <h3 style={{display:'inline'}}>{this.props.inputMessage}</h3>
             </div>
           </div>
         </div>

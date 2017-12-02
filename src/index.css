@@ -163,10 +163,6 @@ body {
   / background-color: #689F38; /
 }
 
-.selected-state {
-  background-color: #E91E63;
-}
-
 .selected-state:active {
   cursor: grab;
 }
@@ -175,6 +171,15 @@ body {
   / background-color: #C2185B; /
 }
 */
+
+.selected-state {
+  background-color: #E91E63;
+}
+
+.selected-char {
+  font-style: italic;
+  color: #E91E63;
+}
 
 .state-child {
   width: 36px;

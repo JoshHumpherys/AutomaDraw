@@ -56,6 +56,9 @@ export class AutomataPage extends Component {
     this.stateRightClick = this.stateRightClick.bind(this);
     this.renameStateWithPopup = this.renameStateWithPopup.bind(this);
     this.inputChanged = this.inputChanged.bind(this);
+    this.stepInput = this.stepInput.bind(this);
+    this.runInput = this.runInput.bind(this);
+    this.restartInput = this.restartInput.bind(this);
   }
 
   getStateRefName(state) {
@@ -401,9 +404,19 @@ export class AutomataPage extends Component {
   }
 
   inputChanged(e) {
-    const input = e.target.value;
-    this.setState({ inputString: input }); // TODO store in redux insteda
-    //this.props.dispatch(setRegex(input, this.props.emptyStringSymbol, this.props.alternationSymbol));
+    this.props.setInputString(e.target.value);
+  }
+
+  stepInput() {
+    this.props.stepInput();
+  }
+
+  runInput() {
+    this.props.runInput();
+  }
+
+  restartInput() {
+    this.props.restartInput();
   }
 
   componentDidUpdate() {
@@ -724,22 +737,35 @@ export class AutomataPage extends Component {
             }
           </div>
           <div className="input-container">
-            <h3 className="input-string">
-              {this.state.inputString || this.props.settings.emptyStringSymbol}
-            </h3>
+            {
+              this.props.inputString.length > 0 ? (
+                <h3 className="input-string">
+                  {this.props.inputString.substring(0, this.props.inputIndex)}
+                  <span className="selected-char">{this.props.inputString.charAt(this.props.inputIndex)}</span>
+                  {this.props.inputString.substring(this.props.inputIndex + 1)}
+                </h3>
+              ) : (
+                <h3 className="input-string">
+                  {this.props.settings.emptyStringSymbol}
+                </h3>
+              )
+            }
             <div className="input-controls">
               <Input
                 ref={input => this.inputRef = input}
                 onChange={e => this.inputChanged(e)}
-                defaultValue={this.props.regex}
-                onBlur={this.onInputBlur}
+                defaultValue={this.props.inputString}
                 spellCheck="false" />
-              <Button onClick={() => alert('TODO step')}>
+              <Button onClick={this.stepInput}>
                 <Icon name="step forward" className="clickable-icon" /> Step
               </Button>
-              <Button onClick={() => alert('TODO run')}>
+              <Button onClick={this.runInput}>
                 <Icon name="play" className="clickable-icon" /> Run
               </Button>
+              <Button onClick={this.restartInput}>
+                <Icon name="refresh" className="clickable-icon" /> Restart
+              </Button>
+              <h3 style={{display:'inline'}}>{this.props.inputMessage}</h3>
             </div>
           </div>
         </div>

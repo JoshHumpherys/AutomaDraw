@@ -12,7 +12,9 @@ import {
   removeInitialState,
   addAcceptState,
   removeAcceptState,
-  setAcceptStates
+  setAcceptStates,
+  setInputString,
+  restartInput
 } from './sharedAutomataFunctions'
 
 const createInstruction = (fromState, inputSymbol, toState) => ({ fromState, inputSymbol, toState });
@@ -34,7 +36,10 @@ export default function fsm(
       'B': { x: 250, y: 50 },
       'C': { x: 370, y: 200 }
     }),
-    selected: 'A'
+    selected: null,
+    inputString: '',
+    inputIndex: 0,
+    inputMessage: ''
   },
   action) {
   switch (action.type) {
@@ -127,6 +132,41 @@ export default function fsm(
         })
       };
     }
+    case actionTypes.FSM_INPUT_STRING_SET: {
+      return setInputString(state, action.payload.inputString);
+    }
+    case actionTypes.FSM_STEP_INPUT: {
+      const determineInputMessage = selected => state.acceptStates.contains(selected) ? 'Accept!' : 'Reject!';
+      if(state.inputIndex >= state.inputString.length) {
+        return {
+          ...state,
+          inputMessage: determineInputMessage(state.inputString.length === 0 ? state.initialState : state.selected)
+        };
+      }
+      const transition = state.transitionFunction.find(instruction => // TODO nondeterminism
+        instruction.fromState === state.selected && instruction.inputSymbol === state.inputString[state.inputIndex]
+      );
+      let inputMessage;
+      if(transition === undefined) {
+        return { ...state, inputMessage: 'Reject!' };
+      } else if(state.inputIndex + 1 >= state.inputString.length) {
+        inputMessage = determineInputMessage(transition.toState);
+      } else {
+        inputMessage = state.inputMessage;
+      }
+      return {
+        ...state,
+        inputIndex: state.inputIndex + (transition === undefined ? 0 : 1),
+        selected: transition.toState,
+        inputMessage
+      };
+    }
+    case actionTypes.FSM_RUN_INPUT: {
+      return { ...state, inputIndex: state.inputString.length }; // TODO
+    }
+    case actionTypes.FSM_RESTART_INPUT: {
+      return restartInput(state);
+    }
     case actionTypes.FSM_INITIALIZED_FROM_JSON_STRING: { // TODO load fsm with correct empty string symbol
       const { jsonString } = action.payload;
       const fsm = JSON.parse(jsonString);
@@ -136,7 +176,11 @@ export default function fsm(
         inputAlphabet: new Set(fsm.inputAlphabet),
         transitionFunction: new Set(fsm.transitionFunction),
         acceptStates: new Set(fsm.acceptStates),
-        statePositions: new Map(fsm.statePositions)
+        statePositions: new Map(fsm.statePositions),
+        selected: null,
+        inputString: '',
+        inputIndex: 0,
+        inputMessage: ''
       }
     }
     case actionTypes.FSM_RESET: {
@@ -148,7 +192,10 @@ export default function fsm(
         initialState: null,
         acceptStates: new Set(),
         statePositions: new Map(),
-        selected: null
+        selected: null,
+        inputString: '',
+        inputIndex: 0,
+        inputMessage: ''
       }
     }
     default: {

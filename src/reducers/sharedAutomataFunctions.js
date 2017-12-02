@@ -107,3 +107,22 @@ export function removeAcceptState(automaton, state) {
 export function setAcceptStates(automaton, states) {
   return { ...automaton, acceptStates: new Set(states) };
 }
+
+export function setInputString(automaton, inputString) {
+  return {
+    ...automaton,
+    inputString,
+    selected: inputString.length !== 0 ? automaton.initialState : null,
+    inputIndex: 0,
+    inputMessage: ''
+  };
+}
+
+export function restartInput(automaton) {
+  return {
+    ...automaton,
+    selected: automaton.inputString.length !== 0 ? automaton.initialState : null,
+    inputIndex: 0,
+    inputMessage: ''
+  };
+}

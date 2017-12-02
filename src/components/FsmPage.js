@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import { List } from 'immutable'
 import {
   changeName,
   addState,
@@ -12,6 +13,10 @@ import {
   addAcceptState,
   removeAcceptState,
   addInputSymbol,
+  setInputString,
+  stepInput,
+  runInput,
+  restartInput,
   initializeFromJsonString,
   reset
 } from '../actions/fsm'
@@ -37,6 +42,10 @@ export class FsmPage extends Component {
     this.removeAcceptState = this.removeAcceptState.bind(this);
     this.addTransition = this.addTransition.bind(this);
     this.addSymbol = this.addSymbol.bind(this);
+    this.setInputString = this.setInputString.bind(this);
+    this.stepInput = this.stepInput.bind(this);
+    this.runInput = this.runInput.bind(this);
+    this.restartInput = this.restartInput.bind(this);
     this.initializeFromJsonString = this.initializeFromJsonString.bind(this);
     this.reset = this.reset.bind(this);
     this.stringifyAutomaton = this.stringifyAutomaton.bind(this);
@@ -91,6 +100,22 @@ export class FsmPage extends Component {
     this.props.dispatch(addInputSymbol(symbol));
   }
 
+  setInputString(inputString) {
+    this.props.dispatch(setInputString(inputString));
+  }
+
+  stepInput() {
+    this.props.dispatch(stepInput());
+  }
+
+  runInput() {
+    this.props.dispatch(runInput());
+  }
+
+  restartInput() {
+    this.props.dispatch(restartInput());
+  }
+
   initializeFromJsonString(jsonString) {
     this.props.dispatch(initializeFromJsonString(jsonString));
   }
@@ -104,8 +129,10 @@ export class FsmPage extends Component {
   }
 
   render() {
-    const { name, states, inputAlphabet, transitionFunction, initialState, acceptStates, statePositions, selected }
-      = this.props.fsm;
+    const {
+      name, states, inputAlphabet, transitionFunction, initialState, acceptStates, statePositions, selected,
+      inputString, inputIndex, inputMessage
+    } = this.props.fsm;
 
     const simplifiedTransitionFunction = getSimplifiedTransitionFunction(transitionFunction);
 
@@ -152,6 +179,9 @@ export class FsmPage extends Component {
       acceptStates={acceptStates}
       statePositions={statePositions}
       selected={selected}
+      inputString={inputString}
+      inputIndex={inputIndex}
+      inputMessage={inputMessage}
       changeName={this.changeName}
       addState={this.addState}
       selectState={this.selectState}
@@ -163,6 +193,10 @@ export class FsmPage extends Component {
       addAcceptState={this.addAcceptState}
       removeAcceptState={this.removeAcceptState}
       addTransition={this.addTransition}
+      setInputString={this.setInputString}
+      stepInput={this.stepInput}
+      runInput={this.runInput}
+      restartInput={this.restartInput}
       initializeFromJsonString={this.initializeFromJsonString}
       reset={this.reset}
       stringifyAutomaton={this.stringifyAutomaton}

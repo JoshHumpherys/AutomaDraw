@@ -39,6 +39,7 @@ export class AutomataPage extends Component {
     this.setSvgTransitionLineStartCoords = this.setSvgTransitionLineStartCoords.bind(this);
     this.setSvgTransitionLineEndCoords = this.setSvgTransitionLineEndCoords.bind(this);
     this.setSvgTransitionLoopPosition = this.setSvgTransitionLoopPosition.bind(this);
+    this.setSvgTransitionLoopArrowheadPosition = this.setSvgTransitionLoopArrowheadPosition.bind(this);
     this.setSvgTransitionCurvedLinePath = this.setSvgTransitionCurvedLinePath.bind(this);
     this.setSvgTextPosition = this.setSvgTextPosition.bind(this);
     this.setSvgTextPositionAndAngle = this.setSvgTextPositionAndAngle.bind(this);
@@ -66,6 +67,10 @@ export class AutomataPage extends Component {
 
   getTransitionTextRefName(state1, transitionText, state2) {
     return 'transition_text_svg_' + state1 + '_' + transitionText + '_' + state2;
+  }
+
+  getTransitionArrowheadName(state1, transitionText, state2) {
+    return 'transition_arrowhead_svg_' + state1 + '_' + transitionText + '_' + state2;
   }
 
   getStateCenterPosition(coords) {
@@ -142,6 +147,14 @@ export class AutomataPage extends Component {
   setSvgTransitionLoopPosition(transitionRef, coords) {
     transitionRef.setAttribute('cx', coords.x);
     transitionRef.setAttribute('cy', coords.y);
+  }
+
+  setSvgTransitionLoopArrowheadPosition(transitionRef, coords) {
+    // TODO don't hardcode values
+    transitionRef.setAttribute('x1', coords.x + 9);
+    transitionRef.setAttribute('y1', coords.y - 10);
+    transitionRef.setAttribute('x2', coords.x + 10);
+    transitionRef.setAttribute('y2', coords.y);
   }
 
   setSvgTransitionCurvedLinePath(transitionRef, startCoords, endCoords) {
@@ -271,7 +284,9 @@ export class AutomataPage extends Component {
         if(state === toState) { // Transition to self
           const transitionStartPosition = this.getTransitionLoopStartCoords(statePosition);
           const textPosition = this.getTransitionLoopTextPosition(statePosition);
+          const transitionArrowheadRef = this[this.getTransitionArrowheadName(fromState, transitionText, toState)];
           this.setSvgTransitionLoopPosition(transitionRef, transitionStartPosition);
+          this.setSvgTransitionLoopArrowheadPosition(transitionArrowheadRef, transitionStartPosition);
           this.setSvgTextPosition(textRef, textPosition);
         }
         else { // Transition to another state
@@ -421,18 +436,22 @@ export class AutomataPage extends Component {
 
   render() {
     const defaultPosition = { x1: 0, y1: 0, x2: 0, y2: 0 };
-    const createTransitionLine = (transitionTexts, lineRefString, textRefString, linePosition = defaultPosition) => {
-      return {
-        line: <line
-          x1={linePosition.x1}
-          y1={linePosition.y1}
-          x2={linePosition.x2}
-          y2={linePosition.y2}
-          key={lineRefString}
-          stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
-          strokeWidth="2"
-          markerEnd="url(#arrowhead)"
-          ref={line => this[lineRefString] = line}/>,
+
+    const createLine = (lineRefString, linePosition = defaultPosition) =>
+      <line
+        x1={linePosition.x1}
+        y1={linePosition.y1}
+        x2={linePosition.x2}
+        y2={linePosition.y2}
+        key={lineRefString}
+        stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
+        strokeWidth="2"
+        markerEnd="url(#arrowhead)"
+        ref={line => this[lineRefString] = line}/>;
+
+    const createTransitionLine = (transitionTexts, lineRefString, textRefString, linePosition = defaultPosition) => (
+      {
+        line: createLine(lineRefString, linePosition),
         text: <text
           key={textRefString}
           fontSize="20"
@@ -440,11 +459,10 @@ export class AutomataPage extends Component {
           stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
           fill={this.props.settings.darkTheme ? '#fff' : '#000'}
           ref={text => this[textRefString] = text}>{transitionTexts.join(', ')}</text>
-      };
-    };
+      });
 
-    const createTransitionCurvedLine = (transitionTexts, lineRefString, textRefString, linePosition = defaultPosition) => {
-      return {
+    const createTransitionCurvedLine = (transitionTexts, lineRefString, textRefString, linePosition = defaultPosition) => (
+      {
         line: <path
           key={lineRefString}
           d=""
@@ -460,11 +478,10 @@ export class AutomataPage extends Component {
           stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
           fill={this.props.settings.darkTheme ? '#fff' : '#000'}
           ref={text => this[textRefString] = text}>{transitionTexts.join(', ')}</text>
-      };
-    };
+      });
 
-    const createTransitionLoop = (transitionTexts, loopRefString, textRefString) => {
-      return {
+    const createTransitionLoop = (transitionTexts, loopRefString, textRefString, arrowheadRefString) => (
+      {
         loop: <ellipse
           key={loopRefString}
           rx="10"
@@ -480,18 +497,20 @@ export class AutomataPage extends Component {
           textAnchor="middle"
           stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
           fill={this.props.settings.darkTheme ? '#fff' : '#000'}
-          ref={text => this[textRefString] = text}>{transitionTexts.join(', ')}</text>
-      };
-    };
+          ref={text => this[textRefString] = text}>{transitionTexts.join(', ')}</text>,
+        arrowhead: createLine(arrowheadRefString)
+      });
 
     const svgChildren = [];
     this.props.simplifiedTransitionFunction.forEach(({ fromState, transitionText, toState }) => {
       const loopRefString = this.getTransitionLineRefName(fromState, transitionText, toState);
       const textRefString = this.getTransitionTextRefName(fromState, transitionText, toState);
+      const arrowheadRefString = this.getTransitionArrowheadName(fromState, transitionText, toState);
       if(fromState === toState) {
-        const transitionLoop = createTransitionLoop([transitionText], loopRefString, textRefString); // TODO refactor this function
+        const transitionLoop = createTransitionLoop([transitionText], loopRefString, textRefString, arrowheadRefString); // TODO refactor this function
         svgChildren.push(transitionLoop.loop);
         svgChildren.push(transitionLoop.text);
+        svgChildren.push(transitionLoop.arrowhead);
       }
       else {
         let transitionLine;

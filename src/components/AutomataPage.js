@@ -245,6 +245,7 @@ export class AutomataPage extends Component {
         const name = getNextStateName(this.props.states);
         const statePosition = this.getStatePositionFromCenterPosition(mousePosition);
         this.props.addState(name, statePosition);
+        this.props.selectState(name);
       }
       this.setState({ placingNewState: false });
     }
@@ -267,6 +268,7 @@ export class AutomataPage extends Component {
   automataContainerKeyUp(e) {}
 
   stateMouseDown(e, state) {
+    this.props.selectState(state);
     this.setState({ mouseDownOnState: state });
   }
 
@@ -611,7 +613,7 @@ export class AutomataPage extends Component {
               <h3 className="input-string">
                 {this.props.blankSymbol ? '...' + threeBlankSymbols : ''}
                 {this.props.inputString.substring(0, this.props.inputIndex)}
-                <span className="selected-char">{this.props.inputString.charAt(this.props.inputIndex)}</span>
+                <span className="current-symbol">{this.props.inputString.charAt(this.props.inputIndex)}</span>
                 {this.props.inputString.substring(this.props.inputIndex + 1)}
                 {this.props.blankSymbol ? threeBlankSymbols + '...' : ''}
                 {inputMessage ? ': ' + inputMessage : ''}
@@ -714,7 +716,7 @@ export class AutomataPage extends Component {
             {this.props.states.map(state => (
               <div
                 key={state}
-                className={'state' + (state === this.props.selected ? ' selected-state' : '')}
+                className={'state' + (state === this.props.currentState ? ' current-state' : '')}
                 ref={element => this[this.getStateRefName(state)] = element}
                 onMouseDown={e => this.stateMouseDown(e, state)}
                 onMouseUp={e => this.stateMouseUp(e, state)}

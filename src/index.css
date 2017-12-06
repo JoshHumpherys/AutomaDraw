@@ -172,11 +172,11 @@ body {
 }
 */
 
-.selected-state {
+.current-state {
   background-color: #E91E63;
 }
 
-.selected-char {
+.current-symbol {
   font-style: italic;
   color: #E91E63;
 }

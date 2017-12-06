@@ -111,8 +111,8 @@ export function setAcceptStates(automaton, states) {
 export function setInputString(automaton, inputString) {
   return {
     ...automaton,
+    currentState: inputString.length !== 0 ? automaton.initialState : null,
     inputString,
-    selected: inputString.length !== 0 ? automaton.initialState : null,
     inputIndex: 0,
     inputMessage: ''
   };
@@ -121,7 +121,7 @@ export function setInputString(automaton, inputString) {
 export function restartInput(automaton, inputString) {
   return {
     ...automaton,
-    selected: automaton.inputString.length !== 0 ? automaton.initialState : null,
+    currentState: automaton.inputString.length !== 0 ? automaton.initialState : null,
     inputString: inputString || automaton.inputString,
     inputIndex: 0,
     inputMessage: ''

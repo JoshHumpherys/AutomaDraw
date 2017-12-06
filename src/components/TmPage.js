@@ -139,6 +139,7 @@ export class TmPage extends Component {
       acceptStates,
       statePositions,
       selected,
+      currentState,
       inputString,
       inputIndex,
       inputMessage
@@ -194,6 +195,7 @@ export class TmPage extends Component {
       acceptStates={acceptStates}
       statePositions={statePositions}
       selected={selected}
+      currentState={currentState}
       inputString={inputString}
       inputIndex={inputIndex}
       inputMessage={inputMessage}

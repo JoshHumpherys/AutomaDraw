@@ -22,18 +22,18 @@ const createInstruction = (fromState, inputSymbol, toState, writeSymbol, moveDir
   ({ fromState, inputSymbol, toState, writeSymbol, moveDirection });
 
 const stepInput = state => {
-  if(state.acceptStates.contains(state.selected)) {
+  if(state.acceptStates.contains(state.currentState)) {
     return { ...state, inputMessage: inputMessageTypes.ACCEPT };
   }
   const currentSymbol = state.inputIndex >= 0 && state.inputIndex < state.inputString.length ?
     state.inputString[state.inputIndex] : state.blankSymbol;
   const transition = state.transitionFunction.find(instruction => // TODO nondeterminism
-    instruction.fromState === state.selected && instruction.inputSymbol === currentSymbol
+    instruction.fromState === state.currentState && instruction.inputSymbol === currentSymbol
   );
   if(transition === undefined) {
     return { ...state, inputMessage: inputMessageTypes.REJECT };
   }
-  const selected = transition.toState;
+  const currentState = transition.toState;
   let inputString;
   if(state.inputIndex >= 0 && state.inputIndex < state.inputString.length) {
     inputString = state.inputString.substring(0, state.inputIndex) +
@@ -49,15 +49,15 @@ const stepInput = state => {
     };
     if(state.inputIndex < 0) {
       let blankSymbols = generateBlankSymbols(state.inputIndex + 1);
-      inputString = transition.writeSymbol + blankSymbols + inputString;
+      inputString = transition.writeSymbol + blankSymbols + state.inputString;
     } else {
       let blankSymbols = generateBlankSymbols(state.inputIndex - state.inputString.length);
       inputString = state.inputString + blankSymbols + transition.writeSymbol;
     }
   }
   const inputIndex = state.inputIndex + (transition.moveDirection === 'L' ? -1 : 1); // TODO make direction enum
-  const inputMessage = state.acceptStates.contains(selected) ? inputMessageTypes.ACCEPT : state.inputMessage;
-  return { ...state, inputString, inputIndex, selected, inputMessage };
+  const inputMessage = state.acceptStates.contains(currentState) ? inputMessageTypes.ACCEPT : state.inputMessage;
+  return { ...state, inputString, inputIndex, currentState, inputMessage };
 };
 
 export default function tm(
@@ -76,7 +76,8 @@ export default function tm(
       'A': { x: 130, y: 200 },
       'B': { x: 370, y: 200 }
     }),
-    selected: 'A',
+    selected: '',
+    currentState: '',
     inputString: '',
     inputIndex: 0,
     inputMessage: ''

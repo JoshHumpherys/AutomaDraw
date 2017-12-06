@@ -130,7 +130,7 @@ export class FsmPage extends Component {
   render() {
     const {
       name, states, inputAlphabet, transitionFunction, initialState, acceptStates, statePositions, selected,
-      inputString, inputIndex, inputMessage
+      currentState, inputString, inputIndex, inputMessage
     } = this.props.fsm;
 
     const simplifiedTransitionFunction = getSimplifiedTransitionFunction(transitionFunction);
@@ -178,6 +178,7 @@ export class FsmPage extends Component {
       acceptStates={acceptStates}
       statePositions={statePositions}
       selected={selected}
+      currentState={currentState}
       inputString={inputString}
       inputIndex={inputIndex}
       inputMessage={inputMessage}

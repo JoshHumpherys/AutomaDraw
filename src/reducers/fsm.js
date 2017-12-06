@@ -37,7 +37,8 @@ export default function fsm(
       'B': { x: 250, y: 50 },
       'C': { x: 370, y: 200 }
     }),
-    selected: null,
+    selected: '',
+    currentState: '',
     inputString: '',
     inputIndex: 0,
     inputMessage: ''
@@ -137,16 +138,16 @@ export default function fsm(
       return setInputString(state, action.payload.inputString);
     }
     case actionTypes.FSM_STEP_INPUT: {
-      const determineInputMessage = selected =>
-        state.acceptStates.contains(selected) ? inputMessageTypes.ACCEPT : inputMessageTypes.REJECT;
+      const determineInputMessage = currentState =>
+        state.acceptStates.contains(currentState) ? inputMessageTypes.ACCEPT : inputMessageTypes.REJECT;
       if(state.inputIndex >= state.inputString.length) {
         return {
           ...state,
-          inputMessage: determineInputMessage(state.inputString.length === 0 ? state.initialState : state.selected)
+          inputMessage: determineInputMessage(state.inputString.length === 0 ? state.initialState : state.currentState)
         };
       }
       const transition = state.transitionFunction.find(instruction => // TODO nondeterminism
-        instruction.fromState === state.selected && instruction.inputSymbol === state.inputString[state.inputIndex]
+        instruction.fromState === state.currentState && instruction.inputSymbol === state.inputString[state.inputIndex]
       );
       let inputMessage;
       if(transition === undefined) {
@@ -159,35 +160,35 @@ export default function fsm(
       return {
         ...state,
         inputIndex: state.inputIndex + (transition === undefined ? 0 : 1),
-        selected: transition.toState,
+        currentState: transition.toState,
         inputMessage
       };
     }
     case actionTypes.FSM_RUN_INPUT: {
-      const determineInputMessage = selected =>
-        state.acceptStates.contains(selected) ? inputMessageTypes.ACCEPT : inputMessageTypes.REJECT;
+      const determineInputMessage = currentState =>
+        state.acceptStates.contains(currentState) ? inputMessageTypes.ACCEPT : inputMessageTypes.REJECT;
       if(state.inputString.length === 0) {
         return { ...state, inputMessage: determineInputMessage(state.initialState) };
       }
-      const getNextTransition = (selected, inputSymbol) => state.transitionFunction.find(instruction => // TODO nondeterminism
-        instruction.fromState === selected && instruction.inputSymbol === inputSymbol
+      const getNextTransition = (currentState, inputSymbol) => state.transitionFunction.find(instruction => // TODO nondeterminism
+        instruction.fromState === currentState && instruction.inputSymbol === inputSymbol
       );
-      let { selected, inputIndex } = state;
+      let { currentState, inputIndex } = state;
       let inputMessage = null;
       while(inputIndex < state.inputString.length) {
-        const transition = getNextTransition(selected, state.inputString[inputIndex]);
+        const transition = getNextTransition(currentState, state.inputString[inputIndex]);
         if(transition === undefined) {
           inputMessage = inputMessageTypes.REJECT;
           break;
         }
-        selected = transition.toState;
+        currentState = transition.toState;
         inputIndex++;
       }
       return {
         ...state,
-        selected,
+        currentState,
         inputIndex,
-        inputMessage: inputMessage || determineInputMessage(selected)
+        inputMessage: inputMessage || determineInputMessage(currentState)
       };
     }
     case actionTypes.FSM_RESTART_INPUT: {

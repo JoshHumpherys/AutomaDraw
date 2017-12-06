@@ -118,10 +118,11 @@ export function setInputString(automaton, inputString) {
   };
 }
 
-export function restartInput(automaton) {
+export function restartInput(automaton, inputString) {
   return {
     ...automaton,
     selected: automaton.inputString.length !== 0 ? automaton.initialState : null,
+    inputString: inputString || automaton.inputString,
     inputIndex: 0,
     inputMessage: ''
   };

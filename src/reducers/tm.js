@@ -21,6 +21,45 @@ import * as inputMessageTypes from '../constants/inputMessageTypes'
 const createInstruction = (fromState, inputSymbol, toState, writeSymbol, moveDirection) =>
   ({ fromState, inputSymbol, toState, writeSymbol, moveDirection });
 
+const stepInput = state => {
+  if(state.acceptStates.contains(state.selected)) {
+    return { ...state, inputMessage: inputMessageTypes.ACCEPT };
+  }
+  const currentSymbol = state.inputIndex >= 0 && state.inputIndex < state.inputString.length ?
+    state.inputString[state.inputIndex] : state.blankSymbol;
+  const transition = state.transitionFunction.find(instruction => // TODO nondeterminism
+    instruction.fromState === state.selected && instruction.inputSymbol === currentSymbol
+  );
+  if(transition === undefined) {
+    return { ...state, inputMessage: inputMessageTypes.REJECT };
+  }
+  const selected = transition.toState;
+  let inputString;
+  if(state.inputIndex >= 0 && state.inputIndex < state.inputString.length) {
+    inputString = state.inputString.substring(0, state.inputIndex) +
+      transition.writeSymbol +
+      state.inputString.substring(state.inputIndex + 1);
+  } else {
+    const generateBlankSymbols = numBlankSymbols => {
+      let blankSymbolsString = '';
+      for(let i = 0; i < numBlankSymbols; i++) {
+        blankSymbolsString += state.blankSymbol;
+      }
+      return '';
+    };
+    if(state.inputIndex < 0) {
+      let blankSymbols = generateBlankSymbols(state.inputIndex + 1);
+      inputString = transition.writeSymbol + blankSymbols + inputString;
+    } else {
+      let blankSymbols = generateBlankSymbols(state.inputIndex - state.inputString.length);
+      inputString = state.inputString + blankSymbols + transition.writeSymbol;
+    }
+  }
+  const inputIndex = state.inputIndex + (transition.moveDirection === 'L' ? -1 : 1); // TODO make direction enum
+  const inputMessage = state.acceptStates.contains(selected) ? inputMessageTypes.ACCEPT : state.inputMessage;
+  return { ...state, inputString, inputIndex, selected, inputMessage };
+};
+
 export default function tm(
   state = {
     name: 'My TM',
@@ -154,73 +193,22 @@ export default function tm(
     case actionTypes.TM_INPUT_STRING_SET: {
       return setInputString(state, action.payload.inputString);
     }
-    case actionTypes.TM_STEP_INPUT: { // TODO
-      if(state.acceptStates.contains(state.selected)) {
-        return { ...state, inputMessage: inputMessageTypes.ACCEPT };
-      }
-      const currentSymbol = state.inputIndex >= 0 && state.inputIndex < state.inputString.length ?
-        state.inputString[state.inputIndex] : state.blankSymbol;
-      const transition = state.transitionFunction.find(instruction => // TODO nondeterminism
-        instruction.fromState === state.selected && instruction.inputSymbol === currentSymbol
-      );
-      if(transition === undefined) {
-        return { ...state, inputMessage: inputMessageTypes.REJECT };
-      }
-      const selected = transition.toState;
-      let inputString;
-      if(state.inputIndex >= 0 && state.inputIndex < state.inputString.length) {
-        inputString = state.inputString.substring(0, state.inputIndex) +
-          transition.writeSymbol +
-          state.inputString.substring(state.inputIndex + 1);
-      } else {
-        const generateBlankSymbols = numBlankSymbols => {
-          let blankSymbolsString = '';
-          for(let i = 0; i < numBlankSymbols; i++) {
-            blankSymbolsString += state.blankSymbol;
-          }
-          return '';
-        };
-        if(state.inputIndex < 0) {
-          let blankSymbols = generateBlankSymbols(state.inputIndex + 1);
-          inputString = transition.writeSymbol + blankSymbols + inputString;
-        } else {
-          let blankSymbols = generateBlankSymbols(state.inputIndex - state.inputString.length);
-          inputString = state.inputString + blankSymbols + transition.writeSymbol;
-        }
-      }
-      const inputIndex = state.inputIndex + (transition.moveDirection === 'L' ? -1 : 1); // TODO make direction enum
-      const inputMessage = state.acceptStates.contains(selected) ? inputMessageTypes.ACCEPT : state.inputMessage;
-      return { ...state, inputString, inputIndex, selected, inputMessage };
+    case actionTypes.TM_STEP_INPUT: {
+      return stepInput(state);
     }
-    case actionTypes.TM_RUN_INPUT: { // TODO
-      const determineInputMessage = selected =>
-        state.acceptStates.contains(selected) ? inputMessageTypes.ACCEPT : inputMessageTypes.REJECT;
-      if(state.inputString.length === 0) {
-        return { ...state, inputMessage: determineInputMessage(state.initialState) };
-      }
-      const getNextTransition = (selected, inputSymbol) => state.transitionFunction.find(instruction => // TODO nondeterminism
-        instruction.fromState === selected && instruction.inputSymbol === inputSymbol
-      );
-      let { selected, inputIndex } = state;
-      let inputMessage = null;
-      while(inputIndex < state.inputString.length) {
-        const transition = getNextTransition(selected, state.inputString[inputIndex]);
-        if(transition === undefined) {
-          inputMessage = inputMessageTypes.REJECT;
-          break;
+    case actionTypes.TM_RUN_INPUT: {
+      let newState = state;
+      for(let i = 0; i < 500; i++) {
+        newState = stepInput(newState);
+        if(newState.inputMessage !== '') {
+          return newState;
         }
-        selected = transition.toState;
-        inputIndex++;
       }
-      return {
-        ...state,
-        selected,
-        inputIndex,
-        inputMessage: inputMessage || determineInputMessage(selected)
-      };
+      alert('TODO handle TMs that don\'t always halt. 500 steps have been executed.');
+      return newState;
     }
     case actionTypes.TM_RESTART_INPUT: {
-      return restartInput(state);
+      return restartInput(state, action.payload.inputString);
     }
     case actionTypes.TM_INITIALIZED_FROM_JSON_STRING: {
       const tm = JSON.parse(action.payload.jsonString);

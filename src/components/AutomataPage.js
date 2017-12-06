@@ -417,7 +417,7 @@ export class AutomataPage extends Component {
   }
 
   restartInput() {
-    this.props.restartInput();
+    this.props.restartInput(this.inputRef.inputRef.value);
   }
 
   componentDidUpdate() {

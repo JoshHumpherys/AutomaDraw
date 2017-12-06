@@ -98,8 +98,8 @@ export function runInput() {
   return { type: actionTypes.TM_RUN_INPUT };
 }
 
-export function restartInput() {
-  return { type: actionTypes.TM_RESTART_INPUT };
+export function restartInput(inputString) {
+  return { type: actionTypes.TM_RESTART_INPUT, payload: { inputString } };
 }
 
 export function initializeFromJsonString(jsonString) {

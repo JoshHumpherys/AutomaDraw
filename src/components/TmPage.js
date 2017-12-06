@@ -111,8 +111,8 @@ export class TmPage extends Component {
     this.props.dispatch(runInput());
   }
 
-  restartInput() {
-    this.props.dispatch(restartInput());
+  restartInput(inputString) {
+    this.props.dispatch(restartInput(inputString));
   }
 
   initializeFromJsonString(jsonString) {

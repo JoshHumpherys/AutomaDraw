@@ -154,7 +154,7 @@ export class TmPage extends Component {
         transitionObject
       };
     }).toArray().sort((a, b) => {
-      return a.stringValue > b.stringValue ? 1 : -1;
+      return a.transitionString > b.transitionString ? 1 : -1;
     });
 
     const transitionFunctionDiv = transitionFunction.size > 0 ? (

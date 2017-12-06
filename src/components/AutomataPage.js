@@ -401,7 +401,9 @@ export class AutomataPage extends Component {
 
     fileReader.readAsText(file, 'UTF-8');
 
-    this.inputRef.inputRef.value = '';
+    if(this.inputRef !== undefined) {
+      this.inputRef.inputRef.value = '';
+    }
   }
 
   inputChanged(e) {

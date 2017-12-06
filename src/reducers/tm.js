@@ -45,7 +45,7 @@ const stepInput = state => {
       for(let i = 0; i < numBlankSymbols; i++) {
         blankSymbolsString += state.blankSymbol;
       }
-      return '';
+      return blankSymbolsString;
     };
     if(state.inputIndex < 0) {
       let blankSymbols = generateBlankSymbols(state.inputIndex + 1);

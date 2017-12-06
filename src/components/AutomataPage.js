@@ -597,24 +597,47 @@ export class AutomataPage extends Component {
       }
     }
 
-    const getInputMessage = inputMessage =>
-      ({ [inputMessageTypes.ACCEPT]: 'Accept!', [inputMessageTypes.REJECT]: 'Reject!' }[this.props.inputMessage]);
-
-    const inputMessage = getInputMessage(this.props.inputMessage) || '';
-
-    const threeBlankSymbols = this.props.blankSymbol + this.props.blankSymbol + this.props.blankSymbol;
-
     let inputContainer;
     if(this.props.inputString !== undefined) { // TODO remove this check and implement input container for all automata
+      const getInputMessage = inputMessage =>
+        ({ [inputMessageTypes.ACCEPT]: 'Accept!', [inputMessageTypes.REJECT]: 'Reject!' }[this.props.inputMessage]);
+
+      const inputMessage = getInputMessage(this.props.inputMessage) || '';
+
+      const generateBlankSymbols = (numBlankSymbols, blankSymbol) => {
+        let blankSymbolsString = '';
+        for(let i = 0; i < numBlankSymbols; i++) {
+          blankSymbolsString += blankSymbol;
+        }
+        return blankSymbolsString;
+      };
+
+      const threeBlankSymbols = generateBlankSymbols(3, this.props.blankSymbol);
+
+      let additionalBlankSymbolsBefore = '';
+      let additionalBlankSymbolsAfter = '';
+      if(this.props.blankSymbol) {
+        if(this.props.inputIndex < 0) {
+          additionalBlankSymbolsBefore = generateBlankSymbols(this.props.inputIndex + 1, this.props.blankSymbol);
+        } else if(this.props.inputIndex >= this.props.inputString.length && this.props.inputString.length !== 0) {
+          additionalBlankSymbolsAfter = generateBlankSymbols(
+            this.props.inputIndex - this.props.inputString.length + 1,
+            this.props.blankSymbol);
+        }
+      }
+
+      let modifiedInputString = additionalBlankSymbolsBefore + this.props.inputString + additionalBlankSymbolsAfter;
+      let modifiedInputIndex = this.props.inputIndex + (this.props.inputIndex < 0 ? additionalBlankSymbolsBefore : 0);
+      console.log(modifiedInputString);
       inputContainer = (
         <div className="input-container">
           {
-            this.props.inputString.length > 0 ? (
+            modifiedInputString.length > 0 ? (
               <h3 className="input-string">
                 {this.props.blankSymbol ? '...' + threeBlankSymbols : ''}
-                {this.props.inputString.substring(0, this.props.inputIndex)}
-                <span className="current-symbol">{this.props.inputString.charAt(this.props.inputIndex)}</span>
-                {this.props.inputString.substring(this.props.inputIndex + 1)}
+                {modifiedInputString.substring(0, modifiedInputIndex)}
+                <span className="current-symbol">{modifiedInputString.charAt(modifiedInputIndex)}</span>
+                {modifiedInputString.substring(modifiedInputIndex + 1)}
                 {this.props.blankSymbol ? threeBlankSymbols + '...' : ''}
                 {inputMessage ? ': ' + inputMessage : ''}
               </h3>

@@ -12,6 +12,10 @@ import {
   addAcceptState,
   removeAcceptState,
   addTapeSymbol,
+  setInputString,
+  stepInput,
+  runInput,
+  restartInput,
   initializeFromJsonString,
   reset
 } from '../actions/tm'
@@ -37,6 +41,10 @@ export class TmPage extends Component {
     this.removeAcceptState = this.removeAcceptState.bind(this);
     this.addTransition = this.addTransition.bind(this);
     this.addTapeSymbol = this.addTapeSymbol.bind(this);
+    this.setInputString = this.setInputString.bind(this);
+    this.stepInput = this.stepInput.bind(this);
+    this.runInput = this.runInput.bind(this);
+    this.restartInput = this.restartInput.bind(this);
     this.initializeFromJsonString = this.initializeFromJsonString.bind(this);
     this.reset = this.reset.bind(this);
     this.stringifyAutomaton = this.stringifyAutomaton.bind(this);
@@ -91,6 +99,22 @@ export class TmPage extends Component {
     this.props.dispatch(addTapeSymbol(symbol));
   }
 
+  setInputString(inputString) {
+    this.props.dispatch(setInputString(inputString));
+  }
+
+  stepInput() {
+    this.props.dispatch(stepInput());
+  }
+
+  runInput() {
+    this.props.dispatch(runInput());
+  }
+
+  restartInput() {
+    this.props.dispatch(restartInput());
+  }
+
   initializeFromJsonString(jsonString) {
     this.props.dispatch(initializeFromJsonString(jsonString));
   }
@@ -114,7 +138,10 @@ export class TmPage extends Component {
       initialState,
       acceptStates,
       statePositions,
-      selected
+      selected,
+      inputString,
+      inputIndex,
+      inputMessage
     } = this.props.tm;
 
     const simplifiedTransitionFunction = getSimplifiedTransitionFunction(transitionFunction);
@@ -156,7 +183,7 @@ export class TmPage extends Component {
       { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()), modalType: modalTypes.INPUT_ALPHABET_MODAL },
       { name: '\u03B4', value: transitionFunctionDiv, modalType: modalTypes.TM_TRANSITION_MODAL },
       { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },
-      { name: 'F', value: arrayToString(acceptStates.toArray()), modalType: modalTypes.ACCEPT_STATES_MODAL },
+      { name: 'F', value: arrayToString(acceptStates.toArray()), modalType: modalTypes.ACCEPT_STATES_MODAL }
     ];
 
     return <AutomataPage
@@ -167,6 +194,10 @@ export class TmPage extends Component {
       acceptStates={acceptStates}
       statePositions={statePositions}
       selected={selected}
+      inputString={inputString}
+      inputIndex={inputIndex}
+      inputMessage={inputMessage}
+      blankSymbol={blankSymbol}
       changeName={this.changeName}
       addState={this.addState}
       selectState={this.selectState}
@@ -178,6 +209,10 @@ export class TmPage extends Component {
       addAcceptState={this.addAcceptState}
       removeAcceptState={this.removeAcceptState}
       addTransition={this.addTransition}
+      setInputString={this.setInputString}
+      stepInput={this.stepInput}
+      runInput={this.runInput}
+      restartInput={this.restartInput}
       initializeFromJsonString={this.initializeFromJsonString}
       reset={this.reset}
       stringifyAutomaton={this.stringifyAutomaton}

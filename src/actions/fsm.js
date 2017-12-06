@@ -64,6 +64,10 @@ export function setInputAlphabet(inputAlphabet, emptyStringSymbol) {
   return { type: actionTypes.FSM_INPUT_ALPHABET_SET, payload: { inputAlphabet, emptyStringSymbol } };
 }
 
+export function setInputString(inputString) {
+  return { type: actionTypes.FSM_INPUT_STRING_SET, payload: { inputString }}
+}
+
 export function stepInput() {
   return { type: actionTypes.FSM_STEP_INPUT };
 }
@@ -74,10 +78,6 @@ export function runInput() {
 
 export function restartInput() {
   return { type: actionTypes.FSM_RESTART_INPUT };
-}
-
-export function setInputString(inputString) {
-  return { type: actionTypes.FSM_INPUT_STRING_SET, payload: { inputString }}
 }
 
 export function initializeFromJsonString(jsonString) {

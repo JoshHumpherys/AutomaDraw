@@ -12,8 +12,11 @@ import {
   removeInitialState,
   addAcceptState,
   removeAcceptState,
-  setAcceptStates
+  setAcceptStates,
+  setInputString,
+  restartInput
 } from './sharedAutomataFunctions'
+import * as inputMessageTypes from '../constants/inputMessageTypes'
 
 const createInstruction = (fromState, inputSymbol, toState, writeSymbol, moveDirection) =>
   ({ fromState, inputSymbol, toState, writeSymbol, moveDirection });
@@ -34,7 +37,10 @@ export default function tm(
       'A': { x: 130, y: 200 },
       'B': { x: 370, y: 200 }
     }),
-    selected: 'A'
+    selected: 'A',
+    inputString: '',
+    inputIndex: 0,
+    inputMessage: ''
   },
   action) {
   switch(action.type) {
@@ -145,6 +151,77 @@ export default function tm(
     case actionTypes.TM_BLANK_SYMBOL_REMOVED: {
       return { ...state, blankSymbol: null };
     }
+    case actionTypes.TM_INPUT_STRING_SET: {
+      return setInputString(state, action.payload.inputString);
+    }
+    case actionTypes.TM_STEP_INPUT: { // TODO
+      if(state.acceptStates.contains(state.selected)) {
+        return { ...state, inputMessage: inputMessageTypes.ACCEPT };
+      }
+      const currentSymbol = state.inputIndex >= 0 && state.inputIndex < state.inputString.length ?
+        state.inputString[state.inputIndex] : state.blankSymbol;
+      const transition = state.transitionFunction.find(instruction => // TODO nondeterminism
+        instruction.fromState === state.selected && instruction.inputSymbol === currentSymbol
+      );
+      if(transition === undefined) {
+        return { ...state, inputMessage: inputMessageTypes.REJECT };
+      }
+      const selected = transition.toState;
+      let inputString;
+      if(state.inputIndex >= 0 && state.inputIndex < state.inputString.length) {
+        inputString = state.inputString.substring(0, state.inputIndex) +
+          transition.writeSymbol +
+          state.inputString.substring(state.inputIndex + 1);
+      } else {
+        const generateBlankSymbols = numBlankSymbols => {
+          let blankSymbolsString = '';
+          for(let i = 0; i < numBlankSymbols; i++) {
+            blankSymbolsString += state.blankSymbol;
+          }
+          return '';
+        };
+        if(state.inputIndex < 0) {
+          let blankSymbols = generateBlankSymbols(state.inputIndex + 1);
+          inputString = transition.writeSymbol + blankSymbols + inputString;
+        } else {
+          let blankSymbols = generateBlankSymbols(state.inputIndex - state.inputString.length);
+          inputString = state.inputString + blankSymbols + transition.writeSymbol;
+        }
+      }
+      const inputIndex = state.inputIndex + (transition.moveDirection === 'L' ? -1 : 1); // TODO make direction enum
+      const inputMessage = state.acceptStates.contains(selected) ? inputMessageTypes.ACCEPT : state.inputMessage;
+      return { ...state, inputString, inputIndex, selected, inputMessage };
+    }
+    case actionTypes.TM_RUN_INPUT: { // TODO
+      const determineInputMessage = selected =>
+        state.acceptStates.contains(selected) ? inputMessageTypes.ACCEPT : inputMessageTypes.REJECT;
+      if(state.inputString.length === 0) {
+        return { ...state, inputMessage: determineInputMessage(state.initialState) };
+      }
+      const getNextTransition = (selected, inputSymbol) => state.transitionFunction.find(instruction => // TODO nondeterminism
+        instruction.fromState === selected && instruction.inputSymbol === inputSymbol
+      );
+      let { selected, inputIndex } = state;
+      let inputMessage = null;
+      while(inputIndex < state.inputString.length) {
+        const transition = getNextTransition(selected, state.inputString[inputIndex]);
+        if(transition === undefined) {
+          inputMessage = inputMessageTypes.REJECT;
+          break;
+        }
+        selected = transition.toState;
+        inputIndex++;
+      }
+      return {
+        ...state,
+        selected,
+        inputIndex,
+        inputMessage: inputMessage || determineInputMessage(selected)
+      };
+    }
+    case actionTypes.TM_RESTART_INPUT: {
+      return restartInput(state);
+    }
     case actionTypes.TM_INITIALIZED_FROM_JSON_STRING: {
       const tm = JSON.parse(action.payload.jsonString);
       return {
@@ -154,7 +231,11 @@ export default function tm(
         inputAlphabet: new Set(tm.inputAlphabet),
         transitionFunction: new Set(tm.transitionFunction),
         acceptStates: new Set(tm.acceptStates),
-        statePositions: new Map(tm.statePositions)
+        statePositions: new Map(tm.statePositions),
+        selected: null,
+        inputString: '',
+        inputIndex: 0,
+        inputMessage: ''
       }
     }
     case actionTypes.TM_RESET: {
@@ -168,7 +249,10 @@ export default function tm(
         initialState: null,
         acceptStates: new Set(),
         statePositions: new Map(),
-        selected: null
+        selected: null,
+        inputString: '',
+        inputIndex: 0,
+        inputMessage: ''
       }
     }
     default: {

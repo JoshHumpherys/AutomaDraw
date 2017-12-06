@@ -167,7 +167,7 @@ export class FsmPage extends Component {
       { name: '\u03A3', value: arrayToString(inputAlphabet.toArray()), modalType: modalTypes.INPUT_ALPHABET_MODAL },
       { name: '\u03B4', value: transitionFunctionDiv, modalType: modalTypes.FSM_TRANSITION_MODAL },
       { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },
-      { name: 'F', value: arrayToString(acceptStates.toArray()), modalType: modalTypes.ACCEPT_STATES_MODAL },
+      { name: 'F', value: arrayToString(acceptStates.toArray()), modalType: modalTypes.ACCEPT_STATES_MODAL }
     ];
 
     return <AutomataPage

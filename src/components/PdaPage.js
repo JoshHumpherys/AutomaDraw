@@ -162,7 +162,7 @@ export class PdaPage extends Component {
       { name: '\u03B4', value: transitionFunctionDiv, modalType: modalTypes.PDA_TRANSITION_MODAL },
       { name: 'q\u2080', value: initialState, modalType: modalTypes.INITIAL_STATE_MODAL },
       { name: 'Z', value: initialStackSymbol, modalType: modalTypes.INITIAL_STACK_SYMBOL_MODAL },
-      { name: 'F', value: arrayToString(acceptStates.toArray()), modalType: modalTypes.ACCEPT_STATES_MODAL },
+      { name: 'F', value: arrayToString(acceptStates.toArray()), modalType: modalTypes.ACCEPT_STATES_MODAL }
     ];
 
     return <AutomataPage

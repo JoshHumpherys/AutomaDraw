@@ -245,7 +245,6 @@ export class AutomataPage extends Component {
         const name = getNextStateName(this.props.states);
         const statePosition = this.getStatePositionFromCenterPosition(mousePosition);
         this.props.addState(name, statePosition);
-        this.props.selectState(name); // TODO remove this action if selected state is never used
       }
       this.setState({ placingNewState: false });
     }
@@ -268,7 +267,6 @@ export class AutomataPage extends Component {
   automataContainerKeyUp(e) {}
 
   stateMouseDown(e, state) {
-    this.props.selectState(state);
     this.setState({ mouseDownOnState: state });
   }
 
@@ -600,6 +598,51 @@ export class AutomataPage extends Component {
 
     const inputMessage = getInputMessage(this.props.inputMessage) || '';
 
+    const threeBlankSymbols = this.props.blankSymbol + this.props.blankSymbol + this.props.blankSymbol;
+
+    let inputContainer;
+    if(this.props.inputString !== undefined) { // TODO remove this check and implement input container for all automata
+      inputContainer = (
+        <div className="input-container">
+          {
+            this.props.inputString.length > 0 ? (
+              <h3 className="input-string">
+                {this.props.blankSymbol ? '...' + threeBlankSymbols : ''}
+                {this.props.inputString.substring(0, this.props.inputIndex)}
+                <span className="selected-char">{this.props.inputString.charAt(this.props.inputIndex)}</span>
+                {this.props.inputString.substring(this.props.inputIndex + 1)}
+                {this.props.blankSymbol ? threeBlankSymbols + '...' : ''}
+                {inputMessage ? ': ' + inputMessage : ''}
+              </h3>
+            ) : (
+              <h3 className="input-string">
+                {this.props.blankSymbol
+                  ? '...' + threeBlankSymbols + '...'
+                  : this.props.settings.emptyStringSymbol + (inputMessage ? ': ' + inputMessage : '')
+                }
+              </h3>
+            )
+          }
+          <div className="input-controls">
+            <Input
+              ref={input => this.inputRef = input}
+              onChange={e => this.inputChanged(e)}
+              defaultValue={this.props.inputString}
+              spellCheck="false" />
+            <Button onClick={this.stepInput}>
+              <Icon name="step forward" className="clickable-icon" /> Step
+            </Button>
+            <Button onClick={this.runInput}>
+              <Icon name="play" className="clickable-icon" /> Run
+            </Button>
+            <Button onClick={this.restartInput}>
+              <Icon name="refresh" className="clickable-icon" /> Restart
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="content-container">
         <div className="control-panel-left">
@@ -744,38 +787,7 @@ export class AutomataPage extends Component {
               )
             }
           </div>
-          <div className="input-container">
-            {
-              this.props.inputString.length > 0 ? (
-                <h3 className="input-string">
-                  {this.props.inputString.substring(0, this.props.inputIndex)}
-                  <span className="selected-char">{this.props.inputString.charAt(this.props.inputIndex)}</span>
-                  {this.props.inputString.substring(this.props.inputIndex + 1)}
-                  {inputMessage ? ': ' + inputMessage : ''}
-                </h3>
-              ) : (
-                <h3 className="input-string">
-                  {this.props.settings.emptyStringSymbol + (inputMessage ? ': ' + inputMessage : '')}
-                </h3>
-              )
-            }
-            <div className="input-controls">
-              <Input
-                ref={input => this.inputRef = input}
-                onChange={e => this.inputChanged(e)}
-                defaultValue={this.props.inputString}
-                spellCheck="false" />
-              <Button onClick={this.stepInput}>
-                <Icon name="step forward" className="clickable-icon" /> Step
-              </Button>
-              <Button onClick={this.runInput}>
-                <Icon name="play" className="clickable-icon" /> Run
-              </Button>
-              <Button onClick={this.restartInput}>
-                <Icon name="refresh" className="clickable-icon" /> Restart
-              </Button>
-            </div>
-          </div>
+          {inputContainer}
         </div>
       </div>
     );

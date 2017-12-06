@@ -86,6 +86,22 @@ export function removeBlankSymbol() {
   return { type: actionTypes.TM_BLANK_SYMBOL_REMOVED };
 }
 
+export function setInputString(inputString) {
+  return { type: actionTypes.TM_INPUT_STRING_SET, payload: { inputString }}
+}
+
+export function stepInput() {
+  return { type: actionTypes.TM_STEP_INPUT };
+}
+
+export function runInput() {
+  return { type: actionTypes.TM_RUN_INPUT };
+}
+
+export function restartInput() {
+  return { type: actionTypes.TM_RESTART_INPUT };
+}
+
 export function initializeFromJsonString(jsonString) {
   return { type: actionTypes.TM_INITIALIZED_FROM_JSON_STRING, payload: { jsonString } };
 }

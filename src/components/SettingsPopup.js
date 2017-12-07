@@ -28,8 +28,8 @@ export class SettingsPopup extends Component {
             selection
             options={
               [
-                { text: 'Lambda', value: emptyStringSymbols.LAMBDA },
-                { text: 'Epsilon', value: emptyStringSymbols.EPSILON }
+                { text: `Lambda \u2014 ${emptyStringSymbols.LAMBDA}`, value: emptyStringSymbols.LAMBDA },
+                { text: `Epsilon \u2014 ${emptyStringSymbols.EPSILON}`, value: emptyStringSymbols.EPSILON }
               ]
             }
             onChange={(e, data) => {
@@ -46,10 +46,10 @@ export class SettingsPopup extends Component {
             selection
             options={
               [
-                { text: 'Pipe', value: alternationSymbols.PIPE },
-                { text: 'Union', value: alternationSymbols.UNION },
-                { text: 'Plus', value: alternationSymbols.PLUS },
-                { text: 'Logical Or', value: alternationSymbols.LOGICAL_OR }
+                { text: `Pipe \u2014 ${alternationSymbols.PIPE}`, value: alternationSymbols.PIPE },
+                { text: `Union \u2014 ${alternationSymbols.UNION}`, value: alternationSymbols.UNION },
+                { text: `Plus \u2014 ${alternationSymbols.PLUS}`, value: alternationSymbols.PLUS },
+                { text: `Logical Or \u2014 ${alternationSymbols.LOGICAL_OR}`, value: alternationSymbols.LOGICAL_OR }
               ]
             }
             onChange={(e, data) => {

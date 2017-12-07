@@ -26,7 +26,7 @@ export const getSimplifiedTransitionFunction = transitionFunction => {
     newTransitionFunction = transitionFunction
       .map(({ fromState, inputSymbol, toState }) => ({ fromState, transitionText: inputSymbol, toState }))
       .groupBy(x => find({ fromState: x.fromState, toState: x.toState }))
-      .map(x => ({ ...x.first(), transitionText: x.map(y => y.transitionText).join(', ') }));
+      .map(x => ({ ...x.first(), transitionText: x.map(y => y.transitionText).sort().join(', ') }));
   });
 
   return newTransitionFunction;

@@ -62,19 +62,32 @@ const stepInput = state => {
 
 export default function tm(
   state = {
-    name: 'My TM',
-    states: new Set(['A', 'B']),
-    tapeAlphabet: new Set(['\u0394', 'a']),
+    name: 'Example TM',
+    states: new Set(['A', 'B', 'C', 'D', 'E']),
+    tapeAlphabet: new Set(['\u0394', '0', '1', 'X', 'Y']),
     blankSymbol: '\u0394',
-    inputAlphabet: new Set(['a']),
+    inputAlphabet: new Set(['0', '1']),
     transitionFunction: new Set([
-      createInstruction('A', 'a', 'B', 'a', 'R')
+      createInstruction('A', '0', 'B', 'X', 'R'),
+      createInstruction('A', 'Y', 'D', 'Y', 'R'),
+      createInstruction('B', '0', 'B', '0', 'R'),
+      createInstruction('B', '1', 'C', 'Y', 'L'),
+      createInstruction('B', 'Y', 'B', 'Y', 'R'),
+      createInstruction('C', '0', 'C', '0', 'L'),
+      createInstruction('C', 'X', 'A', 'X', 'R'),
+      createInstruction('C', 'Y', 'C', 'Y', 'L'),
+      createInstruction('D', 'Y', 'D', 'Y', 'R'),
+      createInstruction('D', '\u0394', 'E', '\u0394', 'R')
     ]),
     initialState: 'A',
-    acceptStates: new Set(['A']),
+    acceptStates: new Set(['E']),
     statePositions: new Map({
-      'A': { x: 130, y: 200 },
-      'B': { x: 370, y: 200 }
+      'A': { x: 200, y: 250 },
+      'B': { x: 425, y: 150 },
+      'C': { x: 650, y: 250 },
+      'D': { x: 350, y: 375 },
+      'E': { x: 500, y: 375 }
+
     }),
     selected: '',
     currentState: '',

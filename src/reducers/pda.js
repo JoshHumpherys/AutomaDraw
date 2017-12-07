@@ -20,7 +20,7 @@ const createInstruction = (fromState, inputSymbol, stackSymbol, toState, pushSym
 
 export default function pda(
   state = {
-    name: 'My PDA',
+    name: 'Trivial PDA',
     states: new Set(['A', 'B']),
     inputAlphabet: new Set(['a']),
     stackAlphabet: new Set(['#']),

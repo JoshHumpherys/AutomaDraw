@@ -22,20 +22,29 @@ const createInstruction = (fromState, inputSymbol, toState) => ({ fromState, inp
 
 export default function fsm(
   state = {
-    name: 'My FSM',
-    states: new Set(['A', 'B', 'C']),
-    inputAlphabet: new Set(['a', 'b', 'c']),
+    name: 'Example FSM',
+    states: new Set(['A', 'B', 'C', 'D', 'E']),
+    inputAlphabet: new Set(['0', '1']),
     transitionFunction: new Set([
-      createInstruction('A', 'a', 'B'),
-      createInstruction('B', 'b', 'C'),
-      createInstruction('C', 'c', 'A')
+      createInstruction('A', '0', 'B'),
+      createInstruction('A', '1', 'C'),
+      createInstruction('B', '0', 'B'),
+      createInstruction('B', '1', 'D'),
+      createInstruction('C', '0', 'E'),
+      createInstruction('C', '1', 'C'),
+      createInstruction('D', '0', 'B'),
+      createInstruction('D', '1', 'D'),
+      createInstruction('E', '0', 'E'),
+      createInstruction('E', '1', 'C')
     ]),
     initialState: 'A',
-    acceptStates: new Set(['A']),
+    acceptStates: new Set(['A', 'B', 'C']),
     statePositions: new Map({
-      'A': { x: 130, y: 200 },
-      'B': { x: 250, y: 50 },
-      'C': { x: 370, y: 200 }
+      'A': { x: 175, y: 250 },
+      'B': { x: 300, y: 170 },
+      'C': { x: 300, y: 330 },
+      'D': { x: 500, y: 170 },
+      'E': { x: 500, y: 330 }
     }),
     selected: '',
     currentState: '',

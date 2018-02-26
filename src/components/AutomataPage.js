@@ -715,7 +715,7 @@ export class AutomataPage extends Component {
           <div className="control-panel-text">
             <Button onClick={() => saveAs(
               new Blob([this.props.stringifyAutomaton()], { type: 'text/plain;charset=utf-8' }),
-              `${this.props.name}.dat`
+              `${this.props.name}.ad`
             )}>
               <Icon name="download" className="clickable-icon" /> Download
             </Button>

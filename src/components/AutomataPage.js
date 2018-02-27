@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import ReactGA from 'react-ga'
 import { getSettings } from '../selectors/settings'
 import interact from 'interactjs'
 import $ from 'jquery'
@@ -431,6 +432,9 @@ export class AutomataPage extends Component {
   }
 
   componentDidMount() {
+    ReactGA.initialize('UA-73609975-3');
+    ReactGA.pageview(window.location.pathname);
+
     interact('.state')
       .draggable({
         // TODO enable this and fix associated bugs

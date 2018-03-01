@@ -77,6 +77,7 @@ export const TM_RESET = 'TM_RESET';
 // regex
 export const REGEX_SET = 'REGEX_SET';
 export const REGEX_CLEARED = 'REGEX_CLEARED';
+export const REGEX_INITIALIZED_FROM_JSON_STRING = 'REGEX_INITIALIZED_FROM_JSON_STRING';
 
 // modal
 export const MODAL_CREATED = 'MODAL_CREATED';

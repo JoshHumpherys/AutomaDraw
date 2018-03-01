@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Button, Icon } from 'semantic-ui-react'
-import { setRegex, clearRegex } from '../actions/regex'
+import { setRegex, clearRegex, initializeFromJsonString } from '../actions/regex'
 import { getRegexString, getRegexSymbols } from '../selectors/regex'
 import { getSettings } from '../selectors/settings'
 import $ from 'jquery'
-import {saveAs} from "file-saver";
+import { saveAs } from 'file-saver'
 
 export class RegexPage extends Component {
   constructor(props) {
@@ -63,6 +63,20 @@ export class RegexPage extends Component {
     $(this.inputRef).val(''); // TODO figure out why I need to do this
   }
 
+  uploadFile(file, callback) {
+    const fileReader = new FileReader();
+
+    fileReader.onload = e => {
+      const jsonString = e.target.result;
+      this.props.dispatch(initializeFromJsonString(jsonString));
+      $(this.inputRef).val(JSON.parse(jsonString).regex);
+      callback();
+    };
+
+    fileReader.readAsText(file, 'UTF-8');
+  }
+
+
   stringifyRegex() {
     return JSON.stringify({
       regex: this.props.regex,
@@ -112,6 +126,20 @@ export class RegexPage extends Component {
           <Button content="Clear" onClick={this.clear} />
         </div>
         <div className="centered-children">
+          <div className="upload-container">
+            <Button onClick={() => $('#upload').click()}>
+              <Icon name="upload" className="clickable-icon" /> Upload
+            </Button>
+            <input
+              type="file"
+              id="upload"
+              style={{ display: 'none'}}
+              onChange={() => {
+                const upload = $('#upload');
+                this.uploadFile(upload.get(0).files[0], () => upload.val(''));
+              }}
+            />
+          </div>
           <Button onClick={() => saveAs(
             new Blob([this.stringifyRegex()], { type: 'text/plain;charset=utf-8' }), 'regex.ad'
           )}>

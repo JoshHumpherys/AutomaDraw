@@ -7,3 +7,7 @@ export function setRegex(regex, emptyStringSymbol, alternationSymbol) {
 export function clearRegex() {
   return { type: actionTypes.REGEX_CLEARED };
 }
+
+export function initializeFromJsonString(jsonString) {
+  return { type: actionTypes.REGEX_INITIALIZED_FROM_JSON_STRING, payload: { jsonString } };
+}

@@ -1,4 +1,4 @@
-import { OrderedSet, Record } from 'immutable'
+import {Map, OrderedSet, Record, Set} from 'immutable'
 import * as actionTypes from '../constants/actionTypes'
 
 export const symbolTypes = {
@@ -89,6 +89,11 @@ export default function regex(state = new Regex(), action) {
     case actionTypes.SETTINGS_ALTERNATION_SYMBOL_SET: {
       const { alternationSymbol } = action.payload;
       return state.changeAlternationSymbolAction(alternationSymbol);
+    }
+    case actionTypes.REGEX_INITIALIZED_FROM_JSON_STRING: {
+      const { jsonString } = action.payload;
+      const { regex, emptyStringSymbol, alternationSymbol } = JSON.parse(jsonString);
+      return state.setRegexAction(regex, emptyStringSymbol, alternationSymbol);
     }
     default: {
       return state;

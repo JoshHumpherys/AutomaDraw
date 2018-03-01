@@ -259,3 +259,7 @@ body {
 .clickable {
   cursor: pointer;
 }
+
+.upload-container {
+  display: inline-block;
+}

@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { Button } from 'semantic-ui-react'
+import { Button, Icon } from 'semantic-ui-react'
 import { setRegex, clearRegex } from '../actions/regex'
 import { getRegexString, getRegexSymbols } from '../selectors/regex'
 import { getSettings } from '../selectors/settings'
 import $ from 'jquery'
+import {saveAs} from "file-saver";
 
 export class RegexPage extends Component {
   constructor(props) {
@@ -62,6 +63,14 @@ export class RegexPage extends Component {
     $(this.inputRef).val(''); // TODO figure out why I need to do this
   }
 
+  stringifyRegex() {
+    return JSON.stringify({
+      regex: this.props.regex,
+      emptyStringSymbol: this.props.emptyStringSymbol,
+      alternationSymbol: this.props.alternationSymbol
+    });
+  }
+
   componentDidUpdate(prevProps) {
     const emptyStringSymbolChanged = prevProps.emptyStringSymbol !== this.props.emptyStringSymbol;
     const alternationSymbolChanged = prevProps.alternationSymbol !== this.props.alternationSymbol;
@@ -101,6 +110,13 @@ export class RegexPage extends Component {
         </div>
         <div className="centered-children">
           <Button content="Clear" onClick={this.clear} />
+        </div>
+        <div className="centered-children">
+          <Button onClick={() => saveAs(
+            new Blob([this.stringifyRegex()], { type: 'text/plain;charset=utf-8' }), 'regex.ad'
+          )}>
+            <Icon name="download" className="clickable-icon" /> Download
+          </Button>
         </div>
       </div>
     );

@@ -38,7 +38,7 @@ class Regex extends Record({ regex: new OrderedSet() }) {
 
   changeEmptyStringSymbolAction(emptyStringSymbol) {
     return this.setRegex(this.regex.map(symbol => {
-      if(symbol.symbol === emptyStringSymbol) {
+      if(symbol.symbolType === symbolTypes.EMPTY_STRING_SYMBOL) {
         return this.createEmptyStringSymbol();
       } else {
         return symbol;
@@ -48,7 +48,7 @@ class Regex extends Record({ regex: new OrderedSet() }) {
 
   changeAlternationSymbolAction(alternationSymbol) {
     return this.setRegex(this.regex.map(symbol => {
-      if(symbol.symbol === alternationSymbol) {
+      if(symbol.symbolType === symbolTypes.ALTERNATION_SYMBOL) {
         return this.createAlternationSymbol();
       } else {
         return symbol;
@@ -83,11 +83,11 @@ export default function regex(state = new Regex(), action) {
       return state.clearRegexAction();
     }
     case actionTypes.SETTINGS_EMPTY_STRING_SYMBOL_SET: {
-      const { emptyStringSymbol } = action.payload;
+      const emptyStringSymbol = action.payload.newEmptyStringSymbol;
       return state.changeEmptyStringSymbolAction(emptyStringSymbol);
     }
     case actionTypes.SETTINGS_ALTERNATION_SYMBOL_SET: {
-      const { alternationSymbol } = action.payload;
+      const alternationSymbol = action.payload.newAlternationSymbol;
       return state.changeAlternationSymbolAction(alternationSymbol);
     }
     case actionTypes.REGEX_INITIALIZED_FROM_JSON_STRING: {

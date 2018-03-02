@@ -94,7 +94,6 @@ export class RegexPage extends Component {
   }
 
   render() {
-    console.log(this.props.regexSymbols);
     return (
       <div className="page-container" style={{ color: (this.props.darkTheme ? '#fff' : '#000') }}>
         <div className="regex-input-container">

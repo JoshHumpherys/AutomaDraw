@@ -19,6 +19,10 @@ export default function fsm(
     case actionTypes.SETTINGS_ALTERNATION_SYMBOL_SET: {
       return { ...state, alternationSymbol: action.payload.newAlternationSymbol };
     }
+    case actionTypes.REGEX_INITIALIZED_FROM_JSON_STRING: {
+      const { emptyStringSymbol, alternationSymbol } = JSON.parse(action.payload.jsonString);
+      return { ...state, emptyStringSymbol, alternationSymbol };
+    }
     default: {
       return state;
     }

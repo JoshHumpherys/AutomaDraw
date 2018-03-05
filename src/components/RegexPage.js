@@ -64,6 +64,12 @@ export class RegexPage extends Component {
   }
 
   uploadFile(file, callback) {
+    const extension = file.name.slice(file.name.indexOf('.') + 1);
+    if(extension !== 'ad') {
+      alert('TODO alert user upload file is of wrong type');
+      return;
+    }
+
     const fileReader = new FileReader();
 
     fileReader.onload = e => {

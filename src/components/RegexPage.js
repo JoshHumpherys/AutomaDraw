@@ -60,7 +60,9 @@ export class RegexPage extends Component {
 
   clear() {
     this.props.dispatch(clearRegex());
-    $(this.inputRef).val(''); // TODO figure out why I need to do this
+    const regexInput = $(this.inputRef);
+    regexInput.val('');
+    regexInput.focus();
   }
 
   uploadFile(file, callback) {

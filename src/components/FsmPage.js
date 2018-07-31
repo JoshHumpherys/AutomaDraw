@@ -13,6 +13,7 @@ import {
   removeAcceptState,
   addInputSymbol,
   setInputString,
+  setExecutionPath,
   stepInput,
   runInput,
   restartInput,
@@ -42,6 +43,7 @@ export class FsmPage extends Component {
     this.addTransition = this.addTransition.bind(this);
     this.addSymbol = this.addSymbol.bind(this);
     this.setInputString = this.setInputString.bind(this);
+    this.setExecutionPath = this.setExecutionPath.bind(this);
     this.stepInput = this.stepInput.bind(this);
     this.runInput = this.runInput.bind(this);
     this.restartInput = this.restartInput.bind(this);
@@ -103,6 +105,10 @@ export class FsmPage extends Component {
     this.props.dispatch(setInputString(inputString));
   }
 
+  setExecutionPath(executionPathIndex) {
+    this.props.dispatch(setExecutionPath(executionPathIndex));
+  }
+
   stepInput() {
     this.props.dispatch(stepInput());
   }
@@ -130,7 +136,7 @@ export class FsmPage extends Component {
   render() {
     const {
       name, states, inputAlphabet, transitionFunction, initialState, acceptStates, statePositions, selected,
-      currentState, inputString, inputIndex, inputMessage
+      inputString, executionPaths, executionPathIndex
     } = this.props.fsm;
 
     const simplifiedTransitionFunction = getSimplifiedTransitionFunction(transitionFunction);
@@ -178,10 +184,12 @@ export class FsmPage extends Component {
       acceptStates={acceptStates}
       statePositions={statePositions}
       selected={selected}
-      currentState={currentState}
+      currentState={executionPaths[executionPathIndex].currentState}
       inputString={inputString}
-      inputIndex={inputIndex}
-      inputMessage={inputMessage}
+      inputIndex={executionPaths[executionPathIndex].inputIndex}
+      inputMessage={executionPaths[executionPathIndex].inputMessage}
+      executionPaths={executionPaths}
+      executionPathIndex={executionPathIndex}
       changeName={this.changeName}
       addState={this.addState}
       selectState={this.selectState}
@@ -194,6 +202,7 @@ export class FsmPage extends Component {
       removeAcceptState={this.removeAcceptState}
       addTransition={this.addTransition}
       setInputString={this.setInputString}
+      setExecutionPath={this.setExecutionPath}
       stepInput={this.stepInput}
       runInput={this.runInput}
       restartInput={this.restartInput}

@@ -111,19 +111,33 @@ export function setAcceptStates(automaton, states) {
 export function setInputString(automaton, inputString) {
   return {
     ...automaton,
-    currentState: inputString.length !== 0 ? automaton.initialState : null,
     inputString,
-    inputIndex: 0,
-    inputMessage: ''
+    executionPaths: [
+      {
+        currentState: inputString.length !== 0 ? automaton.initialState : null,
+        inputIndex: 0,
+        inputMessage: '',
+      }
+    ],
+    executionPathIndex: 0,
   };
+}
+
+export function setExecutionPath(automaton, executionPathIndex) {
+  return { ...automaton, executionPathIndex };
 }
 
 export function restartInput(automaton, inputString) {
   return {
     ...automaton,
-    currentState: automaton.inputString.length !== 0 ? automaton.initialState : null,
     inputString: inputString || automaton.inputString,
-    inputIndex: 0,
-    inputMessage: ''
+    executionPaths: [
+      {
+        currentState: automaton.inputString.length !== 0 ? automaton.initialState : null,
+        inputIndex: 0,
+        inputMessage: ''
+      }
+    ],
+    executionPathIndex: 0,
   };
 }

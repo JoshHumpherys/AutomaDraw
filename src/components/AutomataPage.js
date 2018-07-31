@@ -10,8 +10,6 @@ import { Set } from 'immutable'
 import { createModal, setModalState } from '../actions/modal'
 import * as modalTypes from '../constants/modalTypes'
 import * as inputMessageTypes from '../constants/inputMessageTypes'
-import * as emptyStringSymbols from "../constants/emptyStringSymbols";
-import {setEmptyStringSymbol} from "../actions/settings";
 
 export class AutomataPage extends Component {
   constructor(props) {
@@ -643,23 +641,22 @@ export class AutomataPage extends Component {
       inputContainer = (
         <div className="input-container">
           <div className="input-controls">
-            <Dropdown
-              defaultValue={0}
-              selection
-              upward
-              options={
-                [
-                  { text: `Path 1`, value: 0 },
-                  { text: `Path 2 (accept)`, value: 1 },
-                  { text: `Path 3 (reject)`, value: 2 },
-                  { text: `Path 4`, value: 3 },
-                  { text: `Path 5 (accept)`, value: 4 },
-                ]
-              }
-              onChange={(e, data) => {
-                alert('chosen ' + data.value);
-              }}
-            />
+            {
+              this.props.executionPaths.length > 1 ?
+                <Dropdown
+                  defaultValue={0}
+                  selection
+                  upward
+                  options={
+                    this.props.executionPaths.map(
+                      (executionPath, i) => ({
+                        text: 'Path ' + (i + 1) + (executionPath.inputMessage !== '' ? ' (' + executionPath.inputMessage + ')' : ''),
+                        value: i,
+                      }))
+                  }
+                  onChange={(e, data) => this.props.setExecutionPath(data.value)}
+                /> : undefined
+            }
             {
               modifiedInputString.length > 0 ? (
                 <h3 className="input-string">
@@ -672,9 +669,10 @@ export class AutomataPage extends Component {
                 </h3>
               ) : (
                 <h3 className="input-string">
-                  {this.props.blankSymbol
-                    ? '...' + threeBlankSymbols + '...'
-                    : this.props.settings.emptyStringSymbol + (inputMessage ? ': ' + inputMessage : '')
+                  {
+                    this.props.blankSymbol
+                      ? '...' + threeBlankSymbols + '...'
+                      : this.props.settings.emptyStringSymbol + (inputMessage ? ': ' + inputMessage : '')
                   }
                 </h3>
               )

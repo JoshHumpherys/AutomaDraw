@@ -22,6 +22,42 @@ import * as emptyStringSymbols from '../constants/emptyStringSymbols'
 
 const createInstruction = (fromState, inputSymbol, toState) => ({ fromState, inputSymbol, toState });
 
+const stepInput = state => {
+  const determineInputMessage = currentState =>
+    state.acceptStates.contains(currentState) ? inputMessageTypes.ACCEPT : inputMessageTypes.REJECT;
+  let executionPaths = [];
+  return { ...state, executionPaths: [...state.executionPaths.map(executionPath => {
+    if(executionPath.inputIndex >= state.inputString.length) {
+      return {
+        ...executionPath,
+        inputMessage: determineInputMessage(state.inputString.length === 0 ? state.initialState : executionPath.currentState)
+      };
+    }
+    const transitions = state.transitionFunction.filter(instruction =>
+      instruction.fromState === executionPath.currentState &&
+      (instruction.inputSymbol === state.inputString[executionPath.inputIndex] || instruction.inputSymbol === emptyStringSymbols.LAMBDA)
+    );
+    let inputMessage;
+    if(transitions.first() === undefined) {
+      return { ...executionPath, inputMessage: inputMessageTypes.REJECT };
+    }
+    const getNewExecutionPath = transition => {
+      if(executionPath.inputIndex + 1 >= state.inputString.length) {
+        inputMessage = determineInputMessage(transition.toState);
+      } else {
+        inputMessage = executionPath.inputMessage;
+      }
+      return {
+        inputIndex: executionPath.inputIndex + (transition.inputSymbol === emptyStringSymbols.LAMBDA ? 0 : 1),
+        currentState: transition.toState,
+        inputMessage
+      };
+    };
+    executionPaths = [...executionPaths, ...transitions.rest().map(transition => getNewExecutionPath(transition)).toArray()];
+    return getNewExecutionPath(transitions.first());
+  }), ...executionPaths]};
+};
+
 export default function fsm(
   state = {
     name: 'Example FSM',
@@ -157,66 +193,22 @@ export default function fsm(
       return setExecutionPath(state, action.payload.executionPathIndex);
     }
     case actionTypes.FSM_STEP_INPUT: {
-      const determineInputMessage = currentState =>
-        state.acceptStates.contains(currentState) ? inputMessageTypes.ACCEPT : inputMessageTypes.REJECT;
-      let executionPaths = [];
-      return { ...state, executionPaths: [...state.executionPaths.map(executionPath => {
-        if(executionPath.inputIndex >= state.inputString.length) {
-          return {
-            ...executionPath,
-            inputMessage: determineInputMessage(state.inputString.length === 0 ? state.initialState : executionPath.currentState)
-          };
-        }
-        const transitions = state.transitionFunction.filter(instruction =>
-          instruction.fromState === executionPath.currentState &&
-          (instruction.inputSymbol === state.inputString[executionPath.inputIndex] || instruction.inputSymbol === emptyStringSymbols.LAMBDA)
-        );
-        let inputMessage;
-        if(transitions.first() === undefined) {
-          return { ...executionPath, inputMessage: inputMessageTypes.REJECT };
-        }
-        const getNewExecutionPath = transition => {
-          if(executionPath.inputIndex + 1 >= state.inputString.length) {
-            inputMessage = determineInputMessage(transition.toState);
-          } else {
-            inputMessage = executionPath.inputMessage;
-          }
-          return {
-            inputIndex: executionPath.inputIndex + (transition.inputSymbol === emptyStringSymbols.LAMBDA ? 0 : 1),
-            currentState: transition.toState,
-            inputMessage
-          };
-        };
-        executionPaths = [...executionPaths, ...transitions.rest().map(transition => getNewExecutionPath(transition)).toArray()];
-        return getNewExecutionPath(transitions.first());
-      }), ...executionPaths]};
+      return stepInput(state);
     }
-    case actionTypes.FSM_RUN_INPUT: { // TODO fix this
-      const determineInputMessage = currentState =>
-        state.acceptStates.contains(currentState) ? inputMessageTypes.ACCEPT : inputMessageTypes.REJECT;
-      if(state.inputString.length === 0) {
-        return { ...state, inputMessage: determineInputMessage(state.initialState) };
-      }
-      const getNextTransition = (currentState, inputSymbol) => state.transitionFunction.find(instruction =>
-        instruction.fromState === currentState && instruction.inputSymbol === inputSymbol
-      );
-      let { currentState, inputIndex } = state;
-      let inputMessage = null;
-      while(inputIndex < state.inputString.length) {
-        const transition = getNextTransition(currentState, state.inputString[inputIndex]);
-        if(transition === undefined) {
-          inputMessage = inputMessageTypes.REJECT;
-          break;
+    case actionTypes.FSM_RUN_INPUT: {
+      let newState = state;
+      for(let i = 0; i < 500; i++) {
+        newState = stepInput(newState);
+        if(newState.executionPaths.every(executionPath => executionPath.inputMessage !== '')) {
+          return newState;
         }
-        currentState = transition.toState;
-        inputIndex++;
+        if(newState.executionPaths.length > 500) {
+          alert('TODO handle NFAs that have a lot of execution paths. There are currently ' + newState.executionPaths.length + ' execution paths.');
+          return newState;
+        }
       }
-      return {
-        ...state,
-        currentState,
-        inputIndex,
-        inputMessage: inputMessage || determineInputMessage(currentState)
-      };
+      alert('TODO handle NFAs that have a lot of steps. 500 steps have been executed.');
+      return newState;
     }
     case actionTypes.FSM_RESTART_INPUT: {
       return restartInput(state);

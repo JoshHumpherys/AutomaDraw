@@ -182,7 +182,7 @@ export default function fsm(
             inputMessage = executionPath.inputMessage;
           }
           return {
-            inputIndex: executionPath.inputIndex + 1,
+            inputIndex: executionPath.inputIndex + (transition.inputSymbol === emptyStringSymbols.LAMBDA ? 0 : 1),
             currentState: transition.toState,
             inputMessage
           };

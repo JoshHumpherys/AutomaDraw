@@ -10,6 +10,8 @@ import { Set } from 'immutable'
 import { createModal, setModalState } from '../actions/modal'
 import * as modalTypes from '../constants/modalTypes'
 import * as inputMessageTypes from '../constants/inputMessageTypes'
+import * as emptyStringSymbols from "../constants/emptyStringSymbols";
+import {setEmptyStringSymbol} from "../actions/settings";
 
 export class AutomataPage extends Component {
   constructor(props) {
@@ -638,28 +640,46 @@ export class AutomataPage extends Component {
 
       let modifiedInputString = additionalBlankSymbolsBefore + this.props.inputString + additionalBlankSymbolsAfter;
       let modifiedInputIndex = this.props.inputIndex + (this.props.inputIndex < 0 ? additionalBlankSymbolsBefore : 0);
-      console.log(modifiedInputString);
       inputContainer = (
         <div className="input-container">
-          {
-            modifiedInputString.length > 0 ? (
-              <h3 className="input-string">
-                {this.props.blankSymbol ? '...' + threeBlankSymbols : ''}
-                {modifiedInputString.substring(0, modifiedInputIndex)}
-                <span className="current-symbol">{modifiedInputString.charAt(modifiedInputIndex)}</span>
-                {modifiedInputString.substring(modifiedInputIndex + 1)}
-                {this.props.blankSymbol ? threeBlankSymbols + '...' : ''}
-                {inputMessage ? ': ' + inputMessage : ''}
-              </h3>
-            ) : (
-              <h3 className="input-string">
-                {this.props.blankSymbol
-                  ? '...' + threeBlankSymbols + '...'
-                  : this.props.settings.emptyStringSymbol + (inputMessage ? ': ' + inputMessage : '')
-                }
-              </h3>
-            )
-          }
+          <div className="input-controls">
+            <Dropdown
+              defaultValue={0}
+              selection
+              upward
+              options={
+                [
+                  { text: `Path 1`, value: 0 },
+                  { text: `Path 2 (accept)`, value: 1 },
+                  { text: `Path 3 (reject)`, value: 2 },
+                  { text: `Path 4`, value: 3 },
+                  { text: `Path 5 (accept)`, value: 4 },
+                ]
+              }
+              onChange={(e, data) => {
+                alert('chosen ' + data.value);
+              }}
+            />
+            {
+              modifiedInputString.length > 0 ? (
+                <h3 className="input-string">
+                  {this.props.blankSymbol ? '...' + threeBlankSymbols : ''}
+                  {modifiedInputString.substring(0, modifiedInputIndex)}
+                  <span className="current-symbol">{modifiedInputString.charAt(modifiedInputIndex)}</span>
+                  {modifiedInputString.substring(modifiedInputIndex + 1)}
+                  {this.props.blankSymbol ? threeBlankSymbols + '...' : ''}
+                  {inputMessage ? ': ' + inputMessage : ''}
+                </h3>
+              ) : (
+                <h3 className="input-string">
+                  {this.props.blankSymbol
+                    ? '...' + threeBlankSymbols + '...'
+                    : this.props.settings.emptyStringSymbol + (inputMessage ? ': ' + inputMessage : '')
+                  }
+                </h3>
+              )
+            }
+          </div>
           <div className="input-controls">
             <Input
               ref={input => this.inputRef = input}

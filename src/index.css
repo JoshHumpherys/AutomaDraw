@@ -263,3 +263,7 @@ body {
 .upload-container {
   display: inline-block;
 }
+
+.input-string {
+  display: inline;
+}

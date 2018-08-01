@@ -13,8 +13,7 @@ import {
   addAcceptState,
   removeAcceptState,
   setAcceptStates,
-  setInputString,
-  restartInput
+  setExecutionPath,
 } from './sharedAutomataFunctions'
 import * as inputMessageTypes from '../constants/inputMessageTypes'
 
@@ -25,39 +24,49 @@ const stepInput = state => {
   if(state.acceptStates.contains(state.currentState)) {
     return { ...state, inputMessage: inputMessageTypes.ACCEPT };
   }
-  const currentSymbol = state.inputIndex >= 0 && state.inputIndex < state.inputString.length ?
-    state.inputString[state.inputIndex] : state.blankSymbol;
-  const transition = state.transitionFunction.find(instruction => // TODO nondeterminism
-    instruction.fromState === state.currentState && instruction.inputSymbol === currentSymbol
-  );
-  if(transition === undefined) {
-    return { ...state, inputMessage: inputMessageTypes.REJECT };
-  }
-  const currentState = transition.toState;
-  let inputString;
-  if(state.inputIndex >= 0 && state.inputIndex < state.inputString.length) {
-    inputString = state.inputString.substring(0, state.inputIndex) +
-      transition.writeSymbol +
-      state.inputString.substring(state.inputIndex + 1);
-  } else {
-    const generateBlankSymbols = numBlankSymbols => {
-      let blankSymbolsString = '';
-      for(let i = 0; i < numBlankSymbols; i++) {
-        blankSymbolsString += state.blankSymbol;
+  let executionPaths = [];
+  return { ...state, executionPaths: [...state.executionPaths.map(executionPath => {
+      if(executionPath.inputMessage !== '') {
+        return executionPath;
       }
-      return blankSymbolsString;
-    };
-    if(state.inputIndex < 0) {
-      let blankSymbols = generateBlankSymbols(state.inputIndex + 1);
-      inputString = transition.writeSymbol + blankSymbols + state.inputString;
-    } else {
-      let blankSymbols = generateBlankSymbols(state.inputIndex - state.inputString.length);
-      inputString = state.inputString + blankSymbols + transition.writeSymbol;
-    }
-  }
-  const inputIndex = state.inputIndex + (transition.moveDirection === 'L' ? -1 : 1); // TODO make direction enum
-  const inputMessage = state.acceptStates.contains(currentState) ? inputMessageTypes.ACCEPT : state.inputMessage;
-  return { ...state, inputString, inputIndex, currentState, inputMessage };
+      const currentSymbol = executionPath.inputIndex >= 0 && executionPath.inputIndex < executionPath.inputString.length ?
+        executionPath.inputString[executionPath.inputIndex] : state.blankSymbol;
+      const transitions = state.transitionFunction.filter(instruction =>
+        instruction.fromState === executionPath.currentState && instruction.inputSymbol === currentSymbol
+      );
+      if(transitions.first() === undefined) {
+        return { ...executionPath, inputMessage: inputMessageTypes.REJECT };
+      }
+      const getNewExecutionPath = transition => {
+        const currentState = transition.toState;
+        let inputString;
+        if(executionPath.inputIndex >= 0 && executionPath.inputIndex < executionPath.inputString.length) {
+          inputString = executionPath.inputString.substring(0, executionPath.inputIndex) +
+            transition.writeSymbol +
+            executionPath.inputString.substring(executionPath.inputIndex + 1);
+        } else {
+          const generateBlankSymbols = numBlankSymbols => {
+            let blankSymbolsString = '';
+            for(let i = 0; i < numBlankSymbols; i++) {
+              blankSymbolsString += state.blankSymbol;
+            }
+            return blankSymbolsString;
+          };
+          if(executionPath.inputIndex < 0) {
+            let blankSymbols = generateBlankSymbols(executionPath.inputIndex + 1);
+            inputString = transition.writeSymbol + blankSymbols + executionPath.inputString;
+          } else {
+            let blankSymbols = generateBlankSymbols(executionPath.inputIndex - executionPath.inputString.length);
+            inputString = executionPath.inputString + blankSymbols + transition.writeSymbol;
+          }
+        }
+        const inputIndex = executionPath.inputIndex + (transition.moveDirection === 'L' ? -1 : 1); // TODO make direction enum
+        const inputMessage = state.acceptStates.contains(currentState) ? inputMessageTypes.ACCEPT : executionPath.inputMessage;
+        return { ...executionPath, inputString, inputIndex, currentState, inputMessage };
+      };
+      executionPaths = [...executionPaths, ...transitions.rest().map(transition => getNewExecutionPath(transition)).toArray()];
+      return getNewExecutionPath(transitions.first());
+    }), ...executionPaths]};
 };
 
 export default function tm(
@@ -90,10 +99,16 @@ export default function tm(
 
     }),
     selected: '',
-    currentState: '',
     inputString: '',
-    inputIndex: 0,
-    inputMessage: ''
+    executionPaths: [
+      {
+        currentState: '',
+        inputString: '',
+        inputIndex: 0,
+        inputMessage: '',
+      },
+    ],
+    executionPathIndex: 0,
   },
   action) {
   switch(action.type) {
@@ -205,7 +220,22 @@ export default function tm(
       return { ...state, blankSymbol: null };
     }
     case actionTypes.TM_INPUT_STRING_SET: {
-      return setInputString(state, action.payload.inputString);
+      return {
+        ...state,
+        inputString: action.payload.inputString,
+        executionPaths: [
+          {
+            currentState: action.payload.inputString.length !== 0 ? state.initialState : null,
+            inputString: action.payload.inputString,
+            inputIndex: 0,
+            inputMessage: '',
+          }
+        ],
+        executionPathIndex: 0,
+      };
+    }
+    case actionTypes.TM_EXECUTION_PATH_SET: {
+      return setExecutionPath(state, action.payload.executionPathIndex);
     }
     case actionTypes.TM_STEP_INPUT: {
       return stepInput(state);
@@ -214,15 +244,30 @@ export default function tm(
       let newState = state;
       for(let i = 0; i < 500; i++) {
         newState = stepInput(newState);
-        if(newState.inputMessage !== '') {
+        if(newState.executionPaths.every(executionPath => executionPath.inputMessage !== '')) {
+          return newState;
+        }
+        if(newState.executionPaths.length > 500) {
+          alert('TODO handle TMs that have a lot of execution paths. There are currently ' + newState.executionPaths.length + ' execution paths.');
           return newState;
         }
       }
-      alert('TODO handle TMs that don\'t always halt. 500 steps have been executed.');
+      alert('TODO not all paths have completed and 500 steps have executed.');
       return newState;
     }
     case actionTypes.TM_RESTART_INPUT: {
-      return restartInput(state, action.payload.inputString);
+      return {
+        ...state,
+        executionPaths: [
+          {
+            currentState: state.inputString.length !== 0 ? state.initialState : null,
+            inputString: state.inputString,
+            inputIndex: 0,
+            inputMessage: ''
+          }
+        ],
+        executionPathIndex: 0,
+      };
     }
     case actionTypes.TM_INITIALIZED_FROM_JSON_STRING: {
       const tm = JSON.parse(action.payload.jsonString);
@@ -236,8 +281,15 @@ export default function tm(
         statePositions: new Map(tm.statePositions),
         selected: null,
         inputString: '',
-        inputIndex: 0,
-        inputMessage: ''
+        executionPaths: [
+          {
+            currentState: '',
+            inputString: '',
+            inputIndex: 0,
+            inputMessage: '',
+          },
+        ],
+        executionPathIndex: 0,
       }
     }
     case actionTypes.TM_RESET: {
@@ -253,8 +305,15 @@ export default function tm(
         statePositions: new Map(),
         selected: null,
         inputString: '',
-        inputIndex: 0,
-        inputMessage: ''
+        executionPaths: [
+          {
+            currentState: '',
+            inputString: '',
+            inputIndex: 0,
+            inputMessage: '',
+          },
+        ],
+        executionPathIndex: 0,
       }
     }
     default: {

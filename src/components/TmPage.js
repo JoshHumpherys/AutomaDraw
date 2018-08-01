@@ -13,6 +13,7 @@ import {
   removeAcceptState,
   addTapeSymbol,
   setInputString,
+  setExecutionPath,
   stepInput,
   runInput,
   restartInput,
@@ -42,6 +43,7 @@ export class TmPage extends Component {
     this.addTransition = this.addTransition.bind(this);
     this.addTapeSymbol = this.addTapeSymbol.bind(this);
     this.setInputString = this.setInputString.bind(this);
+    this.setExecutionPath = this.setExecutionPath.bind(this);
     this.stepInput = this.stepInput.bind(this);
     this.runInput = this.runInput.bind(this);
     this.restartInput = this.restartInput.bind(this);
@@ -103,6 +105,10 @@ export class TmPage extends Component {
     this.props.dispatch(setInputString(inputString));
   }
 
+  setExecutionPath(executionPathIndex) {
+    this.props.dispatch(setExecutionPath(executionPathIndex));
+  }
+
   stepInput() {
     this.props.dispatch(stepInput());
   }
@@ -139,10 +145,9 @@ export class TmPage extends Component {
       acceptStates,
       statePositions,
       selected,
-      currentState,
       inputString,
-      inputIndex,
-      inputMessage
+      executionPaths,
+      executionPathIndex,
     } = this.props.tm;
 
     const simplifiedTransitionFunction = getSimplifiedTransitionFunction(transitionFunction);
@@ -195,10 +200,12 @@ export class TmPage extends Component {
       acceptStates={acceptStates}
       statePositions={statePositions}
       selected={selected}
-      currentState={currentState}
-      inputString={inputString}
-      inputIndex={inputIndex}
-      inputMessage={inputMessage}
+      currentState={executionPaths[executionPathIndex].currentState}
+      inputString={executionPaths[executionPathIndex].inputString}
+      inputIndex={executionPaths[executionPathIndex].inputIndex}
+      inputMessage={executionPaths[executionPathIndex].inputMessage}
+      executionPaths={executionPaths}
+      executionPathIndex={executionPathIndex}
       blankSymbol={blankSymbol}
       changeName={this.changeName}
       addState={this.addState}
@@ -212,6 +219,7 @@ export class TmPage extends Component {
       removeAcceptState={this.removeAcceptState}
       addTransition={this.addTransition}
       setInputString={this.setInputString}
+      setExecutionPath={this.setExecutionPath}
       stepInput={this.stepInput}
       runInput={this.runInput}
       restartInput={this.restartInput}

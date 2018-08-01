@@ -90,6 +90,10 @@ export function setInputString(inputString) {
   return { type: actionTypes.TM_INPUT_STRING_SET, payload: { inputString }}
 }
 
+export function setExecutionPath(executionPathIndex) {
+    return { type: actionTypes.TM_EXECUTION_PATH_SET, payload: { executionPathIndex }}
+}
+
 export function stepInput() {
   return { type: actionTypes.TM_STEP_INPUT };
 }

@@ -13,9 +13,7 @@ import {
   addAcceptState,
   removeAcceptState,
   setAcceptStates,
-  setInputString,
   setExecutionPath,
-  restartInput
 } from './sharedAutomataFunctions'
 import * as inputMessageTypes from '../constants/inputMessageTypes'
 import * as emptyStringSymbols from '../constants/emptyStringSymbols'
@@ -187,7 +185,18 @@ export default function fsm(
       };
     }
     case actionTypes.FSM_INPUT_STRING_SET: {
-      return setInputString(state, action.payload.inputString);
+      return {
+        ...state,
+        inputString: action.payload.inputString,
+        executionPaths: [
+          {
+            currentState: action.payload.inputString.length !== 0 ? state.initialState : null,
+            inputIndex: 0,
+            inputMessage: '',
+          }
+        ],
+        executionPathIndex: 0,
+      };
     }
     case actionTypes.FSM_EXECUTION_PATH_SET: {
       return setExecutionPath(state, action.payload.executionPathIndex);
@@ -211,7 +220,17 @@ export default function fsm(
       return newState;
     }
     case actionTypes.FSM_RESTART_INPUT: {
-      return restartInput(state);
+      return {
+        ...state,
+        executionPaths: [
+          {
+            currentState: state.inputString.length !== 0 ? state.initialState : null,
+            inputIndex: 0,
+            inputMessage: ''
+          }
+        ],
+        executionPathIndex: 0,
+      };
     }
     case actionTypes.FSM_INITIALIZED_FROM_JSON_STRING: { // TODO load fsm with correct empty string symbol
       const { jsonString } = action.payload;

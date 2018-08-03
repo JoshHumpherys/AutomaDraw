@@ -18,9 +18,11 @@ export class AutomataPage extends Component {
     this.state = {
       draggedElement: null,
       mouseDownOnState: null,
-      placingNewState: false,
+      mouseDownOnContainer: false,
       creatingTransitionFromState: null,
-      contextMenuState: null
+      contextMenuState: null,
+      mouseDownCoords: { x: 0, y: 0 },
+      cameraCoords: { x: 0, y: 0 },
     };
 
     this.creatingTransitionLineRef = 'creating_transition_line_ref';
@@ -141,29 +143,33 @@ export class AutomataPage extends Component {
   }
 
   setSvgTransitionLineStartCoords(transitionRef, startCoords) {
-    transitionRef.setAttribute('x1', startCoords.x);
-    transitionRef.setAttribute('y1', startCoords.y);
+    transitionRef.setAttribute('x1', startCoords.x - this.state.cameraCoords.x);
+    transitionRef.setAttribute('y1', startCoords.y - this.state.cameraCoords.y);
   }
 
   setSvgTransitionLineEndCoords(transitionRef, endCoords) {
-    transitionRef.setAttribute('x2', endCoords.x);
-    transitionRef.setAttribute('y2', endCoords.y);
+    transitionRef.setAttribute('x2', endCoords.x - this.state.cameraCoords.x);
+    transitionRef.setAttribute('y2', endCoords.y - this.state.cameraCoords.y);
   }
 
   setSvgTransitionLoopPosition(transitionRef, coords) {
-    transitionRef.setAttribute('cx', coords.x);
-    transitionRef.setAttribute('cy', coords.y);
+    transitionRef.setAttribute('cx', coords.x - this.state.cameraCoords.x);
+    transitionRef.setAttribute('cy', coords.y - this.state.cameraCoords.y);
   }
 
   setSvgTransitionLoopArrowheadPosition(transitionRef, coords) {
     // TODO don't hardcode values
-    transitionRef.setAttribute('x1', coords.x + 9);
-    transitionRef.setAttribute('y1', coords.y - 10);
-    transitionRef.setAttribute('x2', coords.x + 10);
-    transitionRef.setAttribute('y2', coords.y);
+    transitionRef.setAttribute('x1', coords.x + 9 - this.state.cameraCoords.x);
+    transitionRef.setAttribute('y1', coords.y - 10 - this.state.cameraCoords.y);
+    transitionRef.setAttribute('x2', coords.x + 10 - this.state.cameraCoords.x);
+    transitionRef.setAttribute('y2', coords.y - this.state.cameraCoords.y);
   }
 
   setSvgTransitionCurvedLinePath(transitionRef, startCoords, endCoords) {
+    startCoords.x -= this.state.cameraCoords.x;
+    startCoords.y -= this.state.cameraCoords.y;
+    endCoords.x -= this.state.cameraCoords.x;
+    endCoords.y -= this.state.cameraCoords.y;
     const coordsToString = coords => coords.x + ' ' + coords.y;
     const dx = endCoords.x - startCoords.x;
     const dy = endCoords.y - startCoords.y;
@@ -172,24 +178,24 @@ export class AutomataPage extends Component {
     const cy = (startCoords.y + endCoords.y) / 2 - 50 * dx / r;
     const newStartCoords = {
       x: startCoords.x + 20 * dx / r,
-      y: startCoords.y + 20 * dy / r
+      y: startCoords.y + 20 * dy / r,
     };
     const newEndCoords = {
       x: endCoords.x - 20 * dx / r,
-      y: endCoords.y - 20 * dy / r
+      y: endCoords.y - 20 * dy / r,
     };
     const path = 'M ' + coordsToString(newStartCoords) + ' Q ' + cx + ' ' + cy + ' ' + coordsToString(newEndCoords);
     transitionRef.setAttribute('d', path);
   }
 
   setSvgTextPosition(textRef, position) {
-    textRef.setAttribute('x', position.x);
-    textRef.setAttribute('y', position.y);
+    textRef.setAttribute('x', position.x - this.state.cameraCoords.x);
+    textRef.setAttribute('y', position.y - this.state.cameraCoords.y);
   }
 
   setSvgTextPositionAndAngle(textRef, positionAndAngle) {
     this.setSvgTextPosition(textRef, positionAndAngle);
-    textRef.setAttribute('transform', `rotate(${positionAndAngle.angle} ${positionAndAngle.x}, ${positionAndAngle.y})`);
+    textRef.setAttribute('transform', `rotate(${positionAndAngle.angle} ${positionAndAngle.x - this.state.cameraCoords.x}, ${positionAndAngle.y - this.state.cameraCoords.y})`);
   }
 
   startCreatingTransition(state) {
@@ -203,55 +209,60 @@ export class AutomataPage extends Component {
       this.state.creatingTransitionFromState === null &&
       this.state.contextMenuState === null
     ) {
-      this.setState({ placingNewState: true });
+      const mouseDownCoords = this.getMousePositionRelativeToContainerWithoutCameraOffset(e);
+      this.setState({ mouseDownOnContainer: true, mouseDownCoords, mouseDownCameraCoords: this.state.cameraCoords });
     }
   }
 
   automataContainerMouseUp(e) {
-    if(this.state.placingNewState && this.state.creatingTransitionFromState === null) {
+    if(this.state.mouseDownOnContainer && this.state.creatingTransitionFromState === null) {
       const mousePosition = this.getMousePositionRelativeToContainer(e);
+      const mousePositionWithoutCameraOffset = this.getMousePositionRelativeToContainerWithoutCameraOffset(e);
+      if(mousePositionWithoutCameraOffset.x === this.state.mouseDownCoords.x && mousePositionWithoutCameraOffset.y === this.state.mouseDownCoords.y) {
+        const mousePosition = this.getMousePositionRelativeToContainer(e);
 
-      const getNextStateName = states => {
-        const statesArray = states.toArray();
-        if(statesArray.length === 0) {
-          return 'A';
-        }
-        const lastState = statesArray
-          .map(state => state.toUpperCase())
-          .reduce((max, value) => {
-            if(value.length > max.length) {
-              return value;
-            } else if(max.length > value.length) {
-              return max;
+        const getNextStateName = states => {
+          const statesArray = states.toArray();
+          if(statesArray.length === 0) {
+            return 'A';
+          }
+          const lastState = statesArray
+            .map(state => state.toUpperCase())
+            .reduce((max, value) => {
+              if(value.length > max.length) {
+                return value;
+              } else if(max.length > value.length) {
+                return max;
+              }
+              return value > max ? value : max;
+            }, statesArray[0]);
+          const getNextChar = char => String.fromCharCode(((char.charCodeAt() - 65 + 1) % 26 + 26) % 26 + 65);
+          const setChar = (string, char, i) => string.substring(0, i) + char + string.slice(i + 1);
+          let nextState = lastState;
+          for(let i = nextState.length - 1; i >= 0; i--) {
+            if(nextState.charAt(i) !== 'Z') {
+              nextState = setChar(nextState, getNextChar(nextState.charAt(i)), i);
+              break;
             }
-            return value > max ? value : max;
-          }, statesArray[0]);
-        const getNextChar = char => String.fromCharCode(((char.charCodeAt() - 65 + 1) % 26 + 26) % 26 + 65);
-        const setChar = (string, char, i) => string.substring(0, i) + char + string.slice(i + 1);
-        let nextState = lastState;
-        for(let i = nextState.length - 1; i >= 0; i--) {
-          if(nextState.charAt(i) !== 'Z') {
-            nextState = setChar(nextState, getNextChar(nextState.charAt(i)), i);
-            break;
+            nextState = setChar(nextState, 'A', i);
+            if(i === 0) {
+              nextState = 'A' + nextState;
+            }
           }
-          nextState = setChar(nextState, 'A', i);
-          if(i === 0) {
-            nextState = 'A' + nextState;
-          }
-        }
-        return nextState;
-      };
+          return nextState;
+        };
 
-      if(this.state.contextMenuState === null) {
-        const name = getNextStateName(this.props.states);
-        const statePosition = this.getStatePositionFromCenterPosition(mousePosition);
-        this.props.addState(name, statePosition);
-        this.props.selectState(name);
+        if(this.state.contextMenuState === null) {
+          const name = getNextStateName(this.props.states);
+          const statePosition = this.getStatePositionFromCenterPosition(mousePosition);
+          this.props.addState(name, statePosition);
+          this.props.selectState(name);
+        }
+        this.setState({ mouseDownOnContainer: false });
       }
-      this.setState({ placingNewState: false });
     }
 
-    this.setState({ creatingTransitionFromState: null });
+    this.setState({ creatingTransitionFromState: null, mouseDownOnContainer: false });
   }
 
   automataContainerMouseMove(e) {
@@ -259,8 +270,16 @@ export class AutomataPage extends Component {
     if(this.state.creatingTransitionFromState !== null) {
       const line = this[this.creatingTransitionLineRef];
       const mouseCoords = this.getMousePositionRelativeToContainer(e);
-      line.setAttribute('x2', mouseCoords.x);
-      line.setAttribute('y2', mouseCoords.y);
+      line.setAttribute('x2', mouseCoords.x - this.state.cameraCoords.x);
+      line.setAttribute('y2', mouseCoords.y - this.state.cameraCoords.y);
+    } else if(this.state.mouseDownOnContainer && this.state.draggedElement === null) {
+      const mouseCoords = this.getMousePositionRelativeToContainerWithoutCameraOffset(e);
+      this.setState({
+        cameraCoords: {
+          x: this.state.mouseDownCameraCoords.x + this.state.mouseDownCoords.x - mouseCoords.x,
+          y: this.state.mouseDownCameraCoords.y + this.state.mouseDownCoords.y - mouseCoords.y,
+        }
+      });
     }
   }
 
@@ -282,13 +301,19 @@ export class AutomataPage extends Component {
   }
 
   getMousePositionRelativeToContainer(event) {
+    const x = event.pageX - $(this.automataContainer).offset().left + this.state.cameraCoords.x;
+    const y = event.pageY - $(this.automataContainer).offset().top + this.state.cameraCoords.y;
+    return { x, y };
+  }
+
+  getMousePositionRelativeToContainerWithoutCameraOffset(event) {
     const x = event.pageX - $(this.automataContainer).offset().left;
     const y = event.pageY - $(this.automataContainer).offset().top;
     return { x, y };
   }
 
   setStatePosition(element, state, x, y) {
-    element.style.webkitTransform = element.style.transform = `translate(${x}px, ${y}px)`;
+    element.style.webkitTransform = element.style.transform = `translate(${x - this.state.cameraCoords.x}px, ${y - this.state.cameraCoords.y}px)`;
     const statePosition = { x, y };
 
     this.props.simplifiedTransitionFunction.forEach(({ fromState, transitionText, toState }) => {
@@ -580,8 +605,8 @@ export class AutomataPage extends Component {
         {
           x1: transitionStartPosition.x,
           y1: transitionStartPosition.y,
-          x2: transitionStartPosition.x,
-          y2: transitionStartPosition.y
+          x2: transitionStartPosition.x - this.state.cameraCoords.x,
+          y2: transitionStartPosition.y - this.state.cameraCoords.y,
         }
       ).line;
       svgChildren.push(creatingTransitionLine);
@@ -794,7 +819,7 @@ export class AutomataPage extends Component {
               this.state.contextMenuState !== null ? (
                 <div
                   className="ui dropdown context-menu"
-                  style={{ top: dropdownY, left: dropdownX }}
+                  style={{ top: dropdownY - this.state.cameraCoords.y, left: dropdownX - this.state.cameraCoords.x }}
                   ref={dropdown => this.contextMenuRef = dropdown}
                   onClick={() => this.setState({ contextMenuState: null })}>
                   <Dropdown.Menu className="visible">

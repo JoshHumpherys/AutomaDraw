@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { getSettings } from '../selectors/settings'
 import { Checkbox, Dropdown } from 'semantic-ui-react'
-import { setDarkTheme, setEmptyStringSymbol, setAlternationSymbol } from '../actions/settings'
+import { setDarkTheme, setEmptyStringSymbol, setAlternationSymbol, setTestView } from '../actions/settings'
 
 import * as emptyStringSymbols from '../constants/emptyStringSymbols'
 import * as alternationSymbols from '../constants/alternationSymbols'
@@ -55,6 +55,15 @@ export class SettingsPopup extends Component {
             onChange={(e, data) => {
               this.props.dispatch(setAlternationSymbol(this.props.settings.alternationSymbol, data.value));
             }}
+          />
+        </div>
+        <br />
+        <div>
+          <h4>Test View</h4>
+          <Checkbox
+            toggle
+            defaultChecked={this.props.settings.testView}
+            onChange={(e, data) => this.props.dispatch(setTestView(data.checked))}
           />
         </div>
       </div>

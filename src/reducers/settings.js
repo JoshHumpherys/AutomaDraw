@@ -6,7 +6,8 @@ export default function fsm(
   state = {
     darkTheme: true,
     emptyStringSymbol: emptyStringSymbols.LAMBDA,
-    alternationSymbol: alternationSymbols.PIPE
+    alternationSymbol: alternationSymbols.PIPE,
+    testView: true,
   },
   action) {
   switch (action.type) {
@@ -18,6 +19,9 @@ export default function fsm(
     }
     case actionTypes.SETTINGS_ALTERNATION_SYMBOL_SET: {
       return { ...state, alternationSymbol: action.payload.newAlternationSymbol };
+    }
+    case actionTypes.SETTINGS_TEST_VIEW_SET: {
+      return { ...state, testView: action.payload.testView };
     }
     case actionTypes.REGEX_INITIALIZED_FROM_JSON_STRING: {
       const { emptyStringSymbol, alternationSymbol } = JSON.parse(action.payload.jsonString);

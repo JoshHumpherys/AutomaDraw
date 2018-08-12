@@ -14,3 +14,7 @@ export function setEmptyStringSymbol(oldEmptyStringSymbol, newEmptyStringSymbol)
 export function setAlternationSymbol(oldAlternationSymbol, newAlternationSymbol) {
   return { type: actionTypes.SETTINGS_ALTERNATION_SYMBOL_SET, payload: { oldAlternationSymbol, newAlternationSymbol } };
 }
+
+export function setTestView(testView) {
+  return { type: actionTypes.SETTINGS_TEST_VIEW_SET, payload: { testView } };
+}

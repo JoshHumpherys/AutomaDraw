@@ -48,13 +48,20 @@ body {
   cursor: default;
 }
 
-.control-panel-left {
-  flex: 1;
+.control-panel-left, .control-panel-right {
   background-color: #03A9F4;
   overflow-y: auto;
 }
 
-.control-panel-left .control-panel-text {
+.control-panel-left {
+  flex: 1;
+}
+
+.control-panel-right {
+  /* flex: 2; */ /* Dynamic width set by table width */
+}
+
+.control-panel-left .control-panel-text, .control-panel-right .control-panel-text {
   margin-top: 10px;
 }
 
@@ -266,4 +273,8 @@ body {
 
 .input-string {
   display: inline;
+}
+
+.ui.table {
+    margin: 0 20px;
 }

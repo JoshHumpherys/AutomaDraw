@@ -4,7 +4,7 @@ import ReactGA from 'react-ga'
 import { getSettings } from '../selectors/settings'
 import interact from 'interactjs'
 import $ from 'jquery'
-import { Button, Checkbox, Dropdown, Icon, Input } from 'semantic-ui-react'
+import { Button, Checkbox, Dropdown, Icon, Input, Table } from 'semantic-ui-react'
 import { saveAs } from 'file-saver'
 import { Set } from 'immutable'
 import { createModal, setModalState } from '../actions/modal'
@@ -813,9 +813,9 @@ export class AutomataPage extends Component {
             <svg xmlns="http://www.w3.org/2000/svg" id="arrows-svg">
               <defs>
                 <marker id="arrowhead" markerWidth="10" markerHeight="7"
-                    refX="8" refY="3.5" orient="auto"
-                    stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
-                    fill={this.props.settings.darkTheme ? '#fff' : '#000'}>
+                  refX="8" refY="3.5" orient="auto"
+                  stroke={this.props.settings.darkTheme ? '#fff' : '#000'}
+                  fill={this.props.settings.darkTheme ? '#fff' : '#000'}>
                   <polygon points="0 0, 10 3.5, 0 7" />
                 </marker>
               </defs>
@@ -875,6 +875,30 @@ export class AutomataPage extends Component {
           </div>
           {inputContainer}
         </div>
+        {
+          this.props.settings.testView ?
+            <div className="control-panel-right">
+              <h2 className="control-panel-text">Test Cases</h2>
+              <Table celled striped collapsing selectable textAlign="center">
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell>Case</Table.HeaderCell>
+                    <Table.HeaderCell>Expected</Table.HeaderCell>
+                    <Table.HeaderCell>Actual</Table.HeaderCell>
+                    <Table.HeaderCell>Result</Table.HeaderCell>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  <Table.Row>
+                    <Table.Cell collapsing>000111</Table.Cell>
+                    <Table.Cell collapsing>Pass</Table.Cell>
+                    <Table.Cell collapsing>Fail</Table.Cell>
+                    <Table.Cell collapsing>Fail</Table.Cell>
+                  </Table.Row>
+                </Table.Body>
+              </Table>
+            </div> : undefined
+        }
       </div>
     );
   }

@@ -13,6 +13,11 @@ import {
   removeAcceptState,
   addInputSymbol,
   addStackSymbol,
+  setInputString,
+  setExecutionPath,
+  stepInput,
+  runInput,
+  restartInput,
   initializeFromJsonString,
   reset
 } from '../actions/pda'
@@ -39,6 +44,11 @@ export class PdaPage extends Component {
     this.addTransition = this.addTransition.bind(this);
     this.addInputSymbol = this.addInputSymbol.bind(this);
     this.addStackSymbol = this.addStackSymbol.bind(this);
+    this.setInputString = this.setInputString.bind(this);
+    this.setExecutionPath = this.setExecutionPath.bind(this);
+    this.stepInput = this.stepInput.bind(this);
+    this.runInput = this.runInput.bind(this);
+    this.restartInput = this.restartInput.bind(this);
     this.initializeFromJsonString = this.initializeFromJsonString.bind(this);
     this.reset = this.reset.bind(this);
     this.stringifyAutomaton = this.stringifyAutomaton.bind(this);
@@ -97,6 +107,26 @@ export class PdaPage extends Component {
     this.props.dispatch(addStackSymbol(stackSymbol));
   }
 
+  setInputString(inputString) {
+    this.props.dispatch(setInputString(inputString));
+  }
+
+  setExecutionPath(executionPathIndex) {
+    this.props.dispatch(setExecutionPath(executionPathIndex));
+  }
+
+  stepInput() {
+    this.props.dispatch(stepInput());
+  }
+
+  runInput() {
+    this.props.dispatch(runInput());
+  }
+
+  restartInput() {
+    this.props.dispatch(restartInput());
+  }
+
   initializeFromJsonString(jsonString) {
     this.props.dispatch(initializeFromJsonString(jsonString));
   }
@@ -120,16 +150,19 @@ export class PdaPage extends Component {
       initialStackSymbol,
       acceptStates,
       statePositions,
-      selected
+      selected,
+      inputString,
+      executionPaths,
+      executionPathIndex,
     } = this.props.pda;
 
     const simplifiedTransitionFunction = getSimplifiedTransitionFunction(transitionFunction);
 
     const arrayToTuple = array => '(' + array.join(', ') + ')';
     const transitionFunctionSorted = transitionFunction.map(transitionObject => {
-      const { fromState, inputSymbol, stackSymbol, toState, pushSymbols } = transitionObject;
+      const { fromState, inputSymbol, stackSymbol, toState, pushSymbol } = transitionObject;
       return {
-        transitionString: arrayToTuple([fromState, inputSymbol, stackSymbol, toState, pushSymbols]),
+        transitionString: arrayToTuple([fromState, inputSymbol, stackSymbol, toState, pushSymbol]),
         transitionObject
       };
     }).toArray().sort((a, b) => {
@@ -173,6 +206,13 @@ export class PdaPage extends Component {
       acceptStates={acceptStates}
       statePositions={statePositions}
       selected={selected}
+      currentState={executionPaths[executionPathIndex].currentState}
+      inputString={inputString}
+      stack={executionPaths[executionPathIndex].stack}
+      inputIndex={executionPaths[executionPathIndex].inputIndex}
+      inputMessage={executionPaths[executionPathIndex].inputMessage}
+      executionPaths={executionPaths}
+      executionPathIndex={executionPathIndex}
       changeName={this.changeName}
       addState={this.addState}
       selectState={this.selectState}
@@ -184,6 +224,11 @@ export class PdaPage extends Component {
       addAcceptState={this.addAcceptState}
       removeAcceptState={this.removeAcceptState}
       addTransition={this.addTransition}
+      setInputString={this.setInputString}
+      setExecutionPath={this.setExecutionPath}
+      stepInput={this.stepInput}
+      runInput={this.runInput}
+      restartInput={this.restartInput}
       initializeFromJsonString={this.initializeFromJsonString}
       reset={this.reset}
       stringifyAutomaton={this.stringifyAutomaton}

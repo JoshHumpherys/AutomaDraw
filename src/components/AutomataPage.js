@@ -663,6 +663,7 @@ export class AutomataPage extends Component {
 
       let modifiedInputString = additionalBlankSymbolsBefore + this.props.inputString + additionalBlankSymbolsAfter;
       let modifiedInputIndex = this.props.inputIndex + (this.props.inputIndex < 0 ? additionalBlankSymbolsBefore : 0);
+      let stackString = this.props.stack ? (', ' + [...this.props.stack].reverse().join('') + ']') : '';
       inputContainer = (
         <div className="input-container">
           <div className="input-controls">
@@ -691,13 +692,18 @@ export class AutomataPage extends Component {
                   {modifiedInputString.substring(modifiedInputIndex + 1)}
                   {this.props.blankSymbol ? threeBlankSymbols + '...' : ''}
                   {inputMessage ? ': ' + inputMessage : ''}
+                  {stackString}
                 </h3>
               ) : (
                 <h3 className="input-string">
                   {
-                    this.props.blankSymbol
-                      ? '...' + threeBlankSymbols + '...'
-                      : this.props.settings.emptyStringSymbol + (inputMessage ? ': ' + inputMessage : '')
+                    (
+                      this.props.blankSymbol
+                        ? '...' + threeBlankSymbols + '...'
+                        : this.props.settings.emptyStringSymbol + (inputMessage ? ': ' + inputMessage : '')
+                    ) + (
+                      stackString
+                    )
                   }
                 </h3>
               )

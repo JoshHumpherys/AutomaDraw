@@ -48,17 +48,17 @@ export function setAcceptStates(states) {
   return { type: actionTypes.PDA_ACCEPT_STATES_SET, payload: { states } };
 }
 
-export function addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols, emptyStringSymbol) {
+export function addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbol, emptyStringSymbol) {
   return {
     type: actionTypes.PDA_TRANSITION_ADDED,
-    payload: { fromState, inputSymbol, stackSymbol, toState, pushSymbols, emptyStringSymbol }
+    payload: { fromState, inputSymbol, stackSymbol, toState, pushSymbol, emptyStringSymbol }
   };
 }
 
-export function removeTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols) {
+export function removeTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbol) {
   return {
     type: actionTypes.PDA_TRANSITION_REMOVED,
-    payload: { fromState, inputSymbol, stackSymbol, toState, pushSymbols }
+    payload: { fromState, inputSymbol, stackSymbol, toState, pushSymbol }
   };
 }
 
@@ -84,6 +84,26 @@ export function changeInitialStackSymbol(stackSymbol) {
 
 export function removeInitialStackSymbol() {
   return { type: actionTypes.PDA_INITIAL_STACK_SYMBOL_REMOVED };
+}
+
+export function setInputString(inputString) {
+  return { type: actionTypes.PDA_INPUT_STRING_SET, payload: { inputString }}
+}
+
+export function setExecutionPath(executionPathIndex) {
+  return { type: actionTypes.PDA_EXECUTION_PATH_SET, payload: { executionPathIndex }}
+}
+
+export function stepInput() {
+  return { type: actionTypes.PDA_STEP_INPUT };
+}
+
+export function runInput() {
+  return { type: actionTypes.PDA_RUN_INPUT };
+}
+
+export function restartInput() {
+  return { type: actionTypes.PDA_RESTART_INPUT };
 }
 
 export function initializeFromJsonString(jsonString) {

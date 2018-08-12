@@ -387,15 +387,15 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
       const inputSymbol = getValue('inputSymbol') || emptyStringSymbol;
       const stackSymbol = getValue('stackSymbol') || emptyStringSymbol;
       const toState = getValue('toState') || states[0];
-      const pushSymbols = getValue('pushSymbols') || emptyStringSymbol;
+      const pushSymbol = getValue('pushSymbol') || emptyStringSymbol;
 
-      let pushSymbolsOptions =
+      let pushSymbolOptions =
         (stackSymbol === emptyStringSymbol ? new Set() : new Set(stackAlphabet.map(s => s + stackSymbol)))
           .union(stackAlphabet)
           .toArray()
           .sort((a, b) => (a.length === b.length) ? a - b : a.length - b.length);
-      pushSymbolsOptions.unshift(emptyStringSymbol);
-      pushSymbolsOptions = pushSymbolsOptions
+      pushSymbolOptions.unshift(emptyStringSymbol);
+      pushSymbolOptions = pushSymbolOptions
         .map(pushSymbol => ({ text: pushSymbol, value: pushSymbol, key: pushSymbol }));
 
       stackAlphabet.unshift(emptyStringSymbol);
@@ -438,11 +438,7 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
                     stackAlphabet.map(inputSymbol => ({ text: inputSymbol, value: inputSymbol, key: inputSymbol }))
                   }
                   onChange={(e, data) => {
-                    let newPushSymbols = pushSymbols;
-                    if(pushSymbols.length === 2 && pushSymbols.charAt(1) !== data.value) {
-                      newPushSymbols = null;
-                    }
-                    dispatch(setModalState({ stackSymbol: data.value, pushSymbols: newPushSymbols }));
+                    dispatch(setModalState({ stackSymbol: data.value, pushSymbol }));
                   }} />
               </Form.Field>
               <Form.Field>
@@ -456,16 +452,16 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
                   onChange={(e, data) => dispatch(setModalState({ toState: data.value }))} />
               </Form.Field>
               <Form.Field>
-                <label>Push Symbols</label>
+                <label>Push Symbol</label>
                 {/* TODO figure out if a key is the correct fix for getting the correct default value */}
                 <Dropdown
-                  key={pushSymbols}
-                  placeholder="Select push symbols"
-                  defaultValue={pushSymbols}
+                  key={pushSymbol}
+                  placeholder="Select push symbol"
+                  defaultValue={pushSymbol}
                   fluid
                   selection
-                  options={pushSymbolsOptions}
-                  onChange={(e, data) => dispatch(setModalState({ pushSymbols: data.value }))} />
+                  options={pushSymbolOptions}
+                  onChange={(e, data) => dispatch(setModalState({ pushSymbol: data.value }))} />
               </Form.Field>
             </Form.Group>
           </Form>
@@ -477,16 +473,16 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
           <SubmitButton
             key="submit"
             onClick={() => {
-              if(fromState && inputSymbol && stackSymbol && toState && pushSymbols &&
+              if(fromState && inputSymbol && stackSymbol && toState && pushSymbol &&
                 !automaton.transitionFunction.some(transitionObject =>
                   transitionObject.fromState === fromState &&
                   transitionObject.inputSymbol === inputSymbol &&
                   transitionObject.stackSymbol === stackSymbol &&
                   transitionObject.toState === toState &&
-                  transitionObject.pushSymbols === pushSymbols
+                  transitionObject.pushSymbol === pushSymbol
                 )) {
                 dispatch(
-                  actions.addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols, emptyStringSymbol)
+                  actions.addTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbol, emptyStringSymbol)
                 );
               }
               dispatch(removeModal());
@@ -619,8 +615,8 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
                   const inputSymbol = getValue('inputSymbol');
                   const stackSymbol = getValue('stackSymbol');
                   const toState = getValue('toState');
-                  const pushSymbols = getValue('pushSymbols');
-                  dispatch(actions.removeTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbols));
+                  const pushSymbol = getValue('pushSymbol');
+                  dispatch(actions.removeTransition(fromState, inputSymbol, stackSymbol, toState, pushSymbol));
                   break;
                 }
                 case automatonTypes.TM: {

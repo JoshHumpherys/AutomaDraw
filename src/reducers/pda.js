@@ -12,29 +12,90 @@ import {
   removeInitialState,
   addAcceptState,
   removeAcceptState,
-  setAcceptStates
+  setAcceptStates, setExecutionPath
 } from './sharedAutomataFunctions'
+import * as inputMessageTypes from "../constants/inputMessageTypes";
+import * as emptyStringSymbols from "../constants/emptyStringSymbols";
 
-const createInstruction = (fromState, inputSymbol, stackSymbol, toState, pushSymbols) =>
-  ({ fromState, inputSymbol, stackSymbol, toState, pushSymbols });
+const createInstruction = (fromState, inputSymbol, stackSymbol, toState, pushSymbol) =>
+  ({ fromState, inputSymbol, stackSymbol, toState, pushSymbol });
+
+const stepInput = state => {
+  const determineInputMessage = currentState =>
+    state.acceptStates.contains(currentState) ? inputMessageTypes.ACCEPT : inputMessageTypes.REJECT;
+  let executionPaths = [];
+  return { ...state, executionPaths: [...state.executionPaths.map(executionPath => {
+      if(executionPath.inputIndex >= state.inputString.length) {
+        return {
+          ...executionPath,
+          inputMessage: determineInputMessage(state.inputString.length === 0 ? state.initialState : executionPath.currentState)
+        };
+      }
+      const transitions = state.transitionFunction.filter(instruction =>
+        instruction.fromState === executionPath.currentState &&
+        (instruction.inputSymbol === state.inputString[executionPath.inputIndex] || instruction.inputSymbol === emptyStringSymbols.LAMBDA) &&
+        (instruction.stackSymbol === executionPath.stack.slice(-1)[0] || instruction.stackSymbol === emptyStringSymbols.LAMBDA)
+      );
+      let inputMessage;
+      if(transitions.first() === undefined) {
+        return { ...executionPath, inputMessage: inputMessageTypes.REJECT };
+      }
+      const getNewExecutionPath = transition => {
+        if(executionPath.inputIndex + 1 >= state.inputString.length) {
+          inputMessage = determineInputMessage(transition.toState);
+        } else {
+          inputMessage = executionPath.inputMessage;
+        }
+        let stack = [...executionPath.stack];
+        stack.pop();
+        if(transition.pushSymbol.length > 0 && transition.pushSymbol !== emptyStringSymbols.LAMBDA) {
+          stack = [...stack, ...transition.pushSymbol.split('').reverse()];
+        }
+        return {
+          inputIndex: executionPath.inputIndex + (transition.inputSymbol === emptyStringSymbols.LAMBDA ? 0 : 1),
+          currentState: transition.toState,
+          stack,
+          inputMessage
+        };
+      };
+      executionPaths = [...executionPaths, ...transitions.rest().map(transition => getNewExecutionPath(transition)).toArray()];
+      return getNewExecutionPath(transitions.first());
+    }), ...executionPaths]};
+};
 
 export default function pda(
   state = {
     name: 'Trivial PDA',
-    states: new Set(['A', 'B']),
-    inputAlphabet: new Set(['a']),
-    stackAlphabet: new Set(['#']),
+    states: new Set(['A', 'B', 'C']),
+    inputAlphabet: new Set(['0', '1']),
+    stackAlphabet: new Set(['A', 'Z']),
     transitionFunction: new Set([
-      createInstruction('A', 'a', '#', 'B', '#')
+      createInstruction('A', '0', 'Z', 'A', 'AZ'),
+      createInstruction('A', '0', 'A', 'A', 'AA'),
+      createInstruction('A', emptyStringSymbols.LAMBDA, emptyStringSymbols.LAMBDA, 'B', emptyStringSymbols.LAMBDA),
+      createInstruction('B', '1', 'A', 'B', emptyStringSymbols.LAMBDA),
+      createInstruction('B', emptyStringSymbols.LAMBDA, 'Z', 'C', 'Z'),
     ]),
     initialState: 'A',
-    initialStackSymbol: '#',
-    acceptStates: new Set(['A']),
+    initialStackSymbol: 'Z',
+    acceptStates: new Set(['C']),
     statePositions: new Map({
       'A': { x: 130, y: 200 },
-      'B': { x: 370, y: 200 }
+      'B': { x: 370, y: 200 },
+      'C': { x: 610, y: 200 },
     }),
-    selected: 'A'
+    selected: 'A',
+    inputString: '',
+    executionPaths: [
+      {
+        currentState: '',
+        inputString: '',
+        stack: ['Z'],
+        inputIndex: 0,
+        inputMessage: '',
+      },
+    ],
+    executionPathIndex: 0,
   },
   action) {
   switch(action.type) {
@@ -77,14 +138,14 @@ export default function pda(
       return setAcceptStates(state, action.payload.states);
     }
     case actionTypes.PDA_TRANSITION_ADDED: { // TODO this case doesn't need to modify states or inputAlphabet
-      const { fromState, inputSymbol, stackSymbol, toState, pushSymbols, emptyStringSymbol } = action.payload;
-      const transition = createInstruction(fromState, inputSymbol, stackSymbol, toState, pushSymbols);
+      const { fromState, inputSymbol, stackSymbol, toState, pushSymbol, emptyStringSymbol } = action.payload;
+      const transition = createInstruction(fromState, inputSymbol, stackSymbol, toState, pushSymbol);
       let { stackAlphabet } = state;
       if(stackSymbol !== emptyStringSymbol) {
         stackAlphabet = stackAlphabet.add(stackSymbol);
       }
-      if(pushSymbols !== emptyStringSymbol) {
-        stackAlphabet = stackAlphabet.union(pushSymbols);
+      if(pushSymbol !== emptyStringSymbol) {
+        stackAlphabet = stackAlphabet.union(pushSymbol);
       }
       return {
         ...state,
@@ -95,7 +156,7 @@ export default function pda(
       };
     }
     case actionTypes.PDA_TRANSITION_REMOVED: {
-      const { fromState, inputSymbol, stackSymbol, toState, pushSymbols } = action.payload;
+      const { fromState, inputSymbol, stackSymbol, toState, pushSymbol } = action.payload;
       return {
         ...state,
         transitionFunction: state.transitionFunction
@@ -104,7 +165,7 @@ export default function pda(
               transitionObject.inputSymbol !== inputSymbol ||
               transitionObject.stackSymbol !== stackSymbol ||
               transitionObject.toState !== toState ||
-              transitionObject.pushSymbols !== pushSymbols;
+              transitionObject.pushSymbol !== pushSymbol;
           })
       };
     }
@@ -129,11 +190,12 @@ export default function pda(
     }
     case actionTypes.PDA_STACK_ALPHABET_SET: { // TODO don't allow user to add empty string symbol
       const { stackAlphabet } = action.payload;
+      const forbiddenStackSymbols = state.stackAlphabet.subtract(stackAlphabet);
       return {
         ...state,
         stackAlphabet: new Set(stackAlphabet),
         transitionFunction: state.transitionFunction.filter(transitionObject => {
-          transitionObject.pushSymbols.split('').forEach(pushSymbol => {
+          transitionObject.pushSymbol.split('').forEach(pushSymbol => {
             if(!stackAlphabet.includes(pushSymbol)) {
               return false;
             }
@@ -172,10 +234,60 @@ export default function pda(
               newEmptyStringSymbol : transitionObject.inputSymbol,
             stackSymbol: transitionObject.stackSymbol === oldEmptyStringSymbol ?
               newEmptyStringSymbol : transitionObject.stackSymbol,
-            pushSymbols: transitionObject.pushSymbols === oldEmptyStringSymbol ?
-              newEmptyStringSymbol : transitionObject.pushSymbols
+            pushSymbol: transitionObject.pushSymbol === oldEmptyStringSymbol ?
+              newEmptyStringSymbol : transitionObject.pushSymbol
           };
         })
+      };
+    }
+    case actionTypes.PDA_INPUT_STRING_SET: {
+      return {
+        ...state,
+        inputString: action.payload.inputString,
+        executionPaths: [
+          {
+            currentState: action.payload.inputString.length !== 0 ? state.initialState : null,
+            stack: [state.initialStackSymbol],
+            inputIndex: 0,
+            inputMessage: '',
+          }
+        ],
+        executionPathIndex: 0,
+      };
+    }
+    case actionTypes.PDA_EXECUTION_PATH_SET: {
+      return setExecutionPath(state, action.payload.executionPathIndex);
+    }
+    case actionTypes.PDA_STEP_INPUT: {
+      return stepInput(state);
+    }
+    case actionTypes.PDA_RUN_INPUT: {
+      let newState = state;
+      for(let i = 0; i < 500; i++) {
+        newState = stepInput(newState);
+        if(newState.executionPaths.every(executionPath => executionPath.inputMessage !== '')) {
+          return newState;
+        }
+        if(newState.executionPaths.length > 500) {
+          alert('TODO handle PDAs that have a lot of execution paths. There are currently ' + newState.executionPaths.length + ' execution paths.');
+          return newState;
+        }
+      }
+      alert('TODO handle PDAs that have a lot of steps. 500 steps have been executed.');
+      return newState;
+    }
+    case actionTypes.PDA_RESTART_INPUT: {
+      return {
+        ...state,
+        executionPaths: [
+          {
+            currentState: state.inputString.length !== 0 ? state.initialState : null,
+            stack: [state.initialStackSymbol],
+            inputIndex: 0,
+            inputMessage: ''
+          }
+        ],
+        executionPathIndex: 0,
       };
     }
     case actionTypes.PDA_INITIALIZED_FROM_JSON_STRING: {
@@ -187,7 +299,19 @@ export default function pda(
         stackAlphabet: new Set(pda.stackAlphabet),
         transitionFunction: new Set(pda.transitionFunction),
         acceptStates: new Set(pda.acceptStates),
-        statePositions: new Map(pda.statePositions)
+        statePositions: new Map(pda.statePositions),
+        selected: null,
+        inputString: '',
+        executionPaths: [
+          {
+            currentState: '',
+            inputString: '',
+            stack: [pda.initialStackSymbol],
+            inputIndex: 0,
+            inputMessage: '',
+          },
+        ],
+        executionPathIndex: 0,
       }
     }
     case actionTypes.PDA_RESET: {
@@ -201,7 +325,18 @@ export default function pda(
         initialStackSymbol: '',
         acceptStates: new Set(),
         statePositions: new Map(),
-        selected: null
+        selected: null,
+        inputString: '',
+        executionPaths: [
+          {
+            currentState: '',
+            inputString: '',
+            stack: [],
+            inputIndex: 0,
+            inputMessage: '',
+          },
+        ],
+        executionPathIndex: 0,
       }
     }
     default: {

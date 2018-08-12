@@ -17,6 +17,7 @@ import {
   stepInput,
   runInput,
   restartInput,
+  runTestCases,
   initializeFromJsonString,
   reset
 } from '../actions/fsm'
@@ -47,6 +48,7 @@ export class FsmPage extends Component {
     this.stepInput = this.stepInput.bind(this);
     this.runInput = this.runInput.bind(this);
     this.restartInput = this.restartInput.bind(this);
+    this.runTestCases = this.runTestCases.bind(this);
     this.initializeFromJsonString = this.initializeFromJsonString.bind(this);
     this.reset = this.reset.bind(this);
     this.stringifyAutomaton = this.stringifyAutomaton.bind(this);
@@ -121,6 +123,10 @@ export class FsmPage extends Component {
     this.props.dispatch(restartInput());
   }
 
+  runTestCases() {
+    this.props.dispatch(runTestCases());
+  }
+
   initializeFromJsonString(jsonString) {
     this.props.dispatch(initializeFromJsonString(jsonString));
   }
@@ -135,8 +141,18 @@ export class FsmPage extends Component {
 
   render() {
     const {
-      name, states, inputAlphabet, transitionFunction, initialState, acceptStates, statePositions, selected,
-      inputString, executionPaths, executionPathIndex
+      name,
+      states,
+      inputAlphabet,
+      transitionFunction,
+      initialState,
+      acceptStates,
+      statePositions,
+      selected,
+      inputString,
+      executionPaths,
+      executionPathIndex,
+      testCases,
     } = this.props.fsm;
 
     const simplifiedTransitionFunction = getSimplifiedTransitionFunction(transitionFunction);
@@ -190,6 +206,7 @@ export class FsmPage extends Component {
       inputMessage={executionPaths[executionPathIndex].inputMessage}
       executionPaths={executionPaths}
       executionPathIndex={executionPathIndex}
+      testCases={testCases}
       changeName={this.changeName}
       addState={this.addState}
       selectState={this.selectState}
@@ -206,6 +223,7 @@ export class FsmPage extends Component {
       stepInput={this.stepInput}
       runInput={this.runInput}
       restartInput={this.restartInput}
+      runTestCases={this.runTestCases}
       initializeFromJsonString={this.initializeFromJsonString}
       reset={this.reset}
       stringifyAutomaton={this.stringifyAutomaton}

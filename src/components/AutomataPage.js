@@ -10,6 +10,7 @@ import { Set } from 'immutable'
 import { createModal, setModalState } from '../actions/modal'
 import * as modalTypes from '../constants/modalTypes'
 import * as inputMessageTypes from '../constants/inputMessageTypes'
+import * as testCaseResultTypes from '../constants/testCaseResultTypes'
 
 export class AutomataPage extends Component {
   constructor(props) {
@@ -729,6 +730,19 @@ export class AutomataPage extends Component {
       );
     }
 
+    const getTestCaseMessage = testCaseResultType => {
+      switch(testCaseResultType) {
+        case testCaseResultTypes.NA:
+          return '';
+        case testCaseResultTypes.PASS:
+          return 'Pass';
+        case testCaseResultTypes.FAIL:
+          return 'Fail';
+        case testCaseResultTypes.INDETERMINATE:
+          return 'Ind.';
+      }
+    };
+
     return (
       <div className="content-container">
         <div className="control-panel-left">
@@ -889,14 +903,23 @@ export class AutomataPage extends Component {
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                  <Table.Row>
-                    <Table.Cell collapsing>000111</Table.Cell>
-                    <Table.Cell collapsing>Pass</Table.Cell>
-                    <Table.Cell collapsing>Fail</Table.Cell>
-                    <Table.Cell collapsing>Fail</Table.Cell>
-                  </Table.Row>
+                  {
+                    this.props.testCases.map(testCase =>
+                      <Table.Row>
+                        <Table.Cell collapsing>{testCase.input}</Table.Cell>
+                        <Table.Cell collapsing>{getTestCaseMessage(testCase.expected)}</Table.Cell>
+                        <Table.Cell collapsing>{getTestCaseMessage(testCase.actual)}</Table.Cell>
+                        <Table.Cell collapsing>{getTestCaseMessage(testCase.result)}</Table.Cell>
+                      </Table.Row>
+                    )
+                  }
                 </Table.Body>
               </Table>
+              <div className="control-panel-text">
+                <Button onClick={() => this.props.runTestCases()}>
+                  <Icon name="play" className="clickable-icon" /> Run All
+                </Button>
+              </div>
             </div> : undefined
         }
       </div>

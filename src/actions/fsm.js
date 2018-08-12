@@ -84,6 +84,10 @@ export function restartInput() {
   return { type: actionTypes.FSM_RESTART_INPUT };
 }
 
+export function runTestCases() {
+  return { type: actionTypes.FSM_RUN_TEST_CASES };
+}
+
 export function initializeFromJsonString(jsonString) {
   return { type: actionTypes.FSM_INITIALIZED_FROM_JSON_STRING, payload: { jsonString } };
 }

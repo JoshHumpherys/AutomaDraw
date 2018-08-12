@@ -17,6 +17,7 @@ import {
 } from './sharedAutomataFunctions'
 import * as inputMessageTypes from '../constants/inputMessageTypes'
 import * as emptyStringSymbols from '../constants/emptyStringSymbols'
+import * as testCaseResultTypes from '../constants/testCaseResultTypes'
 
 const createInstruction = (fromState, inputSymbol, toState) => ({ fromState, inputSymbol, toState });
 
@@ -56,6 +57,22 @@ const stepInput = state => {
   }), ...executionPaths]};
 };
 
+const runInput = state => {
+  let newState = state;
+  for(let i = 0; i < 500; i++) {
+    newState = stepInput(newState);
+    if(newState.executionPaths.every(executionPath => executionPath.inputMessage !== '')) {
+      return newState;
+    }
+    if(newState.executionPaths.length > 500) {
+      alert('TODO handle NFAs that have a lot of execution paths. There are currently ' + newState.executionPaths.length + ' execution paths.');
+      return newState;
+    }
+  }
+  alert('TODO handle NFAs that have a lot of steps. 500 steps have been executed.');
+  return newState;
+};
+
 export default function fsm(
   state = {
     name: 'Example FSM',
@@ -92,6 +109,38 @@ export default function fsm(
       },
     ],
     executionPathIndex: 0,
+    testCases: [
+      {
+        input: emptyStringSymbols.LAMBDA,
+        expected: testCaseResultTypes.PASS,
+        actual: testCaseResultTypes.NA,
+        result: testCaseResultTypes.NA,
+      },
+      {
+        input: '101',
+        expected: testCaseResultTypes.PASS,
+        actual: testCaseResultTypes.NA,
+        result: testCaseResultTypes.NA,
+      },
+      {
+        input: '0110',
+        expected: testCaseResultTypes.PASS,
+        actual: testCaseResultTypes.NA,
+        result: testCaseResultTypes.NA,
+      },
+      {
+        input: '1010',
+        expected: testCaseResultTypes.FAIL,
+        actual: testCaseResultTypes.NA,
+        result: testCaseResultTypes.NA,
+      },
+      {
+        input: '00010',
+        expected: testCaseResultTypes.PASS,
+        actual: testCaseResultTypes.NA,
+        result: testCaseResultTypes.NA,
+      },
+    ]
   },
   action) {
   switch (action.type) {
@@ -205,19 +254,7 @@ export default function fsm(
       return stepInput(state);
     }
     case actionTypes.FSM_RUN_INPUT: {
-      let newState = state;
-      for(let i = 0; i < 500; i++) {
-        newState = stepInput(newState);
-        if(newState.executionPaths.every(executionPath => executionPath.inputMessage !== '')) {
-          return newState;
-        }
-        if(newState.executionPaths.length > 500) {
-          alert('TODO handle NFAs that have a lot of execution paths. There are currently ' + newState.executionPaths.length + ' execution paths.');
-          return newState;
-        }
-      }
-      alert('TODO handle NFAs that have a lot of steps. 500 steps have been executed.');
-      return newState;
+      return runInput(state);
     }
     case actionTypes.FSM_RESTART_INPUT: {
       return {
@@ -231,6 +268,36 @@ export default function fsm(
         ],
         executionPathIndex: 0,
       };
+    }
+    case actionTypes.FSM_RUN_TEST_CASES: {
+      return {
+        ...state,
+        testCases: state.testCases.map(testCase => {
+          const newState = runInput({
+            ...state,
+            inputString: testCase.input === emptyStringSymbols.LAMBDA ? '' : testCase.input,
+            inputMessage: '',
+            executionPaths: [
+              {
+                currentState: testCase.input.length !== 0 ? state.initialState : null,
+                inputIndex: 0,
+                inputMessage: ''
+              }
+            ],
+            executionPathIndex: 0,
+          });
+          let actual;
+          if(newState.executionPaths.find(executionPath => executionPath.inputMessage === inputMessageTypes.ACCEPT)) {
+            actual = testCaseResultTypes.PASS;
+          } else if(newState.executionPaths.find(executionPath => executionPath.inputMessage === '')) {
+            actual = testCaseResultTypes.INDETERMINATE;
+          } else {
+            actual = testCaseResultTypes.FAIL;
+          }
+          const result = testCase.expected === actual ? testCaseResultTypes.PASS : testCaseResultTypes.FAIL;
+          return { ...testCase, actual, result };
+        }),
+      }
     }
     case actionTypes.FSM_INITIALIZED_FROM_JSON_STRING: { // TODO load fsm with correct empty string symbol
       const { jsonString } = action.payload;
@@ -252,6 +319,7 @@ export default function fsm(
           },
         ],
         executionPathIndex: 0,
+        testCases: state.testCases,
       }
     }
     case actionTypes.FSM_RESET: {
@@ -273,6 +341,11 @@ export default function fsm(
           },
         ],
         executionPathIndex: 0,
+        testCases: state.testCases.map(testCase => ({
+          ...testCase,
+          actual: testCaseResultTypes.NA,
+          result: testCaseResultTypes.NA
+        })),
       }
     }
     default: {

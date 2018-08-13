@@ -84,8 +84,24 @@ export function restartInput() {
   return { type: actionTypes.FSM_RESTART_INPUT };
 }
 
+export function addTestCase(input, expected) {
+  return { type: actionTypes.FSM_ADD_TEST_CASE, payload: { input, expected } };
+}
+
+export function removeTestCase(index) {
+  return { type: actionTypes.FSM_REMOVE_TEST_CASE, payload: { index } };
+}
+
 export function runTestCases() {
   return { type: actionTypes.FSM_RUN_TEST_CASES };
+}
+
+export function initializeTestCasesFromCsvString(csvString) {
+  return { type: actionTypes.FSM_INITIALIZE_TEST_CASES_FROM_CSV_STRING, payload: { csvString } };
+}
+
+export function resetTestCases() {
+  return { type: actionTypes.FSM_RESET_TEST_CASES };
 }
 
 export function initializeFromJsonString(jsonString) {

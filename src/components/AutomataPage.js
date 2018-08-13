@@ -8,6 +8,7 @@ import { Button, Checkbox, Dropdown, Icon, Input, Table } from 'semantic-ui-reac
 import { saveAs } from 'file-saver'
 import { Set } from 'immutable'
 import { createModal, setModalState } from '../actions/modal'
+import { createTestCasesFile } from '../utility/utility'
 import * as modalTypes from '../constants/modalTypes'
 import * as inputMessageTypes from '../constants/inputMessageTypes'
 import * as testCaseResultTypes from '../constants/testCaseResultTypes'
@@ -422,7 +423,7 @@ export class AutomataPage extends Component {
 
   uploadFile(file, callback) {
     const extension = file.name.slice(file.name.indexOf('.') + 1);
-    if(extension !== 'ad') {
+    if(extension !== 'json') {
       alert('TODO alert user upload file is of wrong type');
       return;
     }
@@ -439,6 +440,23 @@ export class AutomataPage extends Component {
     if(this.inputRef !== undefined) {
       this.inputRef.inputRef.value = '';
     }
+  }
+
+  uploadTestCasesFile(file, callback) {
+    const extension = file.name.slice(file.name.indexOf('.') + 1);
+    if(extension !== 'csv') {
+      alert('TODO alert user upload file is of wrong type');
+      return;
+    }
+
+    const fileReader = new FileReader();
+
+    fileReader.onload = e => {
+      this.props.initializeTestCasesFromCsvString(e.target.result);
+      callback();
+    };
+
+    fileReader.readAsText(file, 'UTF-8');
   }
 
   inputChanged(e) {
@@ -743,6 +761,19 @@ export class AutomataPage extends Component {
       }
     };
 
+    const getOverallTestCasesResult = testCases => {
+      if(testCases.every(testCase => testCase.result === testCaseResultTypes.PASS)) {
+        return testCaseResultTypes.PASS;
+      } else if(testCases.find(testCase => testCase.result === testCaseResultTypes.FAIL)) {
+        return testCaseResultTypes.FAIL;
+      } else if(testCases.find(testCase => testCase.result === testCaseResultTypes.INDETERMINATE)) {
+        return testCaseResultTypes.INDETERMINATE;
+      } else {
+        return testCaseResultTypes.NA;
+      }
+
+    };
+
     return (
       <div className="content-container">
         <div className="control-panel-left">
@@ -788,7 +819,7 @@ export class AutomataPage extends Component {
           <div className="control-panel-text">
             <Button onClick={() => saveAs(
               new Blob([this.props.stringifyAutomaton()], { type: 'text/plain;charset=utf-8' }),
-              `${this.props.name}.ad`
+              `${this.props.name}.json`
             )}>
               <Icon name="download" className="clickable-icon" /> Download
             </Button>
@@ -904,8 +935,15 @@ export class AutomataPage extends Component {
                 </Table.Header>
                 <Table.Body>
                   {
-                    this.props.testCases.map(testCase =>
-                      <Table.Row>
+                    this.props.testCases.map((testCase, i) =>
+                      <Table.Row onClick={() => {
+                        this.props.dispatch(setModalState({
+                          index: i,
+                          input: testCase.input,
+                          expected: getTestCaseMessage(testCase.expected),
+                        }));
+                        this.props.dispatch(createModal(modalTypes.DELETE_TEST_CASE_MODAL));
+                      }}>
                         <Table.Cell collapsing>{testCase.input}</Table.Cell>
                         <Table.Cell collapsing>{getTestCaseMessage(testCase.expected)}</Table.Cell>
                         <Table.Cell collapsing>{getTestCaseMessage(testCase.actual)}</Table.Cell>
@@ -915,9 +953,47 @@ export class AutomataPage extends Component {
                   }
                 </Table.Body>
               </Table>
+              {
+                this.props.testCases.every(testCase => testCase.result !== testCaseResultTypes.NA) ?
+                  <div className="control-panel-text">
+                    <h3>{'Overall Result: ' + getTestCaseMessage(getOverallTestCasesResult(this.props.testCases))}</h3>
+                  </div> : undefined
+              }
+              <div className="control-panel-text">
+                <Button onClick={() => this.props.dispatch(createModal(this.props.testCaseModalType))}>
+                  <Icon name="plus" className="clickable-icon" /> Add Test Case
+                </Button>
+              </div>
               <div className="control-panel-text">
                 <Button onClick={() => this.props.runTestCases()}>
                   <Icon name="play" className="clickable-icon" /> Run All
+                </Button>
+              </div>
+              <div className="control-panel-text">
+                <Button onClick={() => $('#uploadTestCasesFile').click()}>
+                  <Icon name="upload" className="clickable-icon" /> Upload
+                </Button>
+                <input
+                  type="file"
+                  id="uploadTestCasesFile"
+                  style={{ display: 'none'}}
+                  onChange={() => {
+                    const upload = $('#uploadTestCasesFile');
+                    this.uploadTestCasesFile(upload.get(0).files[0], () => upload.val(''));
+                  }}
+                />
+              </div>
+              <div className="control-panel-text">
+                <Button onClick={() => saveAs(
+                  new Blob([createTestCasesFile(this.props.testCases)], { type: 'text/plain;charset=utf-8' }),
+                  `${this.props.name}.csv`
+                )}>
+                  <Icon name="download" className="clickable-icon" /> Download
+                </Button>
+              </div>
+              <div className="control-panel-text">
+                <Button onClick={() => this.props.resetTestCases()}>
+                  <Icon name="refresh" className="clickable-icon" /> Reset
                 </Button>
               </div>
             </div> : undefined

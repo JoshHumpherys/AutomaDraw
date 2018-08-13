@@ -294,9 +294,51 @@ export default function fsm(
           } else {
             actual = testCaseResultTypes.FAIL;
           }
-          const result = testCase.expected === actual ? testCaseResultTypes.PASS : testCaseResultTypes.FAIL;
+          let result;
+          if(testCase.expected === actual) {
+            result = testCaseResultTypes.PASS;
+          } else if(actual === testCaseResultTypes.INDETERMINATE) {
+            result = testCaseResultTypes.INDETERMINATE;
+          } else {
+            result = testCaseResultTypes.FAIL;
+          }
           return { ...testCase, actual, result };
         }),
+      }
+    }
+    case actionTypes.FSM_RESET_TEST_CASES: {
+      return {
+        ...state,
+        testCases: [],
+      }
+    }
+    case actionTypes.FSM_ADD_TEST_CASE: {
+      return { ...state, testCases: [...state.testCases, {
+        input: action.payload.input,
+        expected: action.payload.expected,
+        actual: testCaseResultTypes.NA,
+        result: testCaseResultTypes.NA,
+      }]};
+    }
+    case actionTypes.FSM_REMOVE_TEST_CASE: {
+      const testCases = state.testCases;
+      testCases.splice(action.payload.index, 1);
+      return { ...state, testCases }
+    }
+    case actionTypes.FSM_INITIALIZE_TEST_CASES_FROM_CSV_STRING: {
+      console.log(action.payload.csvString.split('\n'));
+      return {
+        ...state,
+        testCases: action.payload.csvString.split('\n').filter(s => s !== '').map(testCaseString => {
+          const [ input, expected ] = testCaseString.split(',');
+          const expectedFail = expected === '0' || expected.toLocaleLowerCase() === 'fail';
+          return {
+            input,
+            expected: expectedFail ? testCaseResultTypes.FAIL : testCaseResultTypes.PASS,
+            actual: testCaseResultTypes.NA,
+            result: testCaseResultTypes.NA,
+          }
+        })
       }
     }
     case actionTypes.FSM_INITIALIZED_FROM_JSON_STRING: { // TODO load fsm with correct empty string symbol

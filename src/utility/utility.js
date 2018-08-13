@@ -1,5 +1,6 @@
 import $ from 'jquery'
 import * as pageTypes from '../constants/pageTypes'
+import * as testCaseResultTypes from '../constants/testCaseResultTypes'
 
 export const arrayToString = array => array.length > 0 ? '{' + array.join(', ') + '}' : '\u2205';
 
@@ -21,4 +22,19 @@ export const getPageType = () => {
   } else {
     return pageTypes.HOME_PAGE;
   }
-}
+};
+
+export const createTestCasesFile = testCases => {
+  /*
+  const getExpectedString = expected => {
+    switch(expected) {
+      case testCaseResultTypes.PASS:
+        return 'pass';
+      case testCaseResultTypes.FAIL:
+        return 'fail';
+    }
+  };
+  */
+  const getExpectedString = expected => expected === testCaseResultTypes.PASS ? 1 : 0;
+  return testCases.map(testCase => testCase.input + ',' + getExpectedString(testCase.expected)).join('\n');
+};

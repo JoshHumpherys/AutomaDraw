@@ -58,8 +58,7 @@ export default class EditableTextField extends Component {
 
   render() {
     return (
-      <div className="editable-main-container">
-        <Icon />
+      <div className="editable-main-container" onClick={this.startEditing}>
         <div className="editable-container">
           {
             this.state.editing ? (
@@ -74,13 +73,6 @@ export default class EditableTextField extends Component {
             )
           }
         </div>
-        {
-          this.state.editing ? (
-            <Icon className="clickable-icon" name="checkmark box" onClick={() => this.onSubmit(this.inputField.value)} />
-          ) : (
-            <Icon className="clickable-icon" name="edit" onClick={this.startEditing} />
-          )
-        }
       </div>
     );
   }

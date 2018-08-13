@@ -6,6 +6,7 @@ import * as fsmActions from '../actions/fsm'
 import * as pdaActions from '../actions/pda'
 import * as tmActions from '../actions/tm'
 import * as automatonTypes from '../constants/automatonTypes'
+import * as testCaseResultTypes from '../constants/testCaseResultTypes'
 import $ from 'jquery'
 import { Set } from 'immutable'
 
@@ -629,6 +630,67 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
                   break;
                 }
               }
+              dispatch(removeModal());
+            }} />
+        ]
+      };
+    }
+    case modalTypes.FSM_TEST_CASE_MODAL: {
+      const expected = getValue('expected') || testCaseResultTypes.PASS;
+      const input = getValue('input') || emptyStringSymbol;
+      return {
+        header: 'Add Transition',
+        body: (
+          <Form>
+            <Form.Group widths="equal">
+              <Form.Field>
+                <label>Input String</label>
+                <Form.Input
+                  placeholder="Test case input"
+                  onChange={(e, data) => dispatch(setModalState({ input: data.value }))} />
+              </Form.Field>
+              <Form.Field>
+                <label>Expected</label>
+                <Dropdown
+                  defaultValue={expected}
+                  fluid
+                  selection
+                  options={[
+                    { text: 'Pass', value: testCaseResultTypes.PASS, key: testCaseResultTypes.PASS },
+                    { text: 'Fail', value: testCaseResultTypes.FAIL, key: testCaseResultTypes.FAIL },
+                  ]}
+                  onChange={(e, data) => dispatch(setModalState({ expected: data.value }))} />
+              </Form.Field>
+            </Form.Group>
+          </Form>
+        ),
+        actions: [
+          <CancelButton
+            key="cancel"
+            onClick={() => dispatch(removeModal())} />,
+          <SubmitButton
+            key="submit"
+            onClick={() => {
+              dispatch(actions.addTestCase(input, expected)); // TODO make sure input string only has symbols from input alphabet?
+              dispatch(removeModal());
+            }} />
+        ]
+      };
+    }
+    case modalTypes.DELETE_TEST_CASE_MODAL: {
+      return {
+        header: 'Delete Test Case',
+        body: 'Are you sure you want to delete test case ' + getValue('input') + ' ' + getValue('expected') + '?',
+        actions: [
+          <CancelButton
+            key="cancel"
+            onClick={() => {
+              dispatch(removeModal());
+            }} />,
+          <DeleteButton
+            key="delete"
+            onClick={() => {
+              dispatch(actions.removeTestCase(getValue('index')));
               dispatch(removeModal());
             }} />
         ]

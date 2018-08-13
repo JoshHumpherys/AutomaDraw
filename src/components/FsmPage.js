@@ -18,6 +18,8 @@ import {
   runInput,
   restartInput,
   runTestCases,
+  initializeTestCasesFromCsvString,
+  resetTestCases,
   initializeFromJsonString,
   reset
 } from '../actions/fsm'
@@ -49,6 +51,8 @@ export class FsmPage extends Component {
     this.runInput = this.runInput.bind(this);
     this.restartInput = this.restartInput.bind(this);
     this.runTestCases = this.runTestCases.bind(this);
+    this.resetTestCases = this.resetTestCases.bind(this);
+    this.initializeTestCasesFromCsvString = this.initializeTestCasesFromCsvString.bind(this);
     this.initializeFromJsonString = this.initializeFromJsonString.bind(this);
     this.reset = this.reset.bind(this);
     this.stringifyAutomaton = this.stringifyAutomaton.bind(this);
@@ -123,8 +127,16 @@ export class FsmPage extends Component {
     this.props.dispatch(restartInput());
   }
 
+  resetTestCases() {
+    this.props.dispatch(resetTestCases());
+  }
+
   runTestCases() {
     this.props.dispatch(runTestCases());
+  }
+
+  initializeTestCasesFromCsvString(csvString) {
+    this.props.dispatch(initializeTestCasesFromCsvString(csvString));
   }
 
   initializeFromJsonString(jsonString) {
@@ -136,7 +148,24 @@ export class FsmPage extends Component {
   }
 
   stringifyAutomaton() {
-    return JSON.stringify(this.props.fsm);
+    const {
+      name,
+      states,
+      inputAlphabet,
+      transitionFunction,
+      initialState,
+      acceptStates,
+      statePositions,
+    } = this.props.fsm;
+    return JSON.stringify({
+      name,
+      states,
+      inputAlphabet,
+      transitionFunction,
+      initialState,
+      acceptStates,
+      statePositions,
+    });
   }
 
   render() {
@@ -207,6 +236,7 @@ export class FsmPage extends Component {
       executionPaths={executionPaths}
       executionPathIndex={executionPathIndex}
       testCases={testCases}
+      testCaseModalType={modalTypes.FSM_TEST_CASE_MODAL}
       changeName={this.changeName}
       addState={this.addState}
       selectState={this.selectState}
@@ -224,6 +254,8 @@ export class FsmPage extends Component {
       runInput={this.runInput}
       restartInput={this.restartInput}
       runTestCases={this.runTestCases}
+      resetTestCases={this.resetTestCases}
+      initializeTestCasesFromCsvString={this.initializeTestCasesFromCsvString}
       initializeFromJsonString={this.initializeFromJsonString}
       reset={this.reset}
       stringifyAutomaton={this.stringifyAutomaton}

@@ -411,6 +411,7 @@ export default function pda(
           },
         ],
         executionPathIndex: 0,
+        testCases: state.testCases,
       }
     }
     case actionTypes.PDA_RESET: {
@@ -436,6 +437,11 @@ export default function pda(
           },
         ],
         executionPathIndex: 0,
+        testCases: state.testCases.map(testCase => ({
+          ...testCase,
+          actual: testCaseResultTypes.NA,
+          result: testCaseResultTypes.NA
+        })),
       }
     }
     default: {

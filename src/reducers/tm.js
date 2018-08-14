@@ -103,7 +103,6 @@ export default function tm(
     transitionFunction: new Set([
       createInstruction('A', '0', 'B', 'X', 'R'),
       createInstruction('A', 'Y', 'D', 'Y', 'R'),
-      createInstruction('A', '\u0394', 'E', '\u0394', 'R'),
       createInstruction('B', '0', 'B', '0', 'R'),
       createInstruction('B', '1', 'C', 'Y', 'L'),
       createInstruction('B', 'Y', 'B', 'Y', 'R'),
@@ -119,8 +118,8 @@ export default function tm(
       'A': { x: 200, y: 250 },
       'B': { x: 425, y: 150 },
       'C': { x: 650, y: 250 },
-      'D': { x: 325, y: 425 },
-      'E': { x: 525, y: 425 }
+      'D': { x: 350, y: 375 },
+      'E': { x: 500, y: 375 },
 
     }),
     selected: '',
@@ -137,7 +136,7 @@ export default function tm(
     testCases: [
       {
         input: emptyStringSymbols.LAMBDA,
-        expected: testCaseResultTypes.PASS,
+        expected: testCaseResultTypes.FAIL,
         actual: testCaseResultTypes.NA,
         result: testCaseResultTypes.NA,
       },
@@ -382,6 +381,7 @@ export default function tm(
           },
         ],
         executionPathIndex: 0,
+        testCases: state.testCases,
       }
     }
     case actionTypes.TM_RESET: {
@@ -406,6 +406,11 @@ export default function tm(
           },
         ],
         executionPathIndex: 0,
+        testCases: state.testCases.map(testCase => ({
+          ...testCase,
+          actual: testCaseResultTypes.NA,
+          result: testCaseResultTypes.NA
+        })),
       }
     }
     default: {

@@ -17,6 +17,9 @@ import {
   stepInput,
   runInput,
   restartInput,
+  runTestCases,
+  resetTestCases,
+  initializeTestCasesFromCsvString,
   initializeFromJsonString,
   reset
 } from '../actions/tm'
@@ -47,6 +50,9 @@ export class TmPage extends Component {
     this.stepInput = this.stepInput.bind(this);
     this.runInput = this.runInput.bind(this);
     this.restartInput = this.restartInput.bind(this);
+    this.runTestCases = this.runTestCases.bind(this);
+    this.resetTestCases = this.resetTestCases.bind(this);
+    this.initializeTestCasesFromCsvString = this.initializeTestCasesFromCsvString.bind(this);
     this.initializeFromJsonString = this.initializeFromJsonString.bind(this);
     this.reset = this.reset.bind(this);
     this.stringifyAutomaton = this.stringifyAutomaton.bind(this);
@@ -121,6 +127,18 @@ export class TmPage extends Component {
     this.props.dispatch(restartInput(inputString));
   }
 
+  runTestCases() {
+    this.props.dispatch(runTestCases());
+  }
+
+  resetTestCases() {
+    this.props.dispatch(resetTestCases());
+  }
+
+  initializeTestCasesFromCsvString(csvString) {
+    this.props.dispatch(initializeTestCasesFromCsvString(csvString));
+  }
+
   initializeFromJsonString(jsonString) {
     this.props.dispatch(initializeFromJsonString(jsonString));
   }
@@ -148,6 +166,7 @@ export class TmPage extends Component {
       inputString,
       executionPaths,
       executionPathIndex,
+      testCases,
     } = this.props.tm;
 
     const simplifiedTransitionFunction = getSimplifiedTransitionFunction(transitionFunction);
@@ -206,6 +225,8 @@ export class TmPage extends Component {
       inputMessage={executionPaths[executionPathIndex].inputMessage}
       executionPaths={executionPaths}
       executionPathIndex={executionPathIndex}
+      testCases={testCases}
+      testCaseModalType={modalTypes.TEST_CASE_MODAL}
       blankSymbol={blankSymbol}
       changeName={this.changeName}
       addState={this.addState}
@@ -223,6 +244,9 @@ export class TmPage extends Component {
       stepInput={this.stepInput}
       runInput={this.runInput}
       restartInput={this.restartInput}
+      runTestCases={this.runTestCases}
+      resetTestCases={this.resetTestCases}
+      initializeTestCasesFromCsvString={this.initializeTestCasesFromCsvString}
       initializeFromJsonString={this.initializeFromJsonString}
       reset={this.reset}
       stringifyAutomaton={this.stringifyAutomaton}

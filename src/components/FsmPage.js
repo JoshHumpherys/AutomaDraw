@@ -127,12 +127,12 @@ export class FsmPage extends Component {
     this.props.dispatch(restartInput());
   }
 
-  resetTestCases() {
-    this.props.dispatch(resetTestCases());
-  }
-
   runTestCases() {
     this.props.dispatch(runTestCases());
+  }
+
+  resetTestCases() {
+    this.props.dispatch(resetTestCases());
   }
 
   initializeTestCasesFromCsvString(csvString) {
@@ -236,7 +236,7 @@ export class FsmPage extends Component {
       executionPaths={executionPaths}
       executionPathIndex={executionPathIndex}
       testCases={testCases}
-      testCaseModalType={modalTypes.FSM_TEST_CASE_MODAL}
+      testCaseModalType={modalTypes.TEST_CASE_MODAL}
       changeName={this.changeName}
       addState={this.addState}
       selectState={this.selectState}

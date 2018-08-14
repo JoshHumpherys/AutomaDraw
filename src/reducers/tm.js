@@ -14,59 +14,83 @@ import {
   removeAcceptState,
   setAcceptStates,
   setExecutionPath,
+  runTestCases,
+  resetTestCases,
+  addTestCase,
+  removeTestCase,
+  initializeTestCasesFromCsvString,
 } from './sharedAutomataFunctions'
 import * as inputMessageTypes from '../constants/inputMessageTypes'
+import * as emptyStringSymbols from '../constants/emptyStringSymbols'
+import * as testCaseResultTypes from '../constants/testCaseResultTypes'
 
 const createInstruction = (fromState, inputSymbol, toState, writeSymbol, moveDirection) =>
   ({ fromState, inputSymbol, toState, writeSymbol, moveDirection });
 
 const stepInput = state => {
-  if(state.acceptStates.contains(state.currentState)) {
-    return { ...state, inputMessage: inputMessageTypes.ACCEPT };
-  }
   let executionPaths = [];
   return { ...state, executionPaths: [...state.executionPaths.map(executionPath => {
-      if(executionPath.inputMessage !== '') {
-        return executionPath;
-      }
-      const currentSymbol = executionPath.inputIndex >= 0 && executionPath.inputIndex < executionPath.inputString.length ?
-        executionPath.inputString[executionPath.inputIndex] : state.blankSymbol;
-      const transitions = state.transitionFunction.filter(instruction =>
-        instruction.fromState === executionPath.currentState && instruction.inputSymbol === currentSymbol
-      );
-      if(transitions.first() === undefined) {
-        return { ...executionPath, inputMessage: inputMessageTypes.REJECT };
-      }
-      const getNewExecutionPath = transition => {
-        const currentState = transition.toState;
-        let inputString;
-        if(executionPath.inputIndex >= 0 && executionPath.inputIndex < executionPath.inputString.length) {
-          inputString = executionPath.inputString.substring(0, executionPath.inputIndex) +
-            transition.writeSymbol +
-            executionPath.inputString.substring(executionPath.inputIndex + 1);
-        } else {
-          const generateBlankSymbols = numBlankSymbols => {
-            let blankSymbolsString = '';
-            for(let i = 0; i < numBlankSymbols; i++) {
-              blankSymbolsString += state.blankSymbol;
-            }
-            return blankSymbolsString;
-          };
-          if(executionPath.inputIndex < 0) {
-            let blankSymbols = generateBlankSymbols(executionPath.inputIndex + 1);
-            inputString = transition.writeSymbol + blankSymbols + executionPath.inputString;
-          } else {
-            let blankSymbols = generateBlankSymbols(executionPath.inputIndex - executionPath.inputString.length);
-            inputString = executionPath.inputString + blankSymbols + transition.writeSymbol;
+    console.log(executionPath.currentState);
+    if(state.acceptStates.contains(executionPath.currentState)) {
+      return { ...executionPath, inputMessage: inputMessageTypes.ACCEPT };
+    }
+    if(executionPath.inputMessage !== '') {
+      return executionPath;
+    }
+    const currentSymbol = executionPath.inputIndex >= 0 && executionPath.inputIndex < executionPath.inputString.length ?
+      executionPath.inputString[executionPath.inputIndex] : state.blankSymbol;
+    const transitions = state.transitionFunction.filter(instruction =>
+      instruction.fromState === executionPath.currentState && instruction.inputSymbol === currentSymbol
+    );
+    if(transitions.first() === undefined) {
+      return { ...executionPath, inputMessage: inputMessageTypes.REJECT };
+    }
+    const getNewExecutionPath = transition => {
+      const currentState = transition.toState;
+      let inputString;
+      if(executionPath.inputIndex >= 0 && executionPath.inputIndex < executionPath.inputString.length) {
+        inputString = executionPath.inputString.substring(0, executionPath.inputIndex) +
+          transition.writeSymbol +
+          executionPath.inputString.substring(executionPath.inputIndex + 1);
+      } else {
+        const generateBlankSymbols = numBlankSymbols => {
+          let blankSymbolsString = '';
+          for(let i = 0; i < numBlankSymbols; i++) {
+            blankSymbolsString += state.blankSymbol;
           }
+          return blankSymbolsString;
+        };
+        if(executionPath.inputIndex < 0) {
+          let blankSymbols = generateBlankSymbols(executionPath.inputIndex + 1);
+          inputString = transition.writeSymbol + blankSymbols + executionPath.inputString;
+        } else {
+          let blankSymbols = generateBlankSymbols(executionPath.inputIndex - executionPath.inputString.length);
+          inputString = executionPath.inputString + blankSymbols + transition.writeSymbol;
         }
-        const inputIndex = executionPath.inputIndex + (transition.moveDirection === 'L' ? -1 : 1); // TODO make direction enum
-        const inputMessage = state.acceptStates.contains(currentState) ? inputMessageTypes.ACCEPT : executionPath.inputMessage;
-        return { ...executionPath, inputString, inputIndex, currentState, inputMessage };
-      };
-      executionPaths = [...executionPaths, ...transitions.rest().map(transition => getNewExecutionPath(transition)).toArray()];
-      return getNewExecutionPath(transitions.first());
-    }), ...executionPaths]};
+      }
+      const inputIndex = executionPath.inputIndex + (transition.moveDirection === 'L' ? -1 : 1); // TODO make direction enum
+      const inputMessage = state.acceptStates.contains(currentState) ? inputMessageTypes.ACCEPT : executionPath.inputMessage;
+      return { ...executionPath, inputString, inputIndex, currentState, inputMessage };
+    };
+    executionPaths = [...executionPaths, ...transitions.rest().map(transition => getNewExecutionPath(transition)).toArray()];
+    return getNewExecutionPath(transitions.first());
+  }), ...executionPaths]};
+};
+
+const runInput = state => {
+  let newState = state;
+  for(let i = 0; i < 500; i++) {
+    newState = stepInput(newState);
+    if(newState.executionPaths.every(executionPath => executionPath.inputMessage !== '')) {
+      return newState;
+    }
+    if(newState.executionPaths.length > 500) {
+      alert('TODO handle TMs that have a lot of execution paths. There are currently ' + newState.executionPaths.length + ' execution paths.');
+      return newState;
+    }
+  }
+  alert('TODO not all paths have completed and 500 steps have executed.');
+  return newState;
 };
 
 export default function tm(
@@ -79,6 +103,7 @@ export default function tm(
     transitionFunction: new Set([
       createInstruction('A', '0', 'B', 'X', 'R'),
       createInstruction('A', 'Y', 'D', 'Y', 'R'),
+      createInstruction('A', '\u0394', 'E', '\u0394', 'R'),
       createInstruction('B', '0', 'B', '0', 'R'),
       createInstruction('B', '1', 'C', 'Y', 'L'),
       createInstruction('B', 'Y', 'B', 'Y', 'R'),
@@ -86,7 +111,7 @@ export default function tm(
       createInstruction('C', 'X', 'A', 'X', 'R'),
       createInstruction('C', 'Y', 'C', 'Y', 'L'),
       createInstruction('D', 'Y', 'D', 'Y', 'R'),
-      createInstruction('D', '\u0394', 'E', '\u0394', 'R')
+      createInstruction('D', '\u0394', 'E', '\u0394', 'R'),
     ]),
     initialState: 'A',
     acceptStates: new Set(['E']),
@@ -94,21 +119,59 @@ export default function tm(
       'A': { x: 200, y: 250 },
       'B': { x: 425, y: 150 },
       'C': { x: 650, y: 250 },
-      'D': { x: 350, y: 375 },
-      'E': { x: 500, y: 375 }
+      'D': { x: 325, y: 425 },
+      'E': { x: 525, y: 425 }
 
     }),
     selected: '',
     inputString: '',
     executionPaths: [
       {
-        currentState: '',
+        currentState: 'A',
         inputString: '',
         inputIndex: 0,
         inputMessage: '',
       },
     ],
     executionPathIndex: 0,
+    testCases: [
+      {
+        input: emptyStringSymbols.LAMBDA,
+        expected: testCaseResultTypes.PASS,
+        actual: testCaseResultTypes.NA,
+        result: testCaseResultTypes.NA,
+      },
+      {
+        input: '01',
+        expected: testCaseResultTypes.PASS,
+        actual: testCaseResultTypes.NA,
+        result: testCaseResultTypes.NA,
+      },
+      {
+        input: '1010',
+        expected: testCaseResultTypes.FAIL,
+        actual: testCaseResultTypes.NA,
+        result: testCaseResultTypes.NA,
+      },
+      {
+        input: '0011',
+        expected: testCaseResultTypes.PASS,
+        actual: testCaseResultTypes.NA,
+        result: testCaseResultTypes.NA,
+      },
+      {
+        input: '00011',
+        expected: testCaseResultTypes.FAIL,
+        actual: testCaseResultTypes.NA,
+        result: testCaseResultTypes.NA,
+      },
+      {
+        input: '000111',
+        expected: testCaseResultTypes.PASS,
+        actual: testCaseResultTypes.NA,
+        result: testCaseResultTypes.NA,
+      },
+    ],
   },
   action) {
   switch(action.type) {
@@ -136,10 +199,30 @@ export default function tm(
       return setStates(state, action.payload.states);
     }
     case actionTypes.TM_INITIAL_STATE_CHANGED: {
-      return changeInitialState(state, action.payload.state);
+      return {
+        ...changeInitialState(state, action.payload.state),
+        executionPaths: [
+          {
+            currentState: action.payload.state,
+            inputString: '',
+            inputIndex: 0,
+            inputMessage: '',
+          }
+        ],
+      };
     }
     case actionTypes.TM_INITIAL_STATE_REMOVED: {
-      return removeInitialState(state);
+      return {
+        ...removeInitialState(state),
+        executionPaths: [
+          {
+            currentState: '',
+            inputString: state.inputString,
+            inputIndex: 0,
+            inputMessage: ''
+          }
+        ],
+      };
     }
     case actionTypes.TM_ACCEPT_STATE_ADDED: {
       return addAcceptState(state, action.payload.state);
@@ -241,19 +324,7 @@ export default function tm(
       return stepInput(state);
     }
     case actionTypes.TM_RUN_INPUT: {
-      let newState = state;
-      for(let i = 0; i < 500; i++) {
-        newState = stepInput(newState);
-        if(newState.executionPaths.every(executionPath => executionPath.inputMessage !== '')) {
-          return newState;
-        }
-        if(newState.executionPaths.length > 500) {
-          alert('TODO handle TMs that have a lot of execution paths. There are currently ' + newState.executionPaths.length + ' execution paths.');
-          return newState;
-        }
-      }
-      alert('TODO not all paths have completed and 500 steps have executed.');
-      return newState;
+      return runInput(state);
     }
     case actionTypes.TM_RESTART_INPUT: {
       return {
@@ -268,6 +339,27 @@ export default function tm(
         ],
         executionPathIndex: 0,
       };
+    }
+    case actionTypes.TM_RUN_TEST_CASES: {
+      const initialExecutionPath = {
+        inputIndex: 0,
+        inputMessage: '',
+        inputString: state.inputString,
+        currentState: state.initialState
+      };
+      return runTestCases(state, initialExecutionPath, runInput, true);
+    }
+    case actionTypes.TM_RESET_TEST_CASES: {
+      return resetTestCases(state);
+    }
+    case actionTypes.TM_ADD_TEST_CASE: {
+      return addTestCase(state, action.payload.input, action.payload.expected);
+    }
+    case actionTypes.TM_REMOVE_TEST_CASE: {
+      return removeTestCase(state, action.payload.index);
+    }
+    case actionTypes.TM_INITIALIZE_TEST_CASES_FROM_CSV_STRING: {
+      return initializeTestCasesFromCsvString(state, action.payload.csvString);
     }
     case actionTypes.TM_INITIALIZED_FROM_JSON_STRING: {
       const tm = JSON.parse(action.payload.jsonString);

@@ -276,5 +276,9 @@ body {
 }
 
 .ui.table {
-    margin: 0 20px;
+  margin: 0 20px;
+}
+
+.ui.celled.table tr {
+  cursor: pointer;
 }

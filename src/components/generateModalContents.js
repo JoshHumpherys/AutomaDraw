@@ -635,7 +635,7 @@ export default (automaton, modalState, modalType, automatonType, dispatch, empty
         ]
       };
     }
-    case modalTypes.FSM_TEST_CASE_MODAL: {
+    case modalTypes.TEST_CASE_MODAL: {
       const expected = getValue('expected') || testCaseResultTypes.PASS;
       const input = getValue('input') || emptyStringSymbol;
       return {

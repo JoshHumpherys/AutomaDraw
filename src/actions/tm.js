@@ -106,6 +106,26 @@ export function restartInput(inputString) {
   return { type: actionTypes.TM_RESTART_INPUT, payload: { inputString } };
 }
 
+export function addTestCase(input, expected) {
+  return { type: actionTypes.TM_ADD_TEST_CASE, payload: { input, expected } };
+}
+
+export function removeTestCase(index) {
+  return { type: actionTypes.TM_REMOVE_TEST_CASE, payload: { index } };
+}
+
+export function runTestCases() {
+  return { type: actionTypes.TM_RUN_TEST_CASES };
+}
+
+export function resetTestCases() {
+  return { type: actionTypes.TM_RESET_TEST_CASES };
+}
+
+export function initializeTestCasesFromCsvString(csvString) {
+  return { type: actionTypes.TM_INITIALIZE_TEST_CASES_FROM_CSV_STRING, payload: { csvString } };
+}
+
 export function initializeFromJsonString(jsonString) {
   return { type: actionTypes.TM_INITIALIZED_FROM_JSON_STRING, payload: { jsonString } };
 }

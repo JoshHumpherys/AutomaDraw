@@ -1,4 +1,8 @@
 import { Map, Set } from 'immutable'
+import * as actionTypes from '../constants/actionTypes'
+import * as emptyStringSymbols from '../constants/emptyStringSymbols'
+import * as inputMessageTypes from '../constants/inputMessageTypes'
+import * as testCaseResultTypes from '../constants/testCaseResultTypes'
 
 export function changeName(automaton, name) {
   return { ...automaton, name };
@@ -110,4 +114,81 @@ export function setAcceptStates(automaton, states) {
 
 export function setExecutionPath(automaton, executionPathIndex) {
   return { ...automaton, executionPathIndex };
+}
+
+export function runTestCases(automaton, initialExecutionPath, runInput, setInputStringInInitialExecutionPath = false) {
+  return {
+    ...automaton,
+    testCases: automaton.testCases.map(testCase => {
+      const inputString = testCase.input === emptyStringSymbols.LAMBDA ? '' : testCase.input;
+      const newState = runInput({
+        ...automaton,
+        inputString,
+        inputMessage: '',
+        executionPaths: [
+          {
+            ...initialExecutionPath,
+            inputString: setInputStringInInitialExecutionPath ? inputString : undefined,
+            currentState: testCase.input.length !== 0 ? automaton.initialState : null
+          }
+        ],
+        executionPathIndex: 0,
+      });
+      let actual;
+      if(newState.executionPaths.find(executionPath => executionPath.inputMessage === inputMessageTypes.ACCEPT)) {
+        actual = testCaseResultTypes.PASS;
+      } else if(newState.executionPaths.find(executionPath => executionPath.inputMessage === '')) {
+        actual = testCaseResultTypes.INDETERMINATE;
+      } else {
+        actual = testCaseResultTypes.FAIL;
+      }
+      let result;
+      if(testCase.expected === actual) {
+        result = testCaseResultTypes.PASS;
+      } else if(actual === testCaseResultTypes.INDETERMINATE) {
+        result = testCaseResultTypes.INDETERMINATE;
+      } else {
+        result = testCaseResultTypes.FAIL;
+      }
+      return { ...testCase, actual, result };
+    }),
+  };
+}
+
+export function addTestCase(automaton, input, expected) {
+  return { ...automaton, testCases: [...automaton.testCases, {
+    input,
+    expected,
+    actual: testCaseResultTypes.NA,
+    result: testCaseResultTypes.NA,
+  }]};
+}
+
+export function removeTestCase(automaton, index) {
+  const testCases = automaton.testCases;
+  testCases.splice(index, 1);
+  return { ...automaton, testCases };
+}
+
+export function resetTestCases(automaton) {
+  return {
+    ...automaton,
+    testCases: [],
+  };
+}
+
+export function initializeTestCasesFromCsvString(automaton, csvString) {
+  return {
+    ...automaton,
+    testCases: csvString.split('\n').filter(s => s !== '').map(testCaseString => {
+      const [ input, expected ] = testCaseString.split(',');
+      const expectedFail = expected === '0' || expected.toLocaleLowerCase() === 'fail';
+      return {
+        input,
+        expected: expectedFail ? testCaseResultTypes.FAIL : testCaseResultTypes.PASS,
+        actual: testCaseResultTypes.NA,
+        result: testCaseResultTypes.NA,
+      }
+    })
+  }
 }

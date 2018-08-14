@@ -96,12 +96,12 @@ export function runTestCases() {
   return { type: actionTypes.FSM_RUN_TEST_CASES };
 }
 
-export function initializeTestCasesFromCsvString(csvString) {
-  return { type: actionTypes.FSM_INITIALIZE_TEST_CASES_FROM_CSV_STRING, payload: { csvString } };
-}
-
 export function resetTestCases() {
   return { type: actionTypes.FSM_RESET_TEST_CASES };
+}
+
+export function initializeTestCasesFromCsvString(csvString) {
+  return { type: actionTypes.FSM_INITIALIZE_TEST_CASES_FROM_CSV_STRING, payload: { csvString } };
 }
 
 export function initializeFromJsonString(jsonString) {

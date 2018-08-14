@@ -14,6 +14,11 @@ import {
   removeAcceptState,
   setAcceptStates,
   setExecutionPath,
+  runTestCases,
+  addTestCase,
+  removeTestCase,
+  resetTestCases,
+  initializeTestCasesFromCsvString,
 } from './sharedAutomataFunctions'
 import * as inputMessageTypes from '../constants/inputMessageTypes'
 import * as emptyStringSymbols from '../constants/emptyStringSymbols'
@@ -26,7 +31,14 @@ const stepInput = state => {
     state.acceptStates.contains(currentState) ? inputMessageTypes.ACCEPT : inputMessageTypes.REJECT;
   let executionPaths = [];
   return { ...state, executionPaths: [...state.executionPaths.map(executionPath => {
-    if(executionPath.inputIndex >= state.inputString.length) {
+    const getEmptyStringTransitions = currentState =>
+      state.transitionFunction.filter(instruction =>
+        instruction.fromState === currentState && instruction.inputSymbol === emptyStringSymbols.LAMBDA
+      );
+    if(executionPath.inputIndex >= state.inputString.length &&
+      (getEmptyStringTransitions(executionPath.currentState).first() === undefined ||
+      state.acceptStates.contains(executionPath.currentState)
+      )) {
       return {
         ...executionPath,
         inputMessage: determineInputMessage(state.inputString.length === 0 ? state.initialState : executionPath.currentState)
@@ -41,13 +53,17 @@ const stepInput = state => {
       return { ...executionPath, inputMessage: inputMessageTypes.REJECT };
     }
     const getNewExecutionPath = transition => {
-      if(executionPath.inputIndex + 1 >= state.inputString.length) {
+      const newInputIndex = executionPath.inputIndex + (transition.inputSymbol === emptyStringSymbols.LAMBDA ? 0 : 1);
+      if(newInputIndex >= state.inputString.length &&
+        (getEmptyStringTransitions(transition.toState).first() === undefined ||
+        state.acceptStates.contains(transition.toState)
+        )) {
         inputMessage = determineInputMessage(transition.toState);
       } else {
         inputMessage = executionPath.inputMessage;
       }
       return {
-        inputIndex: executionPath.inputIndex + (transition.inputSymbol === emptyStringSymbols.LAMBDA ? 0 : 1),
+        inputIndex: newInputIndex,
         currentState: transition.toState,
         inputMessage
       };
@@ -103,7 +119,7 @@ export default function fsm(
     inputString: '',
     executionPaths: [
       {
-        currentState: '',
+        currentState: 'A',
         inputIndex: 0,
         inputMessage: '',
       },
@@ -168,10 +184,28 @@ export default function fsm(
       return setStates(state, action.payload.states);
     }
     case actionTypes.FSM_INITIAL_STATE_CHANGED: {
-      return changeInitialState(state, action.payload.state);
+      return {
+        ...changeInitialState(state, action.payload.state),
+        executionPaths: [
+          {
+            currentState: action.payload.state,
+            inputIndex: 0,
+            inputMessage: '',
+          }
+        ],
+      };
     }
     case actionTypes.FSM_INITIAL_STATE_REMOVED: {
-      return removeInitialState(state);
+      return {
+        ...removeInitialState(state),
+        executionPaths: [
+          {
+            currentState: '',
+            inputIndex: 0,
+            inputMessage: '',
+          }
+        ],
+      };
     }
     case actionTypes.FSM_ACCEPT_STATE_ADDED: {
       return addAcceptState(state, action.payload.state);
@@ -239,7 +273,7 @@ export default function fsm(
         inputString: action.payload.inputString,
         executionPaths: [
           {
-            currentState: action.payload.inputString.length !== 0 ? state.initialState : null,
+            currentState: state.initialState || '',
             inputIndex: 0,
             inputMessage: '',
           }
@@ -261,7 +295,7 @@ export default function fsm(
         ...state,
         executionPaths: [
           {
-            currentState: state.inputString.length !== 0 ? state.initialState : null,
+            currentState: state.initialState || '',
             inputIndex: 0,
             inputMessage: ''
           }
@@ -270,76 +304,20 @@ export default function fsm(
       };
     }
     case actionTypes.FSM_RUN_TEST_CASES: {
-      return {
-        ...state,
-        testCases: state.testCases.map(testCase => {
-          const newState = runInput({
-            ...state,
-            inputString: testCase.input === emptyStringSymbols.LAMBDA ? '' : testCase.input,
-            inputMessage: '',
-            executionPaths: [
-              {
-                currentState: testCase.input.length !== 0 ? state.initialState : null,
-                inputIndex: 0,
-                inputMessage: ''
-              }
-            ],
-            executionPathIndex: 0,
-          });
-          let actual;
-          if(newState.executionPaths.find(executionPath => executionPath.inputMessage === inputMessageTypes.ACCEPT)) {
-            actual = testCaseResultTypes.PASS;
-          } else if(newState.executionPaths.find(executionPath => executionPath.inputMessage === '')) {
-            actual = testCaseResultTypes.INDETERMINATE;
-          } else {
-            actual = testCaseResultTypes.FAIL;
-          }
-          let result;
-          if(testCase.expected === actual) {
-            result = testCaseResultTypes.PASS;
-          } else if(actual === testCaseResultTypes.INDETERMINATE) {
-            result = testCaseResultTypes.INDETERMINATE;
-          } else {
-            result = testCaseResultTypes.FAIL;
-          }
-          return { ...testCase, actual, result };
-        }),
-      }
+      const initialExecutionPath = { inputIndex: 0, inputMessage: '' };
+      return runTestCases(state, initialExecutionPath, runInput);
     }
     case actionTypes.FSM_RESET_TEST_CASES: {
-      return {
-        ...state,
-        testCases: [],
-      }
+      return resetTestCases(state);
     }
     case actionTypes.FSM_ADD_TEST_CASE: {
-      return { ...state, testCases: [...state.testCases, {
-        input: action.payload.input,
-        expected: action.payload.expected,
-        actual: testCaseResultTypes.NA,
-        result: testCaseResultTypes.NA,
-      }]};
+      return addTestCase(state, action.payload.input, action.payload.expected);
     }
     case actionTypes.FSM_REMOVE_TEST_CASE: {
-      const testCases = state.testCases;
-      testCases.splice(action.payload.index, 1);
-      return { ...state, testCases }
+      return removeTestCase(state, action.payload.index);
     }
     case actionTypes.FSM_INITIALIZE_TEST_CASES_FROM_CSV_STRING: {
-      console.log(action.payload.csvString.split('\n'));
-      return {
-        ...state,
-        testCases: action.payload.csvString.split('\n').filter(s => s !== '').map(testCaseString => {
-          const [ input, expected ] = testCaseString.split(',');
-          const expectedFail = expected === '0' || expected.toLocaleLowerCase() === 'fail';
-          return {
-            input,
-            expected: expectedFail ? testCaseResultTypes.FAIL : testCaseResultTypes.PASS,
-            actual: testCaseResultTypes.NA,
-            result: testCaseResultTypes.NA,
-          }
-        })
-      }
+      return initializeTestCasesFromCsvString(state, action.payload.csvString);
     }
     case actionTypes.FSM_INITIALIZED_FROM_JSON_STRING: { // TODO load fsm with correct empty string symbol
       const { jsonString } = action.payload;
@@ -355,7 +333,7 @@ export default function fsm(
         inputString: '',
         executionPaths: [
           {
-            currentState: '',
+            currentState: fsm.initialState || '',
             inputIndex: 0,
             inputMessage: '',
           },

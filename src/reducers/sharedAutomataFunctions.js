@@ -180,7 +180,7 @@ export function resetTestCases(automaton) {
 export function initializeTestCasesFromCsvString(automaton, csvString) {
   return {
     ...automaton,
-    testCases: csvString.split('\n').filter(s => s !== '').map(testCaseString => {
+    testCases: csvString.replace(/(\r\n|\n|\r)/gm, '\n').split('\n').filter(s => s !== '').map(testCaseString => {
       const [ input, expected ] = testCaseString.split(',');
       const expectedFail = expected === '0' || expected.toLocaleLowerCase() === 'fail';
       return {
